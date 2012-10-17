@@ -68,7 +68,8 @@ def soundex(word, language = 'french'):
     for i in xrange(len(word[1:])):
         if word[i] in vowels:
             continue
-        if consonnantscode[word[i]] == consonnantscode.get(code[-1], ''):
+        if word[i - 1] not in vowels and \
+           consonnantscode[word[i]] == consonnantscode.get(code[-1], ''):
             continue
         if i + 2 < len(word) and word[i + 1] in 'WH' and \
            consonnantscode[word[i]] == consonnantscode[word[i + 2]]:
