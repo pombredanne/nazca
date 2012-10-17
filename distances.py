@@ -23,7 +23,7 @@ def levenshtein(stra, strb):
             thisrow[y] = min(delcost, addcost, subcost)
     return thisrow[lenb - 1]
 
-def soundex(word, language = 'french'):
+def soundexcode(word, language = 'french'):
     """ Return the Soundex code of the word ``word``
         For more information about soundex code see wiki_
 

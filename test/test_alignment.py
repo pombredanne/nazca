@@ -38,7 +38,7 @@ uncomment code below if you want to activate automatic test for your cube:
 """
 
 from cubicweb.devtools import testlib
-from cubes.alignment.distances import (levenshtein, soundex)
+from cubes.alignment.distances import (levenshtein, soundex, soundexcode)
 
 class DistancesTest(testlib.CubicWebTC):
     def test_levenshtein(self):
@@ -63,12 +63,12 @@ class DistancesTest(testlib.CubicWebTC):
         #"Pfister" yields "P236" not "P123" (the first two letters have the same
         #number and are coded once as 'P').
 
-        self.assertEqual(soundex('Robert', 'english'), 'R163')
-        self.assertEqual(soundex('Rubert', 'english'), 'R163')
-        self.assertEqual(soundex('Rubin', 'english'), 'R150')
-        self.assertEqual(soundex('Ashcraft', 'english'), 'A261')
-        self.assertEqual(soundex('Tymczak', 'english'), 'T522')
-        self.assertEqual(soundex('Pfister', 'english'), 'P236')
+        self.assertEqual(soundexcode('Robert', 'english'), 'R163')
+        self.assertEqual(soundexcode('Rubert', 'english'), 'R163')
+        self.assertEqual(soundexcode('Rubin', 'english'), 'R150')
+        self.assertEqual(soundexcode('Ashcraft', 'english'), 'A261')
+        self.assertEqual(soundexcode('Tymczak', 'english'), 'T522')
+        self.assertEqual(soundexcode('Pfister', 'english'), 'P236')
 
 
 if __name__ == '__main__':
