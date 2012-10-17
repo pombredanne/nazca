@@ -47,10 +47,28 @@ class DistancesTest(testlib.CubicWebTC):
         self.assertEqual(levenshtein('bon', 'bonjour'), 4)
 
     def test_soundex(self):
+        ##     Test extracted from Wikipedia en :
+        #Using this algorithm :
+        #both "Robert" and "Rupert" return the same string "R163"
+        #while "Rubin" yields "R150".
+        #
+        # "Ashcraft" and "Ashcroft" both yield "A261" and not "A226"
+        #(the chars 's' and 'c' in the name would receive a single number
+        #of 2 and not 22 since an 'h' lies in between them).
+        #
+        # "Tymczak" yields "T522" not "T520"
+        #(the chars 'z' and 'k' in the name are coded as 2 twice since a vowel
+        #lies in between them).
+        #
+        #"Pfister" yields "P236" not "P123" (the first two letters have the same
+        #number and are coded once as 'P').
+
         self.assertEqual(soundex('Robert', 'english'), 'R163')
         self.assertEqual(soundex('Rubert', 'english'), 'R163')
         self.assertEqual(soundex('Rubin', 'english'), 'R150')
         self.assertEqual(soundex('Ashcraft', 'english'), 'A261')
+        self.assertEqual(soundex('Tymczak', 'english'), 'T522')
+        self.assertEqual(soundex('Pfister', 'english'), 'P236')
 
 
 if __name__ == '__main__':
