@@ -83,3 +83,17 @@ def soundex(stra, strb, language = 'french'):
         1 means they have the same code, 0 they don't
     """
     return 1 if soundexcode(stra, language) == soundexcode(strb, language) else 0
+
+def jaccard(stra, strb):
+    """ Return the jaccard distance between stra and strb, condering the letters
+    set of stra and strb
+
+    J(A, B) = (A \cap B) / (A \cup B)
+    d(A, B) = 1 - J(A, B)
+    """
+
+    seta = set(stra)
+    setb = set(strb)
+
+    jab = 1.0 * len(seta.intersection(setb)) / len(seta.union(setb))
+    return 1.0 - jab

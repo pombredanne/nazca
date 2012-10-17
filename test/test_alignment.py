@@ -38,7 +38,8 @@ uncomment code below if you want to activate automatic test for your cube:
 """
 
 from cubicweb.devtools import testlib
-from cubes.alignment.distances import (levenshtein, soundex, soundexcode)
+from cubes.alignment.distances import (levenshtein, soundex, soundexcode, \
+                                       jaccard)
 
 class DistancesTest(testlib.CubicWebTC):
     def test_levenshtein(self):
@@ -73,6 +74,15 @@ class DistancesTest(testlib.CubicWebTC):
         self.assertEqual(soundex('Rubert', 'Robert', 'english'), 1)
         self.assertEqual(soundex('Rubin', 'Robert', 'english'), 0)
 
+    def test_jaccard(self):
+        #The jaccard indice between two words is the ratio of the number of
+        #identical letters and the total number of letters
+        #Each letter is counted once only
+        #The distance is 1 - jaccard_indice
+
+        self.assertEqual(jaccard('bonjour', 'bonjour'), 0.0)
+        self.assertAlmostEqual(jaccard('boujour', 'bonjour'), 0.166, 2)
+        self.assertAlmostEqual(jaccard('rubert', 'robert'), 0.333, 2)
 
 if __name__ == '__main__':
     from logilab.common.testlib import unittest_main
