@@ -38,10 +38,19 @@ uncomment code below if you want to activate automatic test for your cube:
 """
 
 from cubicweb.devtools import testlib
+from cubes.alignment.distances import (levenshtein, soundex)
 
-class DefaultTC(testlib.CubicWebTC):
-    def test_something(self):
-        self.skipTest('this cube has no test')
+class DistancesTest(testlib.CubicWebTC):
+    def test_levenshtein(self):
+        self.assertEqual(levenshtein('niche', 'chiens'), 5)
+        self.assertEqual(levenshtein('bonjour', 'bonjour !'), 2)
+        self.assertEqual(levenshtein('bon', 'bonjour'), 4)
+
+    def test_soundex(self):
+        self.assertEqual(soundex('Robert', 'english'), 'R163')
+        self.assertEqual(soundex('Rubert', 'english'), 'R163')
+        self.assertEqual(soundex('Rubin', 'english'), 'R150')
+        self.assertEqual(soundex('Ashcraft', 'english'), 'A226')
 
 
 if __name__ == '__main__':
