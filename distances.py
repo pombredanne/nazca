@@ -56,10 +56,8 @@ def soundex(word, language = 'french'):
     else:
         raise NotImplementedError('Soundex code is not supported (yet ?) for'
                                   'this language')
-
     word = word.strip().upper()
     code = word[0]
-
     #After this ``for`` code is
     # the first letter of ``word`` followed by all the consonnants of word,
     # where from consecutive consonnants, only the first is kept,
@@ -75,8 +73,6 @@ def soundex(word, language = 'french'):
            consonnantscode[word[i]] == consonnantscode.get(word[i + 2], ''):
             continue
         code += word[i]
-
-
     #Replace according to the codes
     code = code[0] + ''.join([consonnantscode[c] for c in code[1:]])
     ###First four letters, completed by zeros
