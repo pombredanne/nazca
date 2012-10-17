@@ -135,3 +135,6 @@ def temporal(stra, strb, granularity = u'days', language = u'french'):
     if granularity.lower() == 'months':
         return abs(diff.days / 30.5)
     return abs(diff.days)
+
+def euclidean(a, b):
+    return abs(a - b)
