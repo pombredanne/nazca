@@ -1,4 +1,6 @@
-# -*- coding : utf-8 -*-
+# -*- coding:utf-8 -*-
+
+from dateutil import parser as dateparser
 
 def levenshtein(stra, strb):
     """ Compute the Levenshtein distance between stra and strb.
@@ -97,3 +99,39 @@ def jaccard(stra, strb):
 
     jab = 1.0 * len(seta.intersection(setb)) / len(seta.union(setb))
     return 1.0 - jab
+
+def temporal(stra, strb, granularity = u'days', language = u'french'):
+    """ Return the distance between two strings (read as dates).
+
+        ``granularity`` can be either ``days`` or ``months`` or ``years``
+        (be careful to the plural form !)
+        ``language`` can be either french or english
+    """
+    class customparserinfo(dateparser.parserinfo):
+        if language.lower() == u'french':
+            HMS      = [(u'h', u'heure', u'heures'),
+                        (u'm', u'minute', u'minutes'),
+                        (u's', u'seconde', u'seconde'),]
+            JUMP     = [u' ', u'.', u',', u';', u'-', u'/', u"'",
+                        u'a', u'le', u'et',]
+            MONTHS   = [(u'Jan', u'Janvier'), (u'Fev', u'Fevrier'), (u'Mar', u'Mars'),
+                       (u'Avr', u'Avril'), (u'Mai', u'Mai'), (u'Jun', u'Juin'),
+                       (u'Jui', u'Juillet'), (u'Aou', u'Aout'),
+                       (u'Sep', u'Septembre'), (u'Oct', u'Octobre'),
+                       (u'Nov', u'Novembre'), (u'Dec', u'Decembre'),]
+            PERTAIN  = [u'de']
+            WEEKDAYS = [(u'Lun', u'Lundi'),
+                        (u'Mar', u'Mardi'),
+                        (u'Mer', u'Mercredi'),
+                        (u'Jeu', u'Jeudi'),
+                        (u'Ven', u'Vendredi'),
+                        (u'Sam', u'Samedi'),
+                        (u'Dim', u'Dimanche'),]
+    datea = dateparser.parse(stra, parserinfo = customparserinfo())
+    dateb = dateparser.parse(strb, parserinfo = customparserinfo())
+    diff  = datea - dateb
+    if granularity.lower() == 'years':
+        return abs(diff.days / 365.25)
+    if granularity.lower() == 'months':
+        return abs(diff.days / 30.5)
+    return abs(diff.days)

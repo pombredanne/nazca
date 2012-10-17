@@ -39,7 +39,7 @@ uncomment code below if you want to activate automatic test for your cube:
 
 from cubicweb.devtools import testlib
 from cubes.alignment.distances import (levenshtein, soundex, soundexcode, \
-                                       jaccard)
+                                       jaccard, temporal)
 
 class DistancesTest(testlib.CubicWebTC):
     def test_levenshtein(self):
@@ -83,6 +83,19 @@ class DistancesTest(testlib.CubicWebTC):
         self.assertEqual(jaccard('bonjour', 'bonjour'), 0.0)
         self.assertAlmostEqual(jaccard('boujour', 'bonjour'), 0.166, 2)
         self.assertAlmostEqual(jaccard('rubert', 'robert'), 0.333, 2)
+
+    def test_temporal(self):
+        #Test the distance between two dates. The distance can be given in
+        #``days``, ``months`` or ``years``
+
+        self.assertEqual(temporal('14 aout 1991', '14/08/1991'), 0)
+        self.assertEqual(temporal('14 aout 1991', '08/14/1991'), 0)
+        self.assertEqual(temporal('14 aout 1991', '08/15/1992'), 367)
+        self.assertAlmostEqual(temporal('14 aout 1991', '08/15/1992', 'years'), 1.0, 1)
+        self.assertAlmostEqual(temporal('1991', '1992', 'years'), 1.0, 1)
+        self.assertAlmostEqual(temporal('13 mars', '13 mai', 'months'), 2.0, 1)
+        self.assertAlmostEqual(temporal('13 march', '13 may', 'months',
+                                        'english'), 2.0, 1)
 
 if __name__ == '__main__':
     from logilab.common.testlib import unittest_main
