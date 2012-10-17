@@ -72,7 +72,7 @@ def soundex(word, language = 'french'):
            consonnantscode[word[i]] == consonnantscode.get(code[-1], ''):
             continue
         if i + 2 < len(word) and word[i + 1] in 'WH' and \
-           consonnantscode[word[i]] == consonnantscode[word[i + 2]]:
+           consonnantscode[word[i]] == consonnantscode.get(word[i + 2], ''):
             continue
         code += word[i]
 
