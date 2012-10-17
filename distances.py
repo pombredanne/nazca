@@ -65,7 +65,7 @@ def soundex(word, language = 'french'):
     # where from consecutive consonnants, only the first is kept,
     # and from two identical consonnants separated by a W or a H, only the first
     # is kept too.
-    for i in xrange(len(word[1:])):
+    for i in xrange(1, len(word)):
         if word[i] in vowels:
             continue
         if word[i - 1] not in vowels and \
