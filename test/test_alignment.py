@@ -50,7 +50,7 @@ class DistancesTest(testlib.CubicWebTC):
         self.assertEqual(soundex('Robert', 'english'), 'R163')
         self.assertEqual(soundex('Rubert', 'english'), 'R163')
         self.assertEqual(soundex('Rubin', 'english'), 'R150')
-        self.assertEqual(soundex('Ashcraft', 'english'), 'A226')
+        self.assertEqual(soundex('Ashcraft', 'english'), 'A261')
 
 
 if __name__ == '__main__':
