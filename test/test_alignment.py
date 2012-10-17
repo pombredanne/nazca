@@ -70,6 +70,9 @@ class DistancesTest(testlib.CubicWebTC):
         self.assertEqual(soundexcode('Tymczak', 'english'), 'T522')
         self.assertEqual(soundexcode('Pfister', 'english'), 'P236')
 
+        self.assertEqual(soundex('Rubert', 'Robert', 'english'), 1)
+        self.assertEqual(soundex('Rubin', 'Robert', 'english'), 0)
+
 
 if __name__ == '__main__':
     from logilab.common.testlib import unittest_main

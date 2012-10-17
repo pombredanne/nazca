@@ -77,3 +77,9 @@ def soundexcode(word, language = 'french'):
     code = code[0] + ''.join([consonnantscode[c] for c in code[1:]])
     ###First four letters, completed by zeros
     return code[:4] + '0' * (4 - len(code))
+
+def soundex(stra, strb, language = 'french'):
+    """ Return the 1/0 distance between the soundex code of stra and strb.
+        1 means they have the same code, 0 they don't
+    """
+    return 1 if soundexcode(stra, language) == soundexcode(strb, language) else 0
