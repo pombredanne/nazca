@@ -112,6 +112,7 @@ class DistancesTest(testlib.CubicWebTC):
     def test_euclidean(self):
         self.assertEqual(euclidean(10, 11), 1)
         self.assertEqual(euclidean(-10, 11), 21)
+        self.assertEqual(euclidean('-10', '11'), 21)
 
 class NormalizerTestCase(testlib.CubicWebTC):
     def setUp(self):
