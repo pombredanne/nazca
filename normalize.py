@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import re
 from logilab.common.textutils import unormalize
 from nltk.tokenize import WordPunctTokenizer 
 
@@ -75,3 +76,20 @@ class Normalizer(object):
         """
 
         return format(round(float(number), ndigits), '0.%df' % ndigits)
+
+    def format(self, string, regexp, output):
+        """ Apply the regexp to the ``string`` and return a formatted string
+        according to ``output``
+
+        eg :
+         normalizer.format(u'[Victor Hugo - 26 fev 1802 / 22 mai 1885]',
+                           r'\[(?P<firstname>\w+) (?p<lastname>\w+) - '
+                           r'(?P<birthdate>.*?) / (?<deathdate>.*?)\]',
+                           u'%(lastname)s, %(firstname)s (%(birthdate)s -'
+                           u'%(deathdate)s)')
+
+         would return u'Hugo, Victor (26 fev 1802 - 22 mai 1885)'
+         """
+
+        match = re.match(regexp, string)
+        return output % match.groupdict()

@@ -125,6 +125,20 @@ class NormalizerTestCase(testlib.CubicWebTC):
         self.assertEqual(self.normalizer.round(3.14159), '3')
         self.assertEqual(self.normalizer.round('3.14159', 3), '3.142')
 
+    def test_format(self):
+        string = u'[Victor Hugo - 26 fev 1802 / 22 mai 1885]'
+        regex  = r'\[(?P<firstname>\w+) (?P<lastname>\w+) - ' \
+                 r'(?P<birthdate>.*) \/ (?P<deathdate>.*?)\]'
+        output = u'%(lastname)s, %(firstname)s (%(birthdate)s - %(deathdate)s)'
+        self.assertEqual(self.normalizer.format(string, regex, output),
+                         u'Hugo, Victor (26 fev 1802 - 22 mai 1885)')
+
+        string = u'http://perdu.com/42/supertop/cool'
+        regex  = r'http://perdu.com/(?P<id>\d+).*'
+        output = u'%(id)s'
+        self.assertEqual(self.normalizer.format(string, regex, output),
+                         u'42')
+
 
 if __name__ == '__main__':
     from logilab.common.testlib import unittest_main
