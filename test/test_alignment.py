@@ -128,7 +128,9 @@ class NormalizerTestCase(testlib.CubicWebTC):
 
     def test_lemmatizer(self):
         self.assertEqual(lemmatized(u"J'aime les frites !", self.lemmas),
-                         [u'J', u"'", u'aimer', u'le', u'frite', u'!'])
+                         u'je aimer le frite')
+        self.assertEqual(lemmatized(u", J'aime les frites", self.lemmas),
+                         u'je aimer le frite')
 
     def test_round(self):
         self.assertEqual(roundstr(3.14159, 2), '3.14')

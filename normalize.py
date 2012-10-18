@@ -18,6 +18,7 @@
 import re
 from logilab.common.textutils import unormalize
 from nltk.tokenize import WordPunctTokenizer
+from string import punctuation
 
 def lunormalize(sentence):
     """ Normalize a sentence (ie remove accents, set to lower, etc) """
@@ -43,7 +44,16 @@ def loadlemmas(filename):
 def lemmatized(sentence, lemmas, tokenizer = None):
     """ Return the lemmatized sentence
     """
-    return [lemmatized_word(w, lemmas) for w in tokenize(sentence, tokenizer)]
+    tokenized_sent = tokenize(sentence, tokenizer)
+    tokenized_sentformated = []
+    for w in tokenized_sent:
+        if w in ".,'" and len(tokenized_sentformated) > 0:
+            tokenized_sentformated[-1] += w
+        elif w not in punctuation:
+            tokenized_sentformated.append(w)
+
+    return ' '.join([lemmatized_word(w, lemmas)
+                     for w in tokenized_sentformated])
 
 def lemmatized_word(word, lemmas):
     """ Return the lemmatized word
