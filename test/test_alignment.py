@@ -39,13 +39,14 @@ uncomment code below if you want to activate automatic test for your cube:
             return ('some', 'startup', 'views')
 """
 
-from cubicweb.devtools import testlib
+import unittest2
+
 from cubes.alignment.distances import (levenshtein, soundex, soundexcode, \
                                        jaccard, temporal, euclidean)
 from cubes.alignment.normalize import (lunormalize, loadlemmas, lemmatized, \
                                        roundstr, rgxformat, tokenize)
 
-class DistancesTest(testlib.CubicWebTC):
+class DistancesTest(unittest2.TestCase):
     def test_levenshtein(self):
         self.assertEqual(levenshtein('niche', 'chiens'), 5)
         self.assertEqual(levenshtein('bonjour', 'bonjour !'), 2)
@@ -114,7 +115,7 @@ class DistancesTest(testlib.CubicWebTC):
         self.assertEqual(euclidean(-10, 11), 21)
         self.assertEqual(euclidean('-10', '11'), 21)
 
-class NormalizerTestCase(testlib.CubicWebTC):
+class NormalizerTestCase(unittest2.TestCase):
     def setUp(self):
         self.lemmas = loadlemmas('../data/french_lemmas.txt')
 
@@ -153,5 +154,4 @@ class NormalizerTestCase(testlib.CubicWebTC):
 
 
 if __name__ == '__main__':
-    from logilab.common.testlib import unittest_main
-    unittest_main()
+    unittest2.main()
