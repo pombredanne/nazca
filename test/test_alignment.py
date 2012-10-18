@@ -46,6 +46,8 @@ from cubes.alignment.distances import (levenshtein, soundex, soundexcode, \
 from cubes.alignment.normalize import (lunormalize, loadlemmas, lemmatized, \
                                        roundstr, rgxformat, tokenize)
 
+from cubes.alignment.matrix import Distancematrix
+
 class DistancesTest(unittest2.TestCase):
     def test_levenshtein(self):
         self.assertEqual(levenshtein('niche', 'chiens'), 5)
@@ -151,6 +153,35 @@ class NormalizerTestCase(unittest2.TestCase):
         output = u'%(id)s'
         self.assertEqual(rgxformat(string, regex, output),
                          u'42')
+
+class MatrixTestCase(unittest2.TestCase):
+    def setUp(self):
+        self.input1 = [u'Victor Hugo', u'Albert Camus', 'Jean Valjean']
+        self.input2 = [u'Victor Wugo', u'Albert Camus', 'Albert Camu']
+        self.distance = jaccard
+        self.matrix = Distancematrix(self.input1, self.input2, self.distance)
+
+    def test_matrixconstruction(self):
+        d = self.distance
+        i1, i2 = self.input1, self.input2
+        m = self.matrix
+
+        for i in xrange(len(i1)):
+            for j in xrange(len(i2)):
+                self.assertAlmostEqual(m[i, j], d(i1[i], i2[j]), 4)
+
+    def test_matched(self):
+        d = self.distance
+        i1, i2 = self.input1, self.input2
+        m = self.matrix
+
+        #Only the element 1 of input1 has *exactly* matched with the element 1
+        #of input2
+        self.assertEqual(m.matched(), {1: [1]})
+
+        #Everything partially matched, except Jean Valjean
+        self.assertEqual(m.matched(cutoff = 0.1, normalized = True),
+                        {0: [0], 1: [1, 2]})
 
 
 if __name__ == '__main__':
