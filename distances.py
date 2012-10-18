@@ -137,4 +137,7 @@ def temporal(stra, strb, granularity = u'days', language = u'french'):
     return abs(diff.days)
 
 def euclidean(a, b):
-    return abs(a - b)
+    try:
+        return abs(a - b)
+    except TypeError:
+        return abs(float(a) - float(b))

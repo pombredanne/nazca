@@ -1,3 +1,5 @@
+# -*- coding:utf-8 -*-
+#
 # copyright 2012 LOGILAB S.A. (Paris, FRANCE), all rights reserved.
 # contact http://www.logilab.fr -- mailto:contact@logilab.fr
 #
@@ -40,6 +42,7 @@ uncomment code below if you want to activate automatic test for your cube:
 from cubicweb.devtools import testlib
 from cubes.alignment.distances import (levenshtein, soundex, soundexcode, \
                                        jaccard, temporal, euclidean)
+from cubes.alignment.normalize import Normalizer
 
 class DistancesTest(testlib.CubicWebTC):
     def test_levenshtein(self):
@@ -100,6 +103,28 @@ class DistancesTest(testlib.CubicWebTC):
     def test_euclidean(self):
         self.assertEqual(euclidean(10, 11), 1)
         self.assertEqual(euclidean(-10, 11), 21)
+
+class NormalizerTestCase(testlib.CubicWebTC):
+    def setUp(self):
+        self.normalizer = Normalizer('../data/french_lemmas.txt')
+
+    def test_unormalize(self):
+        self.assertEqual(self.normalizer.unormalize(u'bépoèàÀêùï'),
+                                                    u'bepoeaaeui')
+
+    def test_tokenize(self):
+        self.assertEqual(self.normalizer.tokenize(u"J'aime les frites !"),
+                         [u'J', u"'", u'aime', u'les', u'frites', u'!',])
+
+    def test_lemmatizer(self):
+        self.assertEqual(self.normalizer.lemmatized(u"J'aime les frites !"),
+                         [u'J', u"'", u'aimer', u'le', u'frite', u'!'])
+
+    def test_round(self):
+        self.assertEqual(self.normalizer.round(3.14159, 2), '3.14')
+        self.assertEqual(self.normalizer.round(3.14159), '3')
+        self.assertEqual(self.normalizer.round('3.14159', 3), '3.142')
+
 
 if __name__ == '__main__':
     from logilab.common.testlib import unittest_main
