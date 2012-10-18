@@ -27,7 +27,7 @@ class Distancematrix(object):
         Given :
             input1 = ['Victor Hugo', 'Albert Camus']
             input2 = ['Victor Wugo', 'Albert Camus']
-            distance = 'levensthein'
+            distance = levensthein
 
             constructs the following matrix :
                  +----+----+
@@ -42,6 +42,7 @@ class Distancematrix(object):
         self.input2 = input2
         self.distance = distance
         self._matrix = lil_matrix((len(input1), len(input2)), dtype='float32')
+        self._maxdist = 0
         self._compute()
 
     def _compute(self):
@@ -50,6 +51,8 @@ class Distancematrix(object):
            # bottom
            for j in xrange(i, len(self.input2)):
                self._matrix[i,j] = self.distance(self.input1[i], self.input2[j])
+               if self._matrix[i,j] > self._maxdist:
+                   self._maxdist = self._matrix[i,j]
 
     def __getitem__(self, index):
         (i, j) = index
@@ -57,8 +60,10 @@ class Distancematrix(object):
             return self._matrix[index]
         return self._matrix[j, i]
 
-    def matched(self, cutoff = 0):
+    def matched(self, cutoff = 0, normalized = False):
         match = defaultdict(list)
+        if normalized:
+            cutoff *= self._maxdist
         for i in xrange(len(self.input1)):
             for j in xrange(i, len(self.input2)):
                 if self._matrix[i, j] <= cutoff:
