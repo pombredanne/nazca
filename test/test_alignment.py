@@ -42,7 +42,8 @@ uncomment code below if you want to activate automatic test for your cube:
 from cubicweb.devtools import testlib
 from cubes.alignment.distances import (levenshtein, soundex, soundexcode, \
                                        jaccard, temporal, euclidean)
-from cubes.alignment.normalize import Normalizer
+from cubes.alignment.normalize import (lunormalize, loadlemmas, lemmatized, \
+                                       roundstr, rgxformat, tokenize)
 
 class DistancesTest(testlib.CubicWebTC):
     def test_levenshtein(self):
@@ -114,37 +115,37 @@ class DistancesTest(testlib.CubicWebTC):
 
 class NormalizerTestCase(testlib.CubicWebTC):
     def setUp(self):
-        self.normalizer = Normalizer('../data/french_lemmas.txt')
+        self.lemmas = loadlemmas('../data/french_lemmas.txt')
 
     def test_unormalize(self):
-        self.assertEqual(self.normalizer.unormalize(u'bépoèàÀêùï'),
-                                                    u'bepoeaaeui')
+        self.assertEqual(lunormalize(u'bépoèàÀêùï'),
+                                     u'bepoeaaeui')
 
     def test_tokenize(self):
-        self.assertEqual(self.normalizer.tokenize(u"J'aime les frites !"),
+        self.assertEqual(tokenize(u"J'aime les frites !"),
                          [u'J', u"'", u'aime', u'les', u'frites', u'!',])
 
     def test_lemmatizer(self):
-        self.assertEqual(self.normalizer.lemmatized(u"J'aime les frites !"),
+        self.assertEqual(lemmatized(u"J'aime les frites !", self.lemmas),
                          [u'J', u"'", u'aimer', u'le', u'frite', u'!'])
 
     def test_round(self):
-        self.assertEqual(self.normalizer.round(3.14159, 2), '3.14')
-        self.assertEqual(self.normalizer.round(3.14159), '3')
-        self.assertEqual(self.normalizer.round('3.14159', 3), '3.142')
+        self.assertEqual(roundstr(3.14159, 2), '3.14')
+        self.assertEqual(roundstr(3.14159), '3')
+        self.assertEqual(roundstr('3.14159', 3), '3.142')
 
     def test_format(self):
         string = u'[Victor Hugo - 26 fev 1802 / 22 mai 1885]'
         regex  = r'\[(?P<firstname>\w+) (?P<lastname>\w+) - ' \
                  r'(?P<birthdate>.*) \/ (?P<deathdate>.*?)\]'
         output = u'%(lastname)s, %(firstname)s (%(birthdate)s - %(deathdate)s)'
-        self.assertEqual(self.normalizer.format(string, regex, output),
+        self.assertEqual(rgxformat(string, regex, output),
                          u'Hugo, Victor (26 fev 1802 - 22 mai 1885)')
 
         string = u'http://perdu.com/42/supertop/cool'
         regex  = r'http://perdu.com/(?P<id>\d+).*'
         output = u'%(id)s'
-        self.assertEqual(self.normalizer.format(string, regex, output),
+        self.assertEqual(rgxformat(string, regex, output),
                          u'42')
 
 

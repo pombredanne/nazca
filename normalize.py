@@ -17,79 +17,69 @@
 
 import re
 from logilab.common.textutils import unormalize
-from nltk.tokenize import WordPunctTokenizer 
+from nltk.tokenize import WordPunctTokenizer
 
-class Normalizer(object):
-    """ Use an object of this class to normalize your data """
+def lunormalize(sentence):
+    """ Normalize a sentence (ie remove accents, set to lower, etc) """
+    return unormalize(sentence).lower()
 
-    def __init__(self, lemmasfilename = 'data/french_lemmas.txt'):
-        self.lemmas = None
-        self.lemmasfilename = lemmasfilename
+def tokenize(sentence, tokenizer = None):
+    """ Tokenize a sentence.
+        Use ``tokenizer`` if given, else
+        nltk.tokenize.regexp.WordPunctTokenizer
 
-    def unormalize(self, sentence):
-        """ Normalize a sentence (ie remove accents, set to lower, etc) """
-        return unormalize(sentence).lower()
+        Anyway, tokenizer must have a ``tokenize()`` method
+    """
+    tokenizer = tokenizer or WordPunctTokenizer
+    return [w for w in tokenizer().tokenize(sentence)]
 
-    def tokenize(self, sentence, tokenizer = None):
-        """ Tokenize a sentence.
-            Use ``tokenizer`` if given, else 
-            nltk.tokenize.regexp.WordPunctTokenizer
+def loadlemmas(filename):
+    """ Return the default lemmas dictionnary
+    """
+    return dict([line.strip().split('\t')
+                 for line in open(filename)
+                     if len(line.strip().split('\t'))==2])
 
-            Anyway, tokenizer must have a ``tokenize()`` method
-        """
-        tokenizer = tokenizer or WordPunctTokenizer
-        return [w for w in tokenizer().tokenize(sentence)]
+def lemmatized(sentence, lemmas, tokenizer = None):
+    """ Return the lemmatized sentence
+    """
+    return [lemmatized_word(w, lemmas) for w in tokenize(sentence, tokenizer)]
 
-    def _deflemmas(self):
-        """ Return the default lemmas dictionnary
-        """
-        return dict([line.strip().split('\t') 
-                     for line in open(self.lemmasfilename)
-                         if len(line.strip().split('\t'))==2])
+def lemmatized_word(word, lemmas):
+    """ Return the lemmatized word
+    """
+    lemma = lemmas.get(word.lower(), word)
+    if '|' in lemma:
+        _words = lemma.split('|')
+        if word.lower() in _words:
+            lemma = word.lower()
+        else:
+            lemma = _words[0]
+    return lemma
 
-    def lemmatized(self, sentence, tokenizer = None, lemmas = None):
-        """ Return the lemmatized sentence
-        """
-        self.lemmas = lemmas or self.lemmas or self._deflemmas()
-        return [self.lemmatized_word(w, self.lemmas)
-                for w in self.tokenize(sentence, tokenizer)]
+def roundstr(number, ndigits = 0):
+    """Return an unicode string of ``number`` rounded to a given precision
+        in decimal digits (default 0 digits)
 
-    def lemmatized_word(self, word, lemmas = None):
-        """ Return the lemmatized word
-        """
-        self.lemmas = lemmas or self.lemmas or self._deflemmas()
-        lemma = lemmas.get(word.lower(), word)
-        if '|' in lemma:
-            _words = lemma.split('|')
-            if word.lower() in _words:
-                lemma = word.lower()
-            else:
-                lemma = _words[0]
-        return lemma
+        If ``number`` is not a float, this method casts it to a float. (An
+        exception can be raised if it's not possible)
+    """
 
-    def round(self, number, ndigits = 0):
-        """Return an unicode string of ``number`` rounded to a given precision
-            in decimal digits (default 0 digits)
+    return format(round(float(number), ndigits), '0.%df' % ndigits)
 
-            If ``number`` is not a float, this method casts it to a float. (An
-            exception can be raised if it's not possible)
-        """
+def rgxformat(string, regexp, output):
+    """ Apply the regexp to the ``string`` and return a formatted string
+    according to ``output``
 
-        return format(round(float(number), ndigits), '0.%df' % ndigits)
+    eg :
+        format(u'[Victor Hugo - 26 fev 1802 / 22 mai 1885]',
+               r'\[(?P<firstname>\w+) (?p<lastname>\w+) - '
+               r'(?P<birthdate>.*?) / (?<deathdate>.*?)\]',
+               u'%(lastname)s, %(firstname)s (%(birthdate)s -'
+               u'%(deathdate)s)')
 
-    def format(self, string, regexp, output):
-        """ Apply the regexp to the ``string`` and return a formatted string
-        according to ``output``
+     would return u'Hugo, Victor (26 fev 1802 - 22 mai 1885)'
+     """
 
-        eg :
-         normalizer.format(u'[Victor Hugo - 26 fev 1802 / 22 mai 1885]',
-                           r'\[(?P<firstname>\w+) (?p<lastname>\w+) - '
-                           r'(?P<birthdate>.*?) / (?<deathdate>.*?)\]',
-                           u'%(lastname)s, %(firstname)s (%(birthdate)s -'
-                           u'%(deathdate)s)')
-
-         would return u'Hugo, Victor (26 fev 1802 - 22 mai 1885)'
-         """
-
-        match = re.match(regexp, string)
-        return output % match.groupdict()
+    match = re.match(regexp, string)
+    return output % match.groupdict()
