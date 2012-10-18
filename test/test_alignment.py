@@ -74,8 +74,8 @@ class DistancesTest(testlib.CubicWebTC):
         self.assertEqual(soundexcode('Tymczak', 'english'), 'T522')
         self.assertEqual(soundexcode('Pfister', 'english'), 'P236')
 
-        self.assertEqual(soundex('Rubert', 'Robert', 'english'), 1)
-        self.assertEqual(soundex('Rubin', 'Robert', 'english'), 0)
+        self.assertEqual(soundex('Rubert', 'Robert', 'english'), 0)
+        self.assertEqual(soundex('Rubin', 'Robert', 'english'), 1)
 
     def test_jaccard(self):
         #The jaccard indice between two words is the ratio of the number of

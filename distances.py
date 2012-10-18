@@ -97,9 +97,9 @@ def soundexcode(word, language = 'french'):
 
 def soundex(stra, strb, language = 'french'):
     """ Return the 1/0 distance between the soundex code of stra and strb.
-        1 means they have the same code, 0 they don't
+        0 means they have the same code, 1 they don't
     """
-    return 1 if soundexcode(stra, language) == soundexcode(strb, language) else 0
+    return 0 if soundexcode(stra, language) == soundexcode(strb, language) else 1
 
 def jaccard(stra, strb):
     """ Return the jaccard distance between stra and strb, condering the letters
