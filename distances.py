@@ -115,12 +115,16 @@ def jaccard(stra, strb):
     jab = 1.0 * len(seta.intersection(setb)) / len(seta.union(setb))
     return 1.0 - jab
 
-def temporal(stra, strb, granularity = u'days', language = u'french'):
+def temporal(stra, strb, granularity = u'days', language = u'french',
+             dayfirst = True, yearfirst = False):
     """ Return the distance between two strings (read as dates).
 
         ``granularity`` can be either ``days`` or ``months`` or ``years``
         (be careful to the plural form !)
         ``language`` can be either french or english
+
+        ``dayfirst`` and ``yearfirst`` are used in case of ambiguity, for
+        instance 09/09/09, by default it assumes it's day/month/year
     """
     class customparserinfo(dateparser.parserinfo):
         if language.lower() == u'french':
@@ -128,7 +132,7 @@ def temporal(stra, strb, granularity = u'days', language = u'french'):
                         (u'm', u'minute', u'minutes'),
                         (u's', u'seconde', u'seconde'),]
             JUMP     = [u' ', u'.', u',', u';', u'-', u'/', u"'",
-                        u'a', u'le', u'et',]
+                        u'a', u'le', u'et', u'er']
             MONTHS   = [(u'Jan', u'Janvier'), (u'Fev', u'Fevrier'), (u'Mar', u'Mars'),
                        (u'Avr', u'Avril'), (u'Mai', u'Mai'), (u'Jun', u'Juin'),
                        (u'Jui', u'Juillet'), (u'Aou', u'Aout'),
@@ -142,8 +146,10 @@ def temporal(stra, strb, granularity = u'days', language = u'french'):
                         (u'Ven', u'Vendredi'),
                         (u'Sam', u'Samedi'),
                         (u'Dim', u'Dimanche'),]
-    datea = dateparser.parse(stra, parserinfo = customparserinfo())
-    dateb = dateparser.parse(strb, parserinfo = customparserinfo())
+    datea = dateparser.parse(stra, parserinfo = customparserinfo(dayfirst,
+                             yearfirst), fuzzy = True)
+    dateb = dateparser.parse(strb, parserinfo = customparserinfo(dayfirst,
+                             yearfirst), fuzzy = True)
     diff  = datea - dateb
     if granularity.lower() == 'years':
         return abs(diff.days / 365.25)

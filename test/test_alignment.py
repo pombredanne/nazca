@@ -94,11 +94,19 @@ class DistancesTest(testlib.CubicWebTC):
         self.assertEqual(temporal('14 aout 1991', '14/08/1991'), 0)
         self.assertEqual(temporal('14 aout 1991', '08/14/1991'), 0)
         self.assertEqual(temporal('14 aout 1991', '08/15/1992'), 367)
+        #Test a case of ambiguity
+        self.assertEqual(temporal('1er mai 2012', '01/05/2012'), 0)
+        self.assertEqual(temporal('1er mai 2012', '05/01/2012', dayfirst = False), 0)
+        #Test the different granularities available
         self.assertAlmostEqual(temporal('14 aout 1991', '08/15/1992', 'years'), 1.0, 1)
         self.assertAlmostEqual(temporal('1991', '1992', 'years'), 1.0, 1)
         self.assertAlmostEqual(temporal('13 mars', '13 mai', 'months'), 2.0, 1)
         self.assertAlmostEqual(temporal('13 march', '13 may', 'months',
                                         'english'), 2.0, 1)
+
+        #Test fuzzyness
+        self.assertEqual(temporal('Jean est né le 1er octobre 1958',
+                                  'Le 01-10-1958, Jean est né'), 0)
 
     def test_euclidean(self):
         self.assertEqual(euclidean(10, 11), 1)
