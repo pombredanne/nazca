@@ -202,6 +202,12 @@ class MatrixTestCase(unittest2.TestCase):
                         {0: [(0, d(i1[0], i2[0]))], 1: [(1, d(i1[1], i2[1])), 
                                                        (2, d(i1[1], i2[2]))]})
 
+    def test_operation(self):
+        m = self.matrix
+        self.assertEqual(3 * m, m * 3)
+        self.assertEqual((m - 0.5*m), (0.5 * m))
+        self.assertEqual(m + 10*m - m * 3, 8 * m)
+
 
 if __name__ == '__main__':
     unittest2.main()

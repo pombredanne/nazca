@@ -20,6 +20,7 @@ from cubes.alignment.distances import (levenshtein, soundex, \
 from collections import defaultdict
 from scipy.sparse import lil_matrix
 from scipy import where
+from copy import deepcopy
 
 class Distancematrix(object):
     """ Construct and compute a matrix of distance given a distance function.
@@ -56,6 +57,52 @@ class Distancematrix(object):
 
     def __repr__(self):
         return self._matrix.todense().__repr__()
+
+    def __rmul__(self, number):
+        return self * number
+
+    def __mul__(self, number):
+        if not (isinstance(number, int) or isinstance(number, float)):
+            raise NotImplementedError
+
+        other = deepcopy(self)
+        other._matrix *= number
+        other._maxdist *= number
+        return other
+
+    def __add__(self, other):
+        if not isinstance(other, Distancematrix):
+            raise NotImplementedError
+
+        result = deepcopy(self)
+        result._maxdist = self._maxdist + other._maxdist
+        result._matrix = (self._matrix + other._matrix).tolil()
+        return result
+
+    def __sub__(self, other):
+        if not isinstance(other, Distancematrix):
+            raise NotImplementedError
+
+        result = deepcopy(self)
+        result._maxdist = self._maxdist - other._maxdist
+        result._matrix = (self._matrix - other._matrix).tolil()
+        return result
+
+    def __eq__(self, other):
+        if not isinstance(other, Distancematrix):
+            return False
+
+        if (self._matrix.rows != other._matrix.rows).any():
+            return False
+
+        if (self._matrix.data != other._matrix.data).any():
+            return False
+
+        if self.distance != other.distance:
+            return False
+
+        return True
+
 
     def matched(self, cutoff = 0, normalized = False):
         match = defaultdict(list)
