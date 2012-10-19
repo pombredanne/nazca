@@ -54,6 +54,9 @@ class Distancematrix(object):
     def __getitem__(self, index):
         return self._matrix[index]
 
+    def __repr__(self):
+        return self._matrix.todense().__repr__()
+
     def matched(self, cutoff = 0, normalized = False):
         match = defaultdict(list)
         if normalized:
