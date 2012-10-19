@@ -193,12 +193,13 @@ class MatrixTestCase(unittest2.TestCase):
 
         #Only the element 1 of input1 has *exactly* matched with the element 1
         #of input2
-        self.assertEqual(m.matched(), {1: [1]})
+        self.assertEqual(m.matched(), {1: [(1, 0)]})
 
         #Victor Hugo --> Victor Wugo
         #Albert Camus --> Albert Camus, Albert Camu
         self.assertEqual(m.matched(cutoff = 0.1, normalized = True),
-                        {0: [0], 1: [1, 2]})
+                        {0: [(0, d(i1[0], i2[0]))], 1: [(1, d(i1[1], i2[1])), 
+                                                       (2, d(i1[1], i2[2]))]})
 
 
 if __name__ == '__main__':

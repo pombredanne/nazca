@@ -68,10 +68,10 @@ class Distancematrix(object):
         allindexes = (zip(xrange(size[0]), xrange(size[1])))
         zeros = [index for index in allindexes if index not in rowcol]
         for (i, j) in zeros:
-            match[i].append(j)
+            match[i].append((j, 0))
 
         if cutoff > 0: #If more is wanted, return it too
             for (i, j) in rowcol:
                 if self._matrix[i, j] <= cutoff:
-                    match[i].append(j)
+                    match[i].append((j, self._matrix[i, j]))
         return match
