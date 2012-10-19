@@ -38,17 +38,16 @@ class Distancematrix(object):
     """
 
     def __init__(self, input1, input2, distance):
-        self.input1 = input1
-        self.input2 = input2
         self.distance = distance
         self._matrix = lil_matrix((len(input1), len(input2)), dtype='float32')
+        self.size = self._matrix.get_shape()
         self._maxdist = 0
-        self._compute()
+        self._compute(input1, input2)
 
-    def _compute(self):
-       for i in xrange(len(self.input1)):
-           for j in xrange(len(self.input2)):
-               self._matrix[i,j] = self.distance(self.input1[i], self.input2[j])
+    def _compute(self, input1, input2):
+       for i in xrange(self.size[0]):
+           for j in xrange(self.size[1]):
+               self._matrix[i,j] = self.distance(input1[i], input2[j])
                if self._matrix[i,j] > self._maxdist:
                    self._maxdist = self._matrix[i,j]
 
@@ -64,8 +63,8 @@ class Distancematrix(object):
         rowcol = zip(row, col)
 
         #Get those that exactly matched
-        size = self._matrix.get_shape()
-        allindexes = ((i, j) for i in xrange(size[0]) for j in xrange(size[1]))
+        allindexes = ((i, j) for i in xrange(self.size[0])
+                                 for j in xrange(self.size[1]))
         zeros = [index for index in allindexes if index not in rowcol]
         for (i, j) in zeros:
             match[i].append((j, 0))
