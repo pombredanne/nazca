@@ -174,7 +174,7 @@ class MatrixTestCase(unittest2.TestCase):
     def setUp(self):
         self.input1 = [u'Victor Hugo', u'Albert Camus', 'Jean Valjean']
         self.input2 = [u'Victor Wugo', u'Albert Camus', 'Albert Camu']
-        self.distance = jaccard
+        self.distance = levenshtein
         self.matrix = Distancematrix(self.input1, self.input2, self.distance)
 
     def test_matrixconstruction(self):
@@ -195,7 +195,8 @@ class MatrixTestCase(unittest2.TestCase):
         #of input2
         self.assertEqual(m.matched(), {1: [1]})
 
-        #Everything partially matched, except Jean Valjean
+        #Victor Hugo --> Victor Wugo
+        #Albert Camus --> Albert Camus, Albert Camu
         self.assertEqual(m.matched(cutoff = 0.1, normalized = True),
                         {0: [0], 1: [1, 2]})
 

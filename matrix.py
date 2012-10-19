@@ -47,18 +47,13 @@ class Distancematrix(object):
 
     def _compute(self):
        for i in xrange(len(self.input1)):
-           # The matrix is an upper triangular one, so don't compute the
-           # bottom
-           for j in xrange(i, len(self.input2)):
+           for j in xrange(len(self.input2)):
                self._matrix[i,j] = self.distance(self.input1[i], self.input2[j])
                if self._matrix[i,j] > self._maxdist:
                    self._maxdist = self._matrix[i,j]
 
     def __getitem__(self, index):
-        (i, j) = index
-        if i <= j:
-            return self._matrix[index]
-        return self._matrix[j, i]
+        return self._matrix[index]
 
     def matched(self, cutoff = 0, normalized = False):
         match = defaultdict(list)
