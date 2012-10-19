@@ -16,6 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from dateutil import parser as dateparser
+from scipy import matrix
 
 def levenshtein(stra, strb):
     """ Compute the Levenshtein distance between stra and strb.
@@ -25,7 +26,13 @@ def levenshtein(stra, strb):
         - Replace one character of stra into a character of strb
         - Add one character of strb into stra
         - Remove one character of strb
+
+        If spaces are found in stra or strb, this method returns
+            _handlespaces(stra, strb), levenshtein)
     """
+
+    if ' ' in (stra + strb):
+        return _handlespaces(stra, strb, levenshtein)
 
     lena = len(stra)
     lenb = len(strb)
@@ -40,6 +47,43 @@ def levenshtein(stra, strb):
             thisrow[y] = min(delcost, addcost, subcost)
     return thisrow[lenb - 1]
 
+def _handlespaces(stra, strb, distance, **args):
+    """ Compute the matrix of distances between all tokens of stra and strb
+        (with function ``distance``). Extra args are given to the distance
+        function
+
+        The distance returned is defined as the max of the min of each rows of
+        each distance matrix, see the example above :
+
+                 |  Victor |  Hugo                  Victor | Jean | Hugo
+         Victor  |     0   |    5           Victor |  0    |  6   |  5
+          Jean   |     6   |    4           Hugo   |  5    |  4   |  0
+          Hugo   |     5   |    0
+
+                 --> 4                                --> 0
+
+        Return 4
+    """
+
+    if ' ' not in stra:
+        stra += ' '
+    if ' ' not in strb:
+        strb += ' '
+
+    toka, tokb = stra.split(' '), strb.split(' ')
+
+    listmatrix = []
+    for i in xrange(len(toka)):
+        listmatrix.append([])
+        for j in xrange(len(tokb)):
+            listmatrix[-1].append(distance(toka[i], tokb[j], **args))
+    m = matrix(listmatrix)
+    minlist = [m[i,:].min() for i in xrange(m.shape[0])]
+    minlist.extend([m[:,i].min() for i in xrange(m.shape[1])])
+
+    return max(minlist)
+
+
 def soundexcode(word, language = 'french'):
     """ Return the Soundex code of the word ``word``
         For more information about soundex code see wiki_
@@ -47,11 +91,10 @@ def soundexcode(word, language = 'french'):
         ``language`` can be 'french' or 'english'
 
         .:: wiki_ : https://en.wikipedia.org/wiki/Soundex
-    """
 
-    if ' ' in word:
-        words = word.split(' ')
-        return ' '.join([soundexcode(w.strip(), language) for w in words])
+        If spaces are found in stra or strb, this method returns
+            _handlespaces(stra, strb), soundex, language = language)
+    """
 
     vowels = 'AEHIOUWY'
     if language.lower() == 'french' :
@@ -103,6 +146,9 @@ def soundex(stra, strb, language = 'french'):
     """ Return the 1/0 distance between the soundex code of stra and strb.
         0 means they have the same code, 1 they don't
     """
+    if ' ' in (stra + strb):
+        return _handlespaces(stra, strb, soundex, language = language)
+
     return 0 if (soundexcode(stra, language) == soundexcode(strb, language)) \
              else 1
 

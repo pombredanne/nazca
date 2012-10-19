@@ -51,8 +51,9 @@ from cubes.alignment.matrix import Distancematrix
 class DistancesTest(unittest2.TestCase):
     def test_levenshtein(self):
         self.assertEqual(levenshtein('niche', 'chiens'), 5)
-        self.assertEqual(levenshtein('bonjour', 'bonjour !'), 2)
+        self.assertEqual(levenshtein('bonjour', 'bonjour !'), 1)
         self.assertEqual(levenshtein('bon', 'bonjour'), 4)
+        self.assertEqual(levenshtein('Victor Hugo', 'Hugo Victor'), 0)
 
         #Test symetry
         self.assertEqual(levenshtein('Victor Hugo', 'Vitor Wugo'),
@@ -197,7 +198,7 @@ class MatrixTestCase(unittest2.TestCase):
 
         #Victor Hugo --> Victor Wugo
         #Albert Camus --> Albert Camus, Albert Camu
-        self.assertEqual(m.matched(cutoff = 0.1, normalized = True),
+        self.assertEqual(m.matched(cutoff = 0.2, normalized = True),
                         {0: [(0, d(i1[0], i2[0]))], 1: [(1, d(i1[1], i2[1])), 
                                                        (2, d(i1[1], i2[2]))]})
 
