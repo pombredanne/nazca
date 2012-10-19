@@ -54,6 +54,10 @@ class DistancesTest(unittest2.TestCase):
         self.assertEqual(levenshtein('bonjour', 'bonjour !'), 2)
         self.assertEqual(levenshtein('bon', 'bonjour'), 4)
 
+        #Test symetry
+        self.assertEqual(levenshtein('Victor Hugo', 'Vitor Wugo'),
+                         levenshtein('Vitor Wugo', 'Victor Hugo'))
+
     def test_soundex(self):
         ##     Test extracted from Wikipedia en :
         #Using this algorithm :
@@ -91,6 +95,10 @@ class DistancesTest(unittest2.TestCase):
         self.assertAlmostEqual(jaccard('boujour', 'bonjour'), 0.166, 2)
         self.assertAlmostEqual(jaccard('rubert', 'robert'), 0.333, 2)
 
+        #Test symetry
+        self.assertEqual(jaccard('orange', 'morange'),
+                         jaccard('morange', 'orange'))
+
     def test_temporal(self):
         #Test the distance between two dates. The distance can be given in
         #``days``, ``months`` or ``years``
@@ -112,10 +120,18 @@ class DistancesTest(unittest2.TestCase):
         self.assertEqual(temporal('Jean est né le 1er octobre 1958',
                                   'Le 01-10-1958, Jean est né'), 0)
 
+        #Test symetry
+        self.assertEqual(temporal('14-08-1991', '15/08/1992'),
+                         temporal('15/08/1992', '14/08/1991'))
+
     def test_euclidean(self):
         self.assertEqual(euclidean(10, 11), 1)
         self.assertEqual(euclidean(-10, 11), 21)
         self.assertEqual(euclidean('-10', '11'), 21)
+
+        #Test symetry
+        self.assertEqual(euclidean(10, 11),
+                         euclidean(11, 10))
 
 class NormalizerTestCase(unittest2.TestCase):
     def setUp(self):
