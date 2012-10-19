@@ -65,7 +65,7 @@ class Distancematrix(object):
 
         #Get those that exactly matched
         size = self._matrix.get_shape()
-        allindexes = (zip(xrange(size[0]), xrange(size[1])))
+        allindexes = ((i, j) for i in xrange(size[0]) for j in xrange(size[1]))
         zeros = [index for index in allindexes if index not in rowcol]
         for (i, j) in zeros:
             match[i].append((j, 0))
