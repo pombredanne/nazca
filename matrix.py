@@ -59,8 +59,19 @@ class Distancematrix(object):
         match = defaultdict(list)
         if normalized:
             cutoff *= self._maxdist
-        for i in xrange(len(self.input1)):
-            for j in xrange(i, len(self.input2)):
+
+        row, col = self._matrix.nonzero()
+        rowcol = zip(row, col)
+
+        #Get those that exactly matched
+        size = self._matrix.get_shape()
+        allindexes = (zip(xrange(size[0]), xrange(size[1])))
+        zeros = [index for index in allindexes if index not in rowcol]
+        for (i, j) in zeros:
+            match[i].append(j)
+
+        if cutoff > 0: #If more is wanted, return it too
+            for (i, j) in rowcol:
                 if self._matrix[i, j] <= cutoff:
                     match[i].append(j)
         return match
