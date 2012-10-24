@@ -44,7 +44,7 @@ import unittest2
 from cubes.alignment.distances import (levenshtein, soundex, soundexcode, \
                                        jaccard, temporal, euclidean)
 from cubes.alignment.normalize import (lunormalize, loadlemmas, lemmatized, \
-                                       roundstr, rgxformat, tokenize)
+                                       roundstr, rgxformat, tokenize, simplify)
 
 from cubes.alignment.matrix import Distancematrix
 
@@ -142,6 +142,10 @@ class NormalizerTestCase(unittest2.TestCase):
         self.assertEqual(lunormalize(u'bépoèàÀêùï'),
                                      u'bepoeaaeui')
 
+    def test_simplify(self):
+        self.assertEqual(simplify(u"J'aime les frites, les pommes et les" \
+                                  u" scoubidous !", self.lemmas),
+                         u"aimer frites pomme scoubidou")
     def test_tokenize(self):
         self.assertEqual(tokenize(u"J'aime les frites !"),
                          [u'J', u"'", u'aime', u'les', u'frites', u'!',])
@@ -199,7 +203,7 @@ class MatrixTestCase(unittest2.TestCase):
         #Victor Hugo --> Victor Wugo
         #Albert Camus --> Albert Camus, Albert Camu
         self.assertEqual(m.matched(cutoff = 0.2, normalized = True),
-                        {0: [(0, d(i1[0], i2[0]))], 1: [(1, d(i1[1], i2[1])), 
+                        {0: [(0, d(i1[0], i2[0]))], 1: [(1, d(i1[1], i2[1])),
                                                        (2, d(i1[1], i2[2]))]})
 
     def test_operation(self):
