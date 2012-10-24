@@ -176,7 +176,10 @@ def temporal(stra, strb, granularity = u'days', language = u'french',
 
         ``dayfirst`` and ``yearfirst`` are used in case of ambiguity, for
         instance 09/09/09, by default it assumes it's day/month/year
+
+        Neither stra nor strb can have accent. Clean it before.
     """
+
     class customparserinfo(dateparser.parserinfo):
         if language.lower() == u'french':
             HMS      = [(u'h', u'heure', u'heures'),

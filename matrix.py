@@ -131,3 +131,39 @@ class Distancematrix(object):
                     else:
                         match[i].append((j, self._matrix[i, j]))
         return match
+
+def globalalignmentmatrix(items):
+    """ Compute and return the global alignment matrix.
+        Let's explain :
+
+        - `items` is a list of tuples where each tuple is built as following :
+
+            `(weighting, input1, input2, distance_function, defvalue, args)`
+
+            * `input1` : a list of "things" (names, dates, numbers) to align on
+                 `input2`. If a value is unknown, set it as `None`.
+
+            * `distance_function` : the distance function used to compute the
+                 distance matrix between `input1` and `input2`
+
+            * `weighting` : the weighting of the "things" computed, compared
+                 with the others "things" of `items`
+
+            * `defvalue` : default value to use if an element of `input1` or
+                 `input2` is unknown. A good idea should be `defvalue` has an
+                 upper bound of the possible values to maximize the distance
+
+            * `args` : a dictionnay of the extra arguments the
+                `distance_function` could take (as language or granularity)
+
+     - For each tuple of `items` as `Distancematrix` is built, then all the
+       matrices are summed with their own weighting and the result is the global
+       alignement matrix, which is returned.
+
+       /!\ All `input1` and `input2` of each tuple must have the same size
+           in twos
+    """
+    globalmatrix = items[0][0] * Distancematrix(*items[0][1:])
+    for item in items[1:]:
+        globalmatrix +=  item[0] * Distancematrix(*item[1:])
+    return globalmatrix
