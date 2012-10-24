@@ -24,6 +24,18 @@ def lunormalize(sentence):
     """ Normalize a sentence (ie remove accents, set to lower, etc) """
     return unormalize(sentence).lower()
 
+def simplify(sentence, lemmas = None):
+    if lemmas:
+        sentence = lemmatized(sentence, lemmas)
+    sentence = sentence.lower()
+    cleansent = ''
+    for s in sentence:
+        if s not in punctuation:
+            cleansent += s
+
+    return cleansent
+
+
 def tokenize(sentence, tokenizer = None):
     """ Tokenize a sentence.
         Use ``tokenizer`` if given, else
@@ -33,6 +45,13 @@ def tokenize(sentence, tokenizer = None):
     """
     tokenizer = tokenizer or WordPunctTokenizer
     return [w for w in tokenizer().tokenize(sentence)]
+
+def wordgrams(sentence, k):
+    """ Generator of k-wordgrams on the given sentence
+    """
+    words = sentence.split(' ')
+    for r in xrange(len(words)):
+        yield ' '.join(words[r:r + k])
 
 def loadlemmas(filename):
     """ Return the default lemmas dictionnary
