@@ -43,6 +43,12 @@ def lunormalize(sentence):
     return unormalize(sentence).lower()
 
 def simplify(sentence, lemmas = None, removeStopWords = True):
+    """ Simply the given sentence
+        0) If removeStopWords, then remove the stop word
+        1) If lemmas are given, the sentence is lemmatized
+        2) Set the sentence to lower case
+        3) Remove punctuation
+    """
     if lemmas:
         sentence = lemmatized(sentence, lemmas)
     sentence = sentence.lower()
