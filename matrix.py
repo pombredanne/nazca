@@ -38,16 +38,20 @@ class Distancematrix(object):
                  +----+----+
     """
 
-    def __init__(self, input1, input2, distance):
+    def __init__(self, input1, input2, distance, defvalue = 1):
         self.distance = distance
         self._matrix = lil_matrix((len(input1), len(input2)), dtype='float32')
         self.size = self._matrix.get_shape()
         self._maxdist = 0
-        self._compute(input1, input2)
+        self._compute(input1, input2, defvalue)
 
-    def _compute(self, input1, input2):
+    def _compute(self, input1, input2, defvalue):
        for i in xrange(self.size[0]):
            for j in xrange(self.size[1]):
+               if not (input1[i] and input2[j]):
+                   self._matrix[i, j] = defvalue
+                   continue
+
                self._matrix[i,j] = self.distance(input1[i], input2[j])
                if self._matrix[i,j] > self._maxdist:
                    self._maxdist = self._matrix[i,j]
