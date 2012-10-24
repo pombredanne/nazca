@@ -20,11 +20,29 @@ from logilab.common.textutils import unormalize
 from nltk.tokenize import WordPunctTokenizer
 from string import punctuation
 
+
+STOPWORDS = set([u'alors', u'au', u'aucuns', u'aussi', u'autre', u'avant',
+u'avec', u'avoir', u'bon', u'car', u'ce', u'cela', u'ces', u'ceux', u'chaque',
+u'ci', u'comme', u'comment', u'dans', u'des', u'du', u'dedans', u'dehors',
+u'depuis', u'deux', u'devrait', u'doit', u'donc', u'dos', u'droite', u'début',
+u'elle', u'elles', u'en', u'encore', u'essai', u'est', u'et', u'eu', u'fait',
+u'faites', u'fois', u'font', u'force', u'haut', u'hors', u'ici', u'il', u'ils',
+u'je', u'juste', u'la', u'le', u'les', u'leur', u'là', u'ma', u'maintenant',
+u'mais', u'mes', u'mine', u'moins', u'mon', u'mot', u'même', u'ni', u'nommés',
+u'notre', u'nous', u'nouveaux', u'ou', u'où', u'par', u'parce', u'parole',
+u'pas', u'personnes', u'peut', u'peu', u'pièce', u'plupart', u'pour',
+u'pourquoi', u'quand', u'que', u'quel', u'quelle', u'quelles', u'quels', u'qui',
+u'sa', u'sans', u'ses', u'seulement', u'si', u'sien', u'son', u'sont', u'sous',
+u'soyez', u'sujet', u'sur', u'ta', u'tandis', u'tellement', u'tels', u'tes',
+u'ton', u'tous', u'tout', u'trop', u'très', u'tu', u'valeur', u'voie',
+u'voient', u'vont', u'votre', u'vous', u'vu', u'ça', u'étaient', u'état',
+u'étions', u'été', u'être'])
+
 def lunormalize(sentence):
     """ Normalize a sentence (ie remove accents, set to lower, etc) """
     return unormalize(sentence).lower()
 
-def simplify(sentence, lemmas = None):
+def simplify(sentence, lemmas = None, removeStopWords = True):
     if lemmas:
         sentence = lemmatized(sentence, lemmas)
     sentence = sentence.lower()
@@ -33,7 +51,10 @@ def simplify(sentence, lemmas = None):
         if s not in punctuation:
             cleansent += s
 
-    return cleansent
+    if not removeStopWords:
+        return cleansent
+    else:
+        return ' '.join([w for w in cleansent.split(' ') if w not in STOPWORDS])
 
 
 def tokenize(sentence, tokenizer = None):
