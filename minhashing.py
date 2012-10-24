@@ -166,7 +166,7 @@ if __name__ == '__main__':
         print ' - %s' % s
 
     print '\nLes phrases *possiblement* similaires sont : '
-    for s in minlsh.findsimilarsentences(15):
+    for s in minlsh.findsimilarsentences(6):
         for e in s:
             print ' -', sentences[e]
         print

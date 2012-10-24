@@ -180,8 +180,7 @@ class MatrixTestCase(unittest2.TestCase):
         self.input1 = [u'Victor Hugo', u'Albert Camus', 'Jean Valjean']
         self.input2 = [u'Victor Wugo', u'Albert Camus', 'Albert Camu']
         self.distance = levenshtein
-        self.matrix = Distancematrix(self.input1, self.input2, self.distance)
-
+        self.matrix = Distancematrix(self.input1, self.input2, self.distance, 10)
     def test_matrixconstruction(self):
         d = self.distance
         i1, i2 = self.input1, self.input2
@@ -202,9 +201,9 @@ class MatrixTestCase(unittest2.TestCase):
 
         #Victor Hugo --> Victor Wugo
         #Albert Camus --> Albert Camus, Albert Camu
-        self.assertEqual(m.matched(cutoff = 0.2, normalized = True),
+        self.assertEqual(m.matched(cutoff = 2),
                         {0: [(0, d(i1[0], i2[0]))], 1: [(1, d(i1[1], i2[1])),
-                                                       (2, d(i1[1], i2[2]))]})
+                                                        (2, d(i1[1], i2[2]))]})
 
     def test_operation(self):
         m = self.matrix

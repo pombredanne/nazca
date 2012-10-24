@@ -38,23 +38,23 @@ class Distancematrix(object):
                  +----+----+
     """
 
-    def __init__(self, input1, input2, distance, defvalue = 1):
+    def __init__(self, input1, input2, distance, defvalue, kargs = {}):
         self.distance = distance
         self._matrix = lil_matrix((len(input1), len(input2)), dtype='float32')
         self.size = self._matrix.get_shape()
         self._maxdist = 0
-        self._compute(input1, input2, defvalue)
+        self._compute(input1, input2, defvalue, kargs)
 
-    def _compute(self, input1, input2, defvalue):
-       for i in xrange(self.size[0]):
-           for j in xrange(self.size[1]):
-               if not (input1[i] and input2[j]):
-                   self._matrix[i, j] = defvalue
-                   continue
+    def _compute(self, input1, input2, defvalue, kargs):
+        for i in xrange(self.size[0]):
+            for j in xrange(self.size[1]):
+                if not (input1[i] and input2[j]):
+                    self._matrix[i, j] = defvalue
+                    continue
 
-               self._matrix[i,j] = self.distance(input1[i], input2[j])
-               if self._matrix[i,j] > self._maxdist:
-                   self._maxdist = self._matrix[i,j]
+                self._matrix[i, j] = self.distance(input1[i], input2[j], **kargs)
+                if self._matrix[i, j] > self._maxdist:
+                    self._maxdist = self._matrix[i, j]
 
     def __getitem__(self, index):
         return self._matrix[index]
@@ -126,5 +126,8 @@ class Distancematrix(object):
         if cutoff > 0: #If more is wanted, return it too
             for (i, j) in rowcol:
                 if self._matrix[i, j] <= cutoff:
-                    match[i].append((j, self._matrix[i, j]))
+                    if normalized:
+                        match[i].append((j, self._matrix[i, j]/self._maxdist))
+                    else:
+                        match[i].append((j, self._matrix[i, j]))
         return match
