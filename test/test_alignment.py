@@ -180,7 +180,8 @@ class MatrixTestCase(unittest2.TestCase):
         self.input1 = [u'Victor Hugo', u'Albert Camus', 'Jean Valjean']
         self.input2 = [u'Victor Wugo', u'Albert Camus', 'Albert Camu']
         self.distance = levenshtein
-        self.matrix = Distancematrix(self.input1, self.input2, self.distance, 10)
+        self.matrix = Distancematrix(1, self.input1, self.input2, self.distance,
+                                     10, False)
     def test_matrixconstruction(self):
         d = self.distance
         i1, i2 = self.input1, self.input2

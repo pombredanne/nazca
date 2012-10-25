@@ -38,23 +38,29 @@ class Distancematrix(object):
                  +----+----+
     """
 
-    def __init__(self, input1, input2, distance, defvalue, kargs = {}):
+    def __init__(self, weighting, input1, input2, distance, defvalue,
+                 normalized = True, kargs = {}):
         self.distance = distance
         self._matrix = lil_matrix((len(input1), len(input2)), dtype='float32')
         self.size = self._matrix.get_shape()
         self._maxdist = 0
-        self._compute(input1, input2, defvalue, kargs)
+        self.normalized = normalized
+        self._compute(weighting, input1, input2, defvalue, kargs)
 
-    def _compute(self, input1, input2, defvalue, kargs):
+    def _compute(self, weighting, input1, input2, defvalue, kargs):
         for i in xrange(self.size[0]):
             for j in xrange(self.size[1]):
-                if not (input1[i] and input2[j]):
-                    self._matrix[i, j] = defvalue
-                    continue
+                d = defvalue
+                if input1[i] and input2[j]:
+                    d = self.distance(input1[i], input2[j], **kargs)
 
-                self._matrix[i, j] = self.distance(input1[i], input2[j], **kargs)
-                if self._matrix[i, j] > self._maxdist:
-                    self._maxdist = self._matrix[i, j]
+                if self.normalized:
+                    d = 1 - (1.0 / (1.0 + d))
+
+                d *= weighting
+                if d > self._maxdist:
+                    self._maxdist = d
+                self._matrix[i, j] = d
 
     def __getitem__(self, index):
         return self._matrix[index]
@@ -128,7 +134,7 @@ def globalalignmentmatrix(items):
 
         - `items` is a list of tuples where each tuple is built as following :
 
-            `(weighting, input1, input2, distance_function, defvalue, args)`
+            `(weighting, input1, input2, distance_function, defvalue, normalize, args)`
 
             * `input1` : a list of "things" (names, dates, numbers) to align on
                  `input2`. If a value is unknown, set it as `None`.
@@ -142,6 +148,10 @@ def globalalignmentmatrix(items):
             * `defvalue` : default value to use if an element of `input1` or
                  `input2` is unknown. A good idea should be `defvalue` has an
                  upper bound of the possible values to maximize the distance
+
+            * `normalize` : boolean, if true, the matrix values will between 0
+                and 1, else the real result of `distance_function` will be
+                stored
 
             * `args` : a dictionnay of the extra arguments the
                 `distance_function` could take (as language or granularity)
