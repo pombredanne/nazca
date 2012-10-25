@@ -1,6 +1,8 @@
 # -*- coding:utf-8 -*-
 
 import cubes.alignment.distances as d
+import rdflib
+
 from cubes.alignment.dbpedia import dbparse
 
 def dbpediasent(filename, maxind = None, enco = 'unicode_escape'):
@@ -21,7 +23,7 @@ def printsents(filename, indastr, maxind = None):
         if i in ind:
             print s.encode('utf-8')
             print
-            
+
 def builtItemsFromData(datafile):
     """
         given_name;family_name;birthdate;birthplace;deathdate;deathplace
@@ -50,12 +52,12 @@ def builtItemsFromData(datafile):
                       'deathplace' : [],
                       'uri' : []
                     }
-    fieldsdbpedia = { 'givenName' : [],
-                      'surname' : [],
-                      'birthDate' : [],
-                      'birthPlace' : [],
-                      'deathDate' : [],
-                      'deathPlace' : [],
+    fieldsdbpedia = { 'given' : [],
+                      'family' : [],
+                      'birthdate' : [],
+                      'birthplace' : [],
+                      'deathdate' : [],
+                      'deathplace' : [],
                       'uri' : []
                     }
 
@@ -68,64 +70,60 @@ def builtItemsFromData(datafile):
         fieldsopencat['deathplace'].append(dp)
         fieldsopencat['uri'].append(uri)
 
-    olduri = None
-    for uri, attr, val in dbparse('data/dbpedia_data.nt', 
-                         attributs = set(fieldsdbpedia.keys()), uri = False):
-        maxlen = max([len(v) for v in fieldsdbpedia.values()])
-        if olduri and uri != olduri:
-            for key in fieldsdbpedia.keys():
-                if key == attr or key == 'uri':
-                    continue
-                diff = maxlen - len(fieldsdbpedia[key])
+    g = rdflib.Graph()
+    result = g.parse('data/dbpedia_data.nt', format='nt')
+    predicates = (
+        ('given', 'http://xmlns.com/foaf/0.1/givenName'),
+        ('family', 'http://xmlns.com/foaf/0.1/surname'),
+        ('birthdate', 'http://dbpedia.org/ontology/birthDate'),
+        ('birthplace', 'http://dbpedia.org/ontology/birthPlace'),
+        ('deathdate', 'http://dbpedia.org/ontology/deathDate'),
+        ('deathplace', 'http://dbpedia.org/ontology/deathPlace')
+        )
 
-                while diff > 0:
-                    print "missing : ", olduri, key
-                    fieldsdbpedia[key].append(None)
-                    diff -= 1
-        if olduri == uri and maxlen and len(fieldsdbpedia[attr]) == maxlen:
-            continue
-        olduri = uri
-        print "add : ", uri, attr, val
-        fieldsdbpedia[attr].append(val)
-        if not fieldsdbpedia['uri'] or fieldsdbpedia['uri'][-1] != uri:
-            fieldsdbpedia['uri'].append(uri)
+    dbpedia = {}
+    for (key, p) in predicates:
+        for (s, o) in g.subject_objects(rdflib.URIRef(p)):
+            dbpedia.setdefault(s, {})
+            dbpedia[s].update({key : o.lower()})
+    for uri in dbpedia:
+        for (p, _) in predicates:
+            fieldsdbpedia[p].append(dbpedia[uri].get(p))
+        fieldsdbpedia['uri'].append(uri)
 
 
-    for key in fieldsdbpedia.keys():
-        if key == attr or key == 'uri':
-            continue
-        diff = maxlen - len(fieldsdbpedia[key])
 
-        while diff > 0:
-            print "missing : ", olduri, key
-            fieldsdbpedia[key].append(None)
-            diff -= 1
+
+    ## weighting of birthdate and deathdate is higher than given and familly
+    ## name because they are language independant
     items = [
-        (1, fieldsopencat['given'],
-            fieldsdbpedia['givenName'],
-            d.jaccard, 1, {}),
-        (1, fieldsopencat['family'],
-            fieldsdbpedia['surname'],
-            d.jaccard, 1, {}),
-        (20, fieldsopencat['birthdate'],
-              fieldsdbpedia['birthDate'],
-              d.temporal, 20000, {'granularity' : 'months',
-                              'dayfirst' : False,
-                              'yearfirst' : True,
-                              }),
-        (0.1, fieldsopencat['birthplace'],
-               fieldsdbpedia['birthPlace'], 
-               d.jaccard, 10, {}),
-        (20, fieldsopencat['deathdate'],
-              fieldsdbpedia['deathDate'], 
-              d.temporal, 20000, {'granularity' : 'months',
-                              'dayfirst' : False,
-                              'yearfirst' : True,
-                             }),
-        (0.1, fieldsopencat['deathplace'],
-               fieldsdbpedia['deathPlace'],
-               d.jaccard, 10, {}),
+        (2, fieldsopencat['given'],
+            fieldsdbpedia['given'],
+            d.levenshtein, 10, True, {}),
+        (2, fieldsopencat['family'],
+            fieldsdbpedia['family'],
+            d.levenshtein, 10, True, {}),
+        (3, fieldsopencat['birthdate'],
+            fieldsdbpedia['birthdate'],
+            d.temporal, 30, True,
+              {'granularity' : 'days',
+               'dayfirst' : False,
+               'yearfirst' : True,
+              }),
+#        (1, fieldsopencat['birthplace'],
+#               fieldsdbpedia['birthplace'],
+#               d.jaccard, 1, {}),
+        (3, fieldsopencat['deathdate'],
+            fieldsdbpedia['deathdate'],
+            d.temporal, 30, True,
+            {'granularity' : 'days',
+             'dayfirst' : False,
+             'yearfirst' : True,
+            }),
+#        (1, fieldsopencat['deathplace'],
+#               fieldsdbpedia['deathplace'],
+#               d.jaccard, 1, {}),
     ]
 
-    return items, fieldsopencat['uri'], fieldsdbpedia['uri'] 
+    return items, fieldsopencat['uri'], fieldsdbpedia['uri']
 
