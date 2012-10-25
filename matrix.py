@@ -163,9 +163,7 @@ def globalalignmentmatrix(items):
        /!\ All `input1` and `input2` of each tuple must have the same size
            in twos
     """
-    globalmatrix = items[0][0] * Distancematrix(*items[0][1:])
+    globalmatrix = Distancematrix(*items[0])
     for item in items[1:]:
-        tmp =  item[0] * Distancematrix(*item[1:])
-        print tmp._maxdist
-        globalmatrix +=  tmp
+        globalmatrix +=  Distancematrix(*item)
     return globalmatrix
