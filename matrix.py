@@ -116,13 +116,15 @@ class Distancematrix(object):
         if normalized:
             cutoff *= self._maxdist
 
-        for i in xrange(self._matrix.shape[0]):
-            for j in xrange(self._matrix.shape[1]):
-                if self._matrix[i, j] <= cutoff:
-                    if normalized:
-                        match[i].append((j, self._matrix[i, j]/self._maxdist))
-                    else:
-                        match[i].append((j, self._matrix[i, j]))
+        ind = (self._matrix <= cutoff).nonzero()
+        indrow = ind[0].tolist()
+        indcol = ind[1].tolist()
+
+        for (i, j) in zip(indrow, indcol):
+            if normalized:
+                match[i].append((j, self._matrix[i, j]/self._maxdist))
+            else:
+                match[i].append((j, self._matrix[i, j]))
         return match
 
 def globalalignmentmatrix(items):
