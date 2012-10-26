@@ -18,7 +18,7 @@
 from cubes.alignment.distances import (levenshtein, soundex, \
                                        jaccard, temporal, euclidean)
 from collections import defaultdict
-from scipy.sparse import lil_matrix
+from scipy import matrix, empty
 from scipy import where
 from copy import deepcopy
 
@@ -41,8 +41,8 @@ class Distancematrix(object):
     def __init__(self, weighting, input1, input2, distance, defvalue,
                  normalized = True, kargs = {}):
         self.distance = distance
-        self._matrix = lil_matrix((len(input1), len(input2)), dtype='float32')
-        self.size = self._matrix.get_shape()
+        self._matrix = empty((len(input1), len(input2)), dtype='float32')
+        self.size = (len(input1), len(input2))
         self._maxdist = 0
         self.normalized = normalized
         self._compute(weighting, input1, input2, defvalue, kargs)
@@ -66,7 +66,7 @@ class Distancematrix(object):
         return self._matrix[index]
 
     def __repr__(self):
-        return self._matrix.todense().__repr__()
+        return self._matrix.__repr__()
 
     def __rmul__(self, number):
         return self * number
@@ -86,7 +86,7 @@ class Distancematrix(object):
 
         result = deepcopy(self)
         result._maxdist = self._maxdist + other._maxdist
-        result._matrix = (self._matrix + other._matrix).tolil()
+        result._matrix = (self._matrix + other._matrix)
         return result
 
     def __sub__(self, other):
@@ -95,17 +95,14 @@ class Distancematrix(object):
 
         result = deepcopy(self)
         result._maxdist = self._maxdist - other._maxdist
-        result._matrix = (self._matrix - other._matrix).tolil()
+        result._matrix = (self._matrix - other._matrix)
         return result
 
     def __eq__(self, other):
         if not isinstance(other, Distancematrix):
             return False
 
-        if (self._matrix.rows != other._matrix.rows).any():
-            return False
-
-        if (self._matrix.data != other._matrix.data).any():
+        if (self._matrix != other._matrix).any():
             return False
 
         if self.distance != other.distance:
