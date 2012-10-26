@@ -40,14 +40,16 @@ uncomment code below if you want to activate automatic test for your cube:
 """
 
 import unittest2
+import random
+random.seed(42) ### Make sure tests are repeatable
 
 from cubes.alignment.distances import (levenshtein, soundex, soundexcode,   \
                                        jaccard, temporal, euclidean,        \
                                        geographical)
 from cubes.alignment.normalize import (lunormalize, loadlemmas, lemmatized, \
                                        roundstr, rgxformat, tokenize, simplify)
-
 from cubes.alignment.matrix import Distancematrix
+from cubes.alignment.minhashing import Minlsh
 
 class DistancesTest(unittest2.TestCase):
     def test_levenshtein(self):
@@ -221,6 +223,19 @@ class MatrixTestCase(unittest2.TestCase):
         self.assertEqual((m - 0.5*m), (0.5 * m))
         self.assertEqual(m + 10*m - m * 3, 8 * m)
 
+class MinLSHTest(unittest2.TestCase):
+    def test_all(self):
+        sentences = [ "Il est bon ce poisson",
+                      "le poisson, c'est bon",
+                      "le sport c'est bon pour la santé",
+                      "le roti est doré",
+                      "pour la santé, faîtes du sport"
+                    ]
+        minlsh = Minlsh()
+        lemmas = loadlemmas('../data/french_lemmas.txt')
+        minlsh.train((simplify(s, lemmas) for s in sentences), 1, 200)
+
+        self.assertEqual(minlsh.findsimilarsentences(7), set([(0, 1), (2, 4)]))
 
 if __name__ == '__main__':
     unittest2.main()
