@@ -41,8 +41,9 @@ uncomment code below if you want to activate automatic test for your cube:
 
 import unittest2
 
-from cubes.alignment.distances import (levenshtein, soundex, soundexcode, \
-                                       jaccard, temporal, euclidean)
+from cubes.alignment.distances import (levenshtein, soundex, soundexcode,   \
+                                       jaccard, temporal, euclidean,        \
+                                       geographical)
 from cubes.alignment.normalize import (lunormalize, loadlemmas, lemmatized, \
                                        roundstr, rgxformat, tokenize, simplify)
 
@@ -133,6 +134,14 @@ class DistancesTest(unittest2.TestCase):
         #Test symetry
         self.assertEqual(euclidean(10, 11),
                          euclidean(11, 10))
+
+    def test_geographical(self):
+        paris = (48.856578, 2.351828)
+        london = (51.504872, -0.07857)
+        dist_parislondon = geographical(paris, london, inRadians = False)
+
+        self.assertAlmostEqual(dist_parislondon, 341564, 0)
+
 
 class NormalizerTestCase(unittest2.TestCase):
     def setUp(self):
