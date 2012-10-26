@@ -42,8 +42,7 @@ class Distancematrix(object):
                  normalized = True, kargs = {}):
         self.distance = distance
         self._matrix = empty((len(input1), len(input2)), dtype='float32')
-        self.size = (len(input1), len(input2))
-        self._maxdist = 0
+        self.size = self._matrix.shape
         self.normalized = normalized
         self._compute(weighting, input1, input2, defvalue, kargs)
 
@@ -58,8 +57,6 @@ class Distancematrix(object):
                     d = 1 - (1.0 / (1.0 + d))
 
                 d *= weighting
-                if d > self._maxdist:
-                    self._maxdist = d
                 self._matrix[i, j] = d
 
     def __getitem__(self, index):
@@ -77,7 +74,6 @@ class Distancematrix(object):
 
         other = deepcopy(self)
         other._matrix *= number
-        other._maxdist *= number
         return other
 
     def __add__(self, other):
@@ -85,7 +81,6 @@ class Distancematrix(object):
             raise NotImplementedError
 
         result = deepcopy(self)
-        result._maxdist = self._maxdist + other._maxdist
         result._matrix = (self._matrix + other._matrix)
         return result
 
@@ -94,7 +89,6 @@ class Distancematrix(object):
             raise NotImplementedError
 
         result = deepcopy(self)
-        result._maxdist = self._maxdist - other._maxdist
         result._matrix = (self._matrix - other._matrix)
         return result
 
@@ -114,17 +108,15 @@ class Distancematrix(object):
     def matched(self, cutoff = 0, normalized = False):
         match = defaultdict(list)
         if normalized:
-            cutoff *= self._maxdist
+            self._matrix /= self._matrix.max()
 
         ind = (self._matrix <= cutoff).nonzero()
         indrow = ind[0].tolist()
         indcol = ind[1].tolist()
 
         for (i, j) in zip(indrow, indcol):
-            if normalized:
-                match[i].append((j, self._matrix[i, j]/self._maxdist))
-            else:
-                match[i].append((j, self._matrix[i, j]))
+            match[i].append((j, self._matrix[i, j]))
+
         return match
 
 def globalalignmentmatrix(items):
