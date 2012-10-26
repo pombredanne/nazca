@@ -149,7 +149,7 @@ def globalalignmentmatrix(items):
 
      - For each tuple of `items` as `Distancematrix` is built, then all the
        matrices are summed with their own weighting and the result is the global
-       alignement matrix, which is returned.
+       alignment matrix, which is returned.
 
        /!\ All `input1` and `input2` of each tuple must have the same size
            in twos
