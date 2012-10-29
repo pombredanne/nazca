@@ -164,8 +164,8 @@ def jaccard(stra, strb):
     seta = set(stra)
     setb = set(strb)
 
-    jab = 1.0 * len(seta.intersection(setb)) / len(seta.union(setb))
-    return 1.0 - jab
+    jacc = 1.0 * len(seta.intersection(setb)) / len(seta.union(setb))
+    return 1.0 - jacc
 
 def temporal(stra, strb, granularity = u'days', language = u'french',
              dayfirst = True, yearfirst = False):
@@ -218,19 +218,23 @@ def euclidean(a, b):
     except TypeError:
         return abs(float(a) - float(b))
 
-def geographical(pointa, pointb, inRadians = True):
+def geographical(pointa, pointb, inRadians = False, planetRadius = 6371009):
     """ Return the geographical distance between two points.
 
         Both points must be tuples (latitude, longitude)
+
+        - inRadians is True, if latitude and longitude are in radians, false
+          otherwise
+        - planetRadius is the planet's radius in meters. By default, it's the
+          Earth'one.
     """
     difflat = pointa[0] - pointb[0]
     difflong = pointa[1] - pointb[1]
     meanlat = (pointa[0] + pointb[0])/2.0
-    earthradius = 6371009 #in meters
 
     if not inRadians:
         difflat *= pi / 180.0
         difflong *= pi / 180.0
         meanlat *= pi / 180.0
 
-    return earthradius * sqrt(difflat**2 + (cos(meanlat) * difflong)**2)
+    return planetRadius * sqrt(difflat**2 + (cos(meanlat) * difflong)**2)
