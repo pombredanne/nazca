@@ -32,7 +32,7 @@ def levenshtein(stra, strb):
             _handlespaces(stra, strb), levenshtein)
     """
 
-    if ' ' in (stra + strb):
+    if ' ' in stra or ' ' in strb:
         return _handlespaces(stra, strb, levenshtein)
 
     lena = len(stra)
@@ -147,7 +147,7 @@ def soundex(stra, strb, language = 'french'):
     """ Return the 1/0 distance between the soundex code of stra and strb.
         0 means they have the same code, 1 they don't
     """
-    if ' ' in (stra + strb):
+    if ' ' in stra or ' ' in strb:
         return _handlespaces(stra, strb, soundex, language = language)
 
     return 0 if (soundexcode(stra, language) == soundexcode(strb, language)) \
