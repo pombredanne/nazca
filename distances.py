@@ -16,8 +16,9 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from dateutil import parser as dateparser
-from scipy import matrix
 from math import cos, sqrt, pi #Needed for geographical distance
+
+from scipy import matrix
 
 def levenshtein(stra, strb):
     """ Compute the Levenshtein distance between stra and strb.

@@ -15,12 +15,14 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from cubes.alignment.distances import (levenshtein, soundex, \
-                                       jaccard, temporal, euclidean)
 from collections import defaultdict
+from copy import deepcopy
+
 from scipy import matrix, empty
 from scipy import where
-from copy import deepcopy
+
+from cubes.alignment.distances import (levenshtein, soundex, \
+                                       jaccard, temporal, euclidean)
 
 class Distancematrix(object):
     """ Construct and compute a matrix of distance given a distance function.

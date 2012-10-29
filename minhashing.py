@@ -17,11 +17,12 @@
 
 import cPickle
 
-from scipy.sparse import lil_matrix
-from numpy import ones
+from time import time
 from random import randint
 from collections import defaultdict
-from time import time
+
+from numpy import ones
+from scipy.sparse import lil_matrix
 
 from cubes.alignment.normalize import wordgrams
 

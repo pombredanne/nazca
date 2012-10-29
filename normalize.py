@@ -16,9 +16,11 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import re
-from logilab.common.textutils import unormalize
-from nltk.tokenize import WordPunctTokenizer
+
 from string import punctuation
+
+from nltk.tokenize import WordPunctTokenizer
+from logilab.common.textutils import unormalize
 
 
 STOPWORDS = set([u'alors', u'au', u'aucuns', u'aussi', u'autre', u'avant',
