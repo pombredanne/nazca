@@ -104,10 +104,15 @@ def align(alignquery, targetquery, treatments, threshold, resultfile):
         return
 
     with open(resultfile, 'w') as fobj:
-        for cible in matched:
-            fobj.write('%s, %s\n' % (ralignset[cible][0],
-                                   ', '.join((str(rtargetset[target][0])
-                                              for target, _ in matched[cible]))))
+        fobj.write('aligned;targetted;distance\n')
+        for aligned in matched:
+            for target, dist in matched[aligned]:
+                fobj.write('%s;%s;%s\n' %
+                    (ralignset[aligned][0],
+                     rtargetset[target][0],
+                     dist
+                    ))
+
 if __name__ == '__main__':
     alignquery = 'Any P, BP ORDERBY(RANDOM()) LIMIT 100 WHERE P is Person, ' \
                  'P birthplace BP, NOT BP is NULL'
