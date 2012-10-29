@@ -30,7 +30,7 @@ class Distancematrix(object):
         Given :
             input1 = ['Victor Hugo', 'Albert Camus']
             input2 = ['Victor Wugo', 'Albert Camus']
-            distance = levensthein
+            distance = levenshtein
 
             constructs the following matrix :
                  +----+----+
