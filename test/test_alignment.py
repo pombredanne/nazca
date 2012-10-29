@@ -235,7 +235,7 @@ class MinLSHTest(unittest2.TestCase):
         lemmas = loadlemmas('../data/french_lemmas.txt')
         minlsh.train((simplify(s, lemmas) for s in sentences), 1, 200)
 
-        self.assertEqual(minlsh.findsimilarsentences(7), set([(0, 1), (2, 4)]))
+        self.assertEqual(minlsh.findsimilarsentences(0.65), set([(0, 1), (2, 4)]))
 
 if __name__ == '__main__':
     unittest2.main()

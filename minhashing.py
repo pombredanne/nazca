@@ -23,6 +23,7 @@ from collections import defaultdict
 
 from numpy import ones
 from scipy.sparse import lil_matrix
+from scipy.optimize import bisect
 
 from cubes.alignment.normalize import wordgrams
 
@@ -139,7 +140,7 @@ class Minlsh(object):
             self._trained = False
 
 
-    def findsimilarsentences(self, bandsize, sentenceid = -1, dispThreshold = False):
+    def findsimilarsentences(self, threshold, sentenceid = -1):
         """ Return a set of tuples of *possible* similar sentences
 
             If 0 <= sentenceid <= nbsentences is given:
@@ -147,16 +148,32 @@ class Minlsh(object):
                 one
         """
 
+        def computebandsize(threshold, nbrows):
+            """ Compute the bandsize according to the threshold given """
+
+            ### t ~ (1/b)^(1/r), where t is the threshold, b the number of
+            ### bands, and r the number of rows per band. And nbrows (the length
+            ### of the matrix is nbrows = b * r, so t ~ (r / L)^(1 / r). So, let's
+            ### find the root of f(x) = (x / L)^(1/r) - t.
+            def f(x):
+                y = pow(x / nbrows, 1. /x) - threshold
+                return y
+
+            ## Solve f(x) = 0, with x values in [1, nbrows]
+            return int(bisect(f, 1, nbrows))
+
+
         if not self._trained:
             print "Train it before"
             return
 
-        col = [self.sigmatrix[:, i] for i in xrange(self.sigmatrix.shape[1])]
-        buckets = defaultdict(set)
+        if not (0 < threshold <= 1):
+            print "Threshold must be in ]0 ; 1]"
+            return
 
-        nbbands = int(self.sigmatrix.shape[0] / bandsize)
-        if dispThreshold:
-            print "threshold is %.3f" % pow(1./nbbands, 1./bandsize)
+        col = [self.sigmatrix[:, i] for i in xrange(self.sigmatrix.shape[1])]
+        bandsize = computebandsize(threshold, self.sigmatrix.shape[0])
+        buckets = defaultdict(set)
 
         for r in xrange(0, self.sigmatrix.shape[0], bandsize):
             for i in xrange(len(col)):
@@ -188,7 +205,7 @@ if __name__ == '__main__':
         print ' - %s' % s
 
     print '\nLes phrases *possiblement* similaires sont : '
-    for s in minlsh.findsimilarsentences(6):
+    for s in minlsh.findsimilarsentences(0.7):
         for e in s:
             print ' -', sentences[e]
         print
