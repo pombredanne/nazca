@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import cPickle
 
 from scipy.sparse import lil_matrix
 from numpy import ones
@@ -112,6 +113,30 @@ class Minlsh(object):
                     if hashr < sig[i, c]:
                         sig[i, c] = hashr
         return sig
+
+    def save(self, savefile):
+        """ Save the training into `savefile` for a future use """
+
+        if not self._trained:
+            print "Not trained, nothing to save"
+            return
+
+        with open(savefile, 'wb') as fobj:
+            pickler = cPickle.Pickler(fobj)
+            pickler.dump(self.sigmatrix)
+
+    def load(self, savefile):
+        """ Load a trained minhashing """
+
+        with open(savefile, 'rb') as fobj:
+            pickler = cPickle.Unpickler(fobj)
+            self.sigmatrix = pickler.load()
+
+        if self.sigmatrix is not None:
+            self._trained = True
+        else:
+            self._trained = False
+
 
     def findsimilarsentences(self, bandsize, sentenceid = -1, dispThreshold = False):
         """ Return a set of tuples of *possible* similar sentences

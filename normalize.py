@@ -118,7 +118,7 @@ def roundstr(number, ndigits = 0):
         in decimal digits (default 0 digits)
 
         If ``number`` is not a float, this method casts it to a float. (An
-        exception can be raised if it's not possible)
+        exception may be raised if it's not possible)
     """
 
     return format(round(float(number), ndigits), '0.%df' % ndigits)
