@@ -219,7 +219,8 @@ def euclidean(a, b):
     except TypeError:
         return abs(float(a) - float(b))
 
-def geographical(pointa, pointb, inRadians = False, planetRadius = 6371009):
+def geographical(pointa, pointb, inRadians = False, planetRadius = 6371009,
+                 units = 'm'):
     """ Return the geographical distance between two points.
 
         Both points must be tuples (latitude, longitude)
@@ -228,7 +229,12 @@ def geographical(pointa, pointb, inRadians = False, planetRadius = 6371009):
           otherwise
         - planetRadius is the planet's radius in meters. By default, it's the
           Earth'one.
+
+        - `units` can be 'm' (meters) or 'km' (kilometers)
     """
+    pointa = (float(pointa[0]), float(pointa[1]))
+    pointb = (float(pointb[0]), float(pointb[1]))
+
     difflat = pointa[0] - pointb[0]
     difflong = pointa[1] - pointb[1]
     meanlat = (pointa[0] + pointb[0])/2.0
@@ -238,4 +244,5 @@ def geographical(pointa, pointb, inRadians = False, planetRadius = 6371009):
         difflong *= pi / 180.0
         meanlat *= pi / 180.0
 
-    return planetRadius * sqrt(difflat**2 + (cos(meanlat) * difflong)**2)
+    coef = 1. if units == 'm' else 0.001
+    return coef * planetRadius * sqrt(difflat**2 + (cos(meanlat) * difflong)**2)
