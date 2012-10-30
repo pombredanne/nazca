@@ -15,17 +15,20 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from os.path import exists as fileexists
+
 import cubes.alignment.distances as d
 import cubes.alignment.normalize as n
 import cubes.alignment.matrix as m
 
 
-def align(alignquery, targetquery, treatments, threshold, resultfile):
+def align(alignset, targetset, treatments, threshold, resultfile):
     """ Try to align the results of alignquery onto targetquery's ones
 
-        queries are two rql queries were the first column is the identifier of
-        the items, and the others are the attributs to align. (Note that the
-        order is important !) Both must have the same number of columns
+        `alignset` and `targetset` are the sets to align. Each set contains list
+        were the first column is the identifier of the items, and the others are
+        the attributs to align. (Note that the order is important !) Both must
+        have the same number of columns
 
         `treatments` is a list of dictionnary. Each dictionnary contains the
         treatments to do on the different attributs. The first dictionnary is
@@ -82,8 +85,8 @@ def align(alignquery, targetquery, treatments, threshold, resultfile):
         t.setdefault('defvalue', 100)
         t.setdefault('matrix_normalize', True)
 
-    ralignset = normalizerset(session.execute(alignquery))
-    rtargetset = normalizerset(session.execute(targetquery))
+    ralignset = normalizerset(alignset)
+    rtargetset = normalizerset(targetset)
 
     items = []
     for ind, tr in enumerate(treatments):
@@ -100,11 +103,12 @@ def align(alignquery, targetquery, treatments, threshold, resultfile):
     matched = mat.matched(threshold)
 
     if not matched:
-        print "Nothing matched"
-        return
+        return mat, False
 
-    with open(resultfile, 'w') as fobj:
-        fobj.write('aligned;targetted;distance\n')
+    openmode = 'a' if fileexists(resultfile) else 'w'
+    with open(resultfile, openmode) as fobj:
+        if openmode == 'w':
+            fobj.write('aligned;targetted;distance\n')
         for aligned in matched:
             for target, dist in matched[aligned]:
                 fobj.write('%s;%s;%s\n' %
@@ -112,6 +116,7 @@ def align(alignquery, targetquery, treatments, threshold, resultfile):
                      rtargetset[target][0],
                      dist
                     ))
+    return mat, True
 
 if __name__ == '__main__':
     alignquery = 'Any P, BP ORDERBY(RANDOM()) LIMIT 100 WHERE P is Person, ' \
@@ -125,5 +130,7 @@ if __name__ == '__main__':
            'distance':  d.levenshtein,
          }
 
-    align(alignquery, targetquery, [tr], 0.3, 'toto')
+    align(session.execute(alignquery),
+          session.execute(targetquery),
+          [tr], 0.3, 'toto')
 
