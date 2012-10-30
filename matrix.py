@@ -40,15 +40,14 @@ class Distancematrix(object):
                  +----+----+
     """
 
-    def __init__(self, weighting, input1, input2, distance, defvalue,
-                 normalized = True, kargs = {}):
+    def __init__(self, weighting, input1, input2, distance, normalized = True, kargs = {}):
         self.distance = distance
         self._matrix = empty((len(input1), len(input2)), dtype='float32')
         self.size = self._matrix.shape
         self.normalized = normalized
-        self._compute(weighting, input1, input2, defvalue, kargs)
+        self._compute(weighting, input1, input2, kargs)
 
-    def _compute(self, weighting, input1, input2, defvalue, kargs):
+    def _compute(self, weighting, input1, input2, kargs):
         for i in xrange(self.size[0]):
             for j in xrange(self.size[1]):
                 d = 1
@@ -126,7 +125,7 @@ def globalalignmentmatrix(items):
 
         - `items` is a list of tuples where each tuple is built as following :
 
-            `(weighting, input1, input2, distance_function, defvalue, normalize, args)`
+            `(weighting, input1, input2, distance_function, normalize, args)`
 
             * `input1` : a list of "things" (names, dates, numbers) to align on
                  `input2`. If a value is unknown, set it as `None`.
@@ -136,10 +135,6 @@ def globalalignmentmatrix(items):
 
             * `weighting` : the weighting of the "things" computed, compared
                  with the others "things" of `items`
-
-            * `defvalue` : default value to use if an element of `input1` or
-                 `input2` is unknown. A good idea should be `defvalue` has an
-                 upper bound of the possible values to maximize the distance
 
             * `normalize` : boolean, if true, the matrix values will between 0
                 and 1, else the real result of `distance_function` will be

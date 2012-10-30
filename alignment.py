@@ -40,7 +40,6 @@ def align(alignset, targetset, treatments, threshold, resultfile):
                           'distance': d1,
                           'distance_args': { 'arg1': arg11 },
                           'weighting': w,
-                          'defvalue': dv,
                           'matrix_normalize': True
                         }
 
@@ -52,10 +51,6 @@ def align(alignset, targetset, treatments, threshold, resultfile):
 
             `weighting` is the weighting of the current attribut in regard to
             the others
-
-            `defvalue` is the default value to use, in case of the value is None
-            `matrix_normalize`, True means the values will be between 0 and 1,
-                else the raw value is kept
 
         `resultfile` is the name of the output csv.
     """
@@ -82,7 +77,6 @@ def align(alignset, targetset, treatments, threshold, resultfile):
         t.setdefault('norm_args', {})
         t.setdefault('distance_args', {})
         t.setdefault('weighting', 1)
-        t.setdefault('defvalue', 100)
         t.setdefault('matrix_normalize', True)
 
     ralignset = normalizerset(alignset)
@@ -94,7 +88,6 @@ def align(alignset, targetset, treatments, threshold, resultfile):
                 [ralignset[i][ind + 1] for i in xrange(len(ralignset))],
                 [rtargetset[i][ind + 1] for i in xrange(len(rtargetset))],
                 tr['distance'],
-                tr['defvalue'],
                 tr['matrix_normalize'],
                 tr['distance_args'])
         items.append(item)
