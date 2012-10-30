@@ -18,7 +18,7 @@
 from collections import defaultdict
 from copy import deepcopy
 
-from scipy import matrix, empty
+from scipy import array, empty
 from scipy import where
 
 from cubes.alignment.distances import (levenshtein, soundex, \
@@ -51,14 +51,12 @@ class Distancematrix(object):
     def _compute(self, weighting, input1, input2, defvalue, kargs):
         for i in xrange(self.size[0]):
             for j in xrange(self.size[1]):
-                d = defvalue
+                d = 1
                 if input1[i] and input2[j]:
                     d = self.distance(input1[i], input2[j], **kargs)
-
-                if self.normalized:
-                    d = 1 - (1.0 / (1.0 + d))
-
-                d *= weighting
+                    if self.normalized:
+                        d = 1 - (1.0 / (1.0 + d))
+                    d *= weighting
                 self._matrix[i, j] = d
 
     def __getitem__(self, index):
@@ -70,12 +68,13 @@ class Distancematrix(object):
     def __rmul__(self, number):
         return self * number
 
-    def __mul__(self, number):
-        if not (isinstance(number, int) or isinstance(number, float)):
+    def __mul__(self, val):
+        if not (isinstance(val, int) or isinstance(val, float)
+                or isinstance(val, Distancematrix)):
             raise NotImplementedError
 
         other = deepcopy(self)
-        other._matrix *= number
+        other._matrix *= val
         return other
 
     def __add__(self, other):
@@ -158,5 +157,5 @@ def globalalignmentmatrix(items):
     """
     globalmatrix = Distancematrix(*items[0])
     for item in items[1:]:
-        globalmatrix +=  Distancematrix(*item)
+        globalmatrix *=  Distancematrix(*item)
     return globalmatrix
