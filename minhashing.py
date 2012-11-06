@@ -184,9 +184,9 @@ class Minlsh(object):
             print "Progress : %.3f" % (r * 100. / self.sigmatrix.shape[0])
 
         if 0 <= sentenceid < self.sigmatrix.shape[1]:
-            return set(tuple(v) for v in buckets.values()
+            return set(tuple(v) for v in buckets.itervalues()
                        if len(v) > 1 and sentenceid in v)
-        return set(tuple(v) for v in buckets.values() if len(v) > 1)
+        return set(tuple(v) for v in buckets.itervalues() if len(v) > 1)
 
 if __name__ == '__main__':
     from cubes.alignment.normalize import (loadlemmas, simplify)
