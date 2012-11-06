@@ -18,9 +18,10 @@
 import re
 
 from string import punctuation
+from warnings import warn
+from unicodedata import normalize as _uninormalize
 
 from nltk.tokenize import WordPunctTokenizer
-from logilab.common.textutils import unormalize
 
 
 STOPWORDS = set([u'alors', u'au', u'aucuns', u'aussi', u'autre', u'avant',
@@ -39,6 +40,56 @@ u'soyez', u'sujet', u'sur', u'ta', u'tandis', u'tellement', u'tels', u'tes',
 u'ton', u'tous', u'tout', u'trop', u'très', u'tu', u'valeur', u'voie',
 u'voient', u'vont', u'votre', u'vous', u'vu', u'ça', u'étaient', u'état',
 u'étions', u'été', u'être'])
+
+MANUAL_UNICODE_MAP = {
+    u'\xa1': u'!',    # INVERTED EXCLAMATION MARK
+    u'\u0142': u'l',  # LATIN SMALL LETTER L WITH STROKE
+    u'\u2044': u'/',  # FRACTION SLASH
+    u'\xc6': u'AE',   # LATIN CAPITAL LETTER AE
+    u'\xa9': u'(c)',  # COPYRIGHT SIGN
+    u'\xab': u'"',    # LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
+    u'\xe6': u'ae',   # LATIN SMALL LETTER AE
+    u'\xae': u'(r)',  # REGISTERED SIGN
+    u'\u0153': u'oe', # LATIN SMALL LIGATURE OE
+    u'\u0152': u'OE', # LATIN CAPITAL LIGATURE OE
+    u'\xd8': u'O',    # LATIN CAPITAL LETTER O WITH STROKE
+    u'\xf8': u'o',    # LATIN SMALL LETTER O WITH STROKE
+    u'\xbb': u'"',    # RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
+    u'\xdf': u'ss',   # LATIN SMALL LETTER SHARP S
+    }
+
+def unormalize(ustring, ignorenonascii=None, substitute=None):
+    """replace diacritical characters with their corresponding ascii characters
+
+    Convert the unicode string to its long normalized form (unicode character
+    will be transform into several characters) and keep the first one only.
+    The normal form KD (NFKD) will apply the compatibility decomposition, i.e.
+    replace all compatibility characters with their equivalents.
+
+    :type substitute: str
+    :param substitute: replacement character to use if decomposition fails
+
+    :see: Another project about ASCII transliterations of Unicode text
+          http://pypi.python.org/pypi/Unidecode
+    """
+    # backward compatibility, ignorenonascii was a boolean
+    if ignorenonascii is not None:
+        warn("ignorenonascii is deprecated, use substitute named parameter instead",
+             DeprecationWarning, stacklevel=2)
+        if ignorenonascii:
+            substitute = ''
+    res = []
+    for letter in ustring[:]:
+        try:
+            replacement = MANUAL_UNICODE_MAP[letter]
+        except KeyError:
+            replacement = _uninormalize('NFKD', letter)[0]
+            if ord(replacement) >= 2 ** 7:
+                if substitute is None:
+                    raise ValueError("can't deal with non-ascii based characters")
+                replacement = substitute
+        res.append(replacement)
+    return u''.join(res)
 
 def lunormalize(sentence):
     """ Normalize a sentence (ie remove accents, set to lower, etc) """

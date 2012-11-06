@@ -21,9 +21,6 @@ from copy import deepcopy
 from scipy import array, empty
 from scipy import where
 
-from cubes.alignment.distances import (levenshtein, soundex, \
-                                       jaccard, temporal, euclidean)
-
 class Distancematrix(object):
     """ Construct and compute a matrix of distance given a distance function.
 

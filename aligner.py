@@ -110,20 +110,3 @@ def align(alignset, targetset, treatments, threshold, resultfile):
                      dist
                     ))
     return mat, True
-
-if __name__ == '__main__':
-    alignquery = 'Any P, BP ORDERBY(RANDOM()) LIMIT 100 WHERE P is Person, ' \
-                 'P birthplace BP, NOT BP is NULL'
-    targetquery = 'Any GID, N ORDERBY(RANDOM()) LIMIT 1000 WHERE L is Location, ' \
-                  'L name N, L geoid GID'
-
-    lemmas = n.loadlemmas('data/french_lemmas.txt')
-    tr = { 'normalization': [n.simplify],
-           'norm_args': { 'lemmas' : lemmas, 'removeStopWords': False },
-           'distance':  d.levenshtein,
-         }
-
-    align(session.execute(alignquery),
-          session.execute(targetquery),
-          [tr], 0.3, 'alignment_results')
-

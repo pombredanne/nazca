@@ -17,7 +17,6 @@
 
 import cPickle
 
-from time import time
 from random import randint
 from collections import defaultdict
 
@@ -25,7 +24,7 @@ from numpy import ones
 from scipy.sparse import lil_matrix
 from scipy.optimize import bisect
 
-from cubes.alignment.normalize import wordgrams
+from alignment.normalize import wordgrams
 
 def randomhashfunction(zr):
     """ Return a random hash function, mapping x in Z to ZR
@@ -189,7 +188,7 @@ class Minlsh(object):
         return set(tuple(v) for v in buckets.itervalues() if len(v) > 1)
 
 if __name__ == '__main__':
-    from cubes.alignment.normalize import (loadlemmas, simplify)
+    from alignment.normalize import (loadlemmas, simplify)
 
     sentences = ["j'aime le poisson", "le poisson c'est bon",
                  "je cuis le poisson", "je fais du sport",

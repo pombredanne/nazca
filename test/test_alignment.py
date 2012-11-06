@@ -43,13 +43,13 @@ import unittest2
 import random
 random.seed(42) ### Make sure tests are repeatable
 
-from cubes.alignment.distances import (levenshtein, soundex, soundexcode,   \
-                                       jaccard, temporal, euclidean,        \
-                                       geographical)
-from cubes.alignment.normalize import (lunormalize, loadlemmas, lemmatized, \
-                                       roundstr, rgxformat, tokenize, simplify)
-from cubes.alignment.matrix import Distancematrix
-from cubes.alignment.minhashing import Minlsh
+from alignment.distances import (levenshtein, soundex, soundexcode,   \
+                                 jaccard, temporal, euclidean,        \
+                                 geographical)
+from alignment.normalize import (lunormalize, loadlemmas, lemmatized, \
+                                 roundstr, rgxformat, tokenize, simplify)
+from alignment.matrix import Distancematrix
+from alignment.minhashing import Minlsh
 
 class DistancesTest(unittest2.TestCase):
     def test_levenshtein(self):
@@ -147,7 +147,7 @@ class DistancesTest(unittest2.TestCase):
 
 class NormalizerTestCase(unittest2.TestCase):
     def setUp(self):
-        self.lemmas = loadlemmas('../data/french_lemmas.txt')
+        self.lemmas = loadlemmas('data/french_lemmas.txt')
 
     def test_unormalize(self):
         self.assertEqual(lunormalize(u'bépoèàÀêùï'),
@@ -231,7 +231,7 @@ class MinLSHTest(unittest2.TestCase):
                       "pour la santé, faîtes du sport"
                     ]
         minlsh = Minlsh()
-        lemmas = loadlemmas('../data/french_lemmas.txt')
+        lemmas = loadlemmas('data/french_lemmas.txt')
         minlsh.train((simplify(s, lemmas) for s in sentences), 1, 200)
 
         self.assertEqual(minlsh.findsimilarsentences(0.65), set([(0, 1), (2, 4)]))

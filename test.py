@@ -1,9 +1,7 @@
 # -*- coding:utf-8 -*-
 
-import cubes.alignment.distances as d
+import alignment.distances as d
 import rdflib
-
-from cubes.alignment.dbpedia import dbparse
 
 def dbpediasent(filename, maxind = None, enco = 'unicode_escape'):
     fobj = open(filename)

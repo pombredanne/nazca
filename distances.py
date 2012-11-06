@@ -20,7 +20,7 @@ from math import cos, sqrt, pi #Needed for geographical distance
 
 from scipy import matrix
 
-from alignement.normalize import tokenize
+from alignment.normalize import tokenize
 
 def levenshtein(stra, strb):
     """ Compute the Levenshtein distance between stra and strb.
