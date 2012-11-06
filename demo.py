@@ -3,36 +3,7 @@
 
 import alignment.distances as d
 import alignment.normalize as n
-from alignment.aligner import align
-
-
-def parsefile(filename, indexes = [], nbmax = None, fielddelimiter = '\t'):
-    """ Read filename line by line, (``nbmax`` line as maximum if given). Each
-        line is splitted according ``fielddelimiter`` and keep ``indexes``
-    """
-    result = []
-    with open(filename) as fobj:
-        for ind, line in enumerate(fobj):
-            data = []
-            if nbmax and ind > nbmax:
-                break
-            line = line.strip().decode('utf-8')
-            line = line.split(fielddelimiter)
-            if not indexes:
-                data = line
-            else:
-                for ind in indexes:
-                    try:
-                        if isinstance(ind, tuple):
-                            data.append(tuple([line[i] for i in ind]))
-                        else:
-                            data.append(line[ind])
-                    except IndexError:
-                        data.append(None)
-            result.append(data)
-    return result
-
-
+from alignment.aligner import align, parsefile
 
 if __name__ == '__main__':
     targetset = parsefile('data/FR.txt', indexes = [0, 1, (4, 5)], nbmax = 2000)

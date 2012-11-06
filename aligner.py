@@ -17,6 +17,8 @@
 
 from os.path import exists as fileexists
 
+import csv
+
 import alignment.distances as d
 import alignment.normalize as n
 import alignment.matrix as m
@@ -110,3 +112,53 @@ def align(alignset, targetset, treatments, threshold, resultfile):
                      dist
                     ))
     return mat, True
+
+def parsefile(filename, indexes=[], nbmax=None, delimiter='\t'):
+    """ Parse the file (``nbmax`` line as maximum if given). Each
+        line is splitted according ``delimiter`` and ``indexes`` are kept
+
+        eg : The file is :
+                1, house, 12, 19, apple
+                2, horse, 21.9, 19, stramberry
+                3, flower, 23, 2.17, cherry
+
+            data = parsefile('myfile', [0, (2, 3), 4, 1], delimiter=',')
+
+            The result will be :
+            data = [[1, (12,   19), 'apple', 'house'],
+                    [2, (21.9, 19), 'stramberry', 'horse'],
+                    [3, (23,   2.17), 'cherry', 'flower']]
+
+    """
+    def str2number(word):
+        try:
+            return int(word)
+        except ValueError:
+            try:
+                return float(word)
+            except ValueError:
+                return word
+
+    result = []
+    with open(filename, 'r') as csvfile:
+        reader = csv.reader(csvfile, delimiter=delimiter)
+        for ind, row in enumerate(reader):
+            data = []
+            if nbmax and ind > nbmax:
+                break
+            row = [str2number(r.strip()) for r in row]
+            if not indexes:
+                data = row
+            else:
+                for ind in indexes:
+                    if isinstance(ind, tuple):
+                        data.append(tuple([row[i] for i in ind]))
+                        if '' in data[-1]:
+                            data[-1] = None
+                    elif row[ind]:
+                        data.append(row[ind])
+                    else:
+                        data.append(None)
+
+            result.append(data)
+    return result

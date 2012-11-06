@@ -50,6 +50,7 @@ from alignment.normalize import (lunormalize, loadlemmas, lemmatized, \
                                  roundstr, rgxformat, tokenize, simplify)
 from alignment.matrix import Distancematrix
 from alignment.minhashing import Minlsh
+from alignment.aligner import parsefile
 
 class DistancesTest(unittest2.TestCase):
     def test_levenshtein(self):
@@ -235,6 +236,13 @@ class MinLSHTest(unittest2.TestCase):
         minlsh.train((simplify(s, lemmas) for s in sentences), 1, 200)
 
         self.assertEqual(minlsh.findsimilarsentences(0.65), set([(0, 1), (2, 4)]))
+
+class AlignerTestCase(unittest2.TestCase):
+    def test_parser(self):
+        data = parsefile('data/file2parse', [0, (2, 3), 4, 1], delimiter=',')
+        self.assertEqual(data, [[1, (12, 19), 'apple', 'house'],
+                                [2, (21.9, 19), 'stramberry', 'horse'],
+                                [3, (23, 2.17), 'cherry', 'flower']])
 
 if __name__ == '__main__':
     unittest2.main()
