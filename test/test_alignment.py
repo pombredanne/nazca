@@ -96,8 +96,8 @@ class DistancesTest(unittest2.TestCase):
         #The distance is 1 - jaccard_indice
 
         self.assertEqual(jaccard('bonjour', 'bonjour'), 0.0)
-        self.assertAlmostEqual(jaccard('boujour', 'bonjour'), 0.166, 2)
-        self.assertAlmostEqual(jaccard('rubert', 'robert'), 0.333, 2)
+        self.assertAlmostEqual(jaccard('boujour', 'bonjour'), 1, 2)
+        self.assertAlmostEqual(jaccard('sacré rubert', 'sacré hubert'), 0.5, 2)
 
         #Test symetry
         self.assertEqual(jaccard('orange', 'morange'),

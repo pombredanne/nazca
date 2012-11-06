@@ -20,6 +20,8 @@ from math import cos, sqrt, pi #Needed for geographical distance
 
 from scipy import matrix
 
+from alignement.normalize import tokenize
+
 def levenshtein(stra, strb):
     """ Compute the Levenshtein distance between stra and strb.
 
@@ -154,16 +156,17 @@ def soundex(stra, strb, language = 'french'):
     return 0 if (soundexcode(stra, language) == soundexcode(strb, language)) \
              else 1
 
-def jaccard(stra, strb):
-    """ Return the jaccard distance between stra and strb, condering the letters
-    set of stra and strb
+def jaccard(stra, strb, tokenizer = None):
+    """ Return the jaccard distance between stra and strb, condering the tokens
+        set of stra and strb. If no tokenizer is given, it use if
+        alignement.normalize.tokenize's default one.
 
-    J(A, B) = (A \cap B) / (A \cup B)
-    d(A, B) = 1 - J(A, B)
+        J(A, B) = (A \cap B) / (A \cup B)
+        d(A, B) = 1 - J(A, B)
     """
 
-    seta = set(stra)
-    setb = set(strb)
+    seta = set(tokenize(stra, tokenizer))
+    setb = set(tokenize(strb, tokenizer))
 
     jacc = 1.0 * len(seta.intersection(setb)) / len(seta.union(setb))
     return 1.0 - jacc
