@@ -17,9 +17,9 @@
 
 from os.path import exists as fileexists
 
-import cubes.alignment.distances as d
-import cubes.alignment.normalize as n
-import cubes.alignment.matrix as m
+import alignment.distances as d
+import alignment.normalize as n
+import alignment.matrix as m
 
 
 def align(alignset, targetset, treatments, threshold, resultfile):
@@ -64,7 +64,7 @@ def align(alignset, targetset, treatments, threshold, resultfile):
                     continue
                 for f in treat['normalization']:
                     farg = f.func_code.co_varnames #List of the arguments of f
-                    # A kind of union between the arguments need by f, and the
+                    # A kind of union between the arguments needed by f, and the
                     # provided ones
                     givenargs = dict((arg, treat['norm_args'][arg])
                                  for arg in farg if arg in treat['norm_args'])
@@ -125,5 +125,5 @@ if __name__ == '__main__':
 
     align(session.execute(alignquery),
           session.execute(targetquery),
-          [tr], 0.3, 'toto')
+          [tr], 0.3, 'alignment_results')
 
