@@ -152,5 +152,5 @@ def globalalignmentmatrix(items):
     """
     globalmatrix = Distancematrix(*items[0])
     for item in items[1:]:
-        globalmatrix *=  Distancematrix(*item)
+        globalmatrix += Distancematrix(*item)
     return globalmatrix
