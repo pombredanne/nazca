@@ -177,8 +177,11 @@ class Minlsh(object):
 
         for r in xrange(0, self.sigmatrix.shape[0], bandsize):
             for i in xrange(len(col)):
-                stri = ''.join(str(val) for val in col[i][r:r+bandsize])
+                stri = ''.join(str(val) for val in col[i][:bandsize])
                 buckets[hash(stri)].add(i)
+                ## Let's make some memory space
+                col[i] = col[i][bandsize:] #pop the first rows
+            print "Progress : %.3f" % (r * 100. / self.sigmatrix.shape[0])
 
         if 0 <= sentenceid < self.sigmatrix.shape[1]:
             return set(tuple(v) for v in buckets.values()
