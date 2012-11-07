@@ -32,7 +32,7 @@ def levenshtein(stra, strb):
         - Remove one character of strb
 
         If spaces are found in stra or strb, this method returns
-            _handlespaces(stra, strb), levenshtein)
+            _handlespaces(stra, strb, levenshtein)
     """
 
     if ' ' in stra or ' ' in strb:
