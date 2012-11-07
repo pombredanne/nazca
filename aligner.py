@@ -23,14 +23,14 @@ import alignment.matrix as m
 
 
 def align(alignset, targetset, treatments, threshold, resultfile):
-    """ Try to align the results of alignquery onto targetquery's ones
+    """ Try to align the items of alignset onto targetset's ones
 
-        `alignset` and `targetset` are the sets to align. Each set contains list
-        were the first column is the identifier of the items, and the others are
+        `alignset` and `targetset` are the sets to align. Each set contains
+        lists where the first column is the identifier of the item, and the others are
         the attributs to align. (Note that the order is important !) Both must
-        have the same number of columns
+        have the same number of columns.
 
-        `treatments` is a list of dictionnary. Each dictionnary contains the
+        `treatments` is a list of dictionnaries. Each dictionnary contains the
         treatments to do on the different attributs. The first dictionnary is
         for the first attribut (not the identifier !), the second for the
         second, etc. Each dictionnary is built as the following:
@@ -44,12 +44,12 @@ def align(alignset, targetset, treatments, threshold, resultfile):
                         }
 
             `normalization` is the list of functions called to normalize the
-            given attribut (in order). Each functions is called with the
-            `norm_args`
+            given attribut (in order). Each functions is called with `norm_args`
+            as arguments
 
             Idem for `distance` and `distance_args`
 
-            `weighting` is the weighting of the current attribut in regard to
+            `weighting` is the weighting for the current attribut in regard to
             the others
 
         `resultfile` is the name of the output csv.
@@ -112,8 +112,8 @@ def align(alignset, targetset, treatments, threshold, resultfile):
     return mat, True
 
 def parsefile(filename, indexes=[], nbmax=None, delimiter='\t'):
-    """ Parse the file (``nbmax`` line as maximum if given). Each
-        line is splitted according ``delimiter`` and ``indexes`` are kept
+    """ Parse the file (read ``nbmax`` line at maximum if given). Each
+        line is splitted according ``delimiter`` and only ``indexes`` are kept
 
         eg : The file is :
                 1, house, 12, 19, apple
