@@ -6,7 +6,7 @@ import alignment.normalize as n
 from alignment.aligner import align, parsefile
 
 def demo_0():
-    # prixgoncourt is the list of Goncourt Prize for short stories, extracted
+    # prixgoncourt is the list of Goncourt Prize, extracted
     # from wikipedia
 
     # dbfrenchauthors is an extract dbpedia for the query :
@@ -19,14 +19,19 @@ def demo_0():
     #We try to align Goncourt winers onto dbpedia results
 
     alignset = parsefile('demo/prixgoncourt', indexes = [1, 1])
-    targetset = parsefile('demo/dbfrenchauthors_out', indexes = [0, 1], delimiter='#')
+    targetset = parsefile('demo/dbfrenchauthors', indexes = [0, 1], delimiter='#')
 
-    tr_name = { 'normalization' : [n.simplify],
+    def removeparenthesis(string):
+        if '(' in string:
+            return string[:string.index('(')]
+        return string
+
+    tr_name = { 'normalization' : [removeparenthesis, n.simplify],
                 'distance': d.levenshtein
               }
 
     dmatrix, hasmatched = align(alignset, targetset, [tr_name],
-                                0.4, 'demo0_results')
+                                0.4, 'demo/demo0_results')
 
     print dmatrix
 
@@ -65,7 +70,7 @@ def demo_1():
                                                     #   given by order.
                                 0.4,                # The maximal distance
                                                     #   threshold
-                                'demo1_results')    # Filename of the output
+                                'demo/demo1_results')    # Filename of the output
                                                     #   result file
     # the ``align()`` function return two items
     # 0. the computed distance matrix
@@ -75,4 +80,5 @@ def demo_1():
 
 if __name__ == '__main__':
     demo_0()
+    demo_1()
 
