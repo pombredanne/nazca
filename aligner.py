@@ -19,8 +19,6 @@ from os.path import exists as fileexists
 
 import csv
 
-import alignment.distances as d
-import alignment.normalize as n
 import alignment.matrix as m
 
 
