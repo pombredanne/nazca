@@ -19,8 +19,32 @@ from os.path import exists as fileexists
 
 import csv
 
-import alignment.matrix as m
+from scipy.spatial import KDTree
 
+import alignment.matrix as m
+from alignment.minhashing import Minlsh
+
+
+def findneighbours(alignset, targetset, indexes = (1, 1), mode = 'kdtree',
+                   threshold = 0.1, extraargs = {}):
+    if mode == 'kdtree':
+        aligntree  = KDTree([elt[indexes[0]] or (0, 0) for elt in alignset])
+        targettree = KDTree([elt[indexes[1]] or (0, 0) for elt in targetset])
+        return aligntree.query_ball_tree(targettree, threshold)
+    elif mode == 'minhashing':
+        minhasher = Minlsh()
+        minhasher.train([elt[indexes[0]] or '' for elt in alignset] +
+                        [elt[indexes[1]] or '' for elt in targetset],
+                        **extraargs)
+        rawneighbours = minhasher.findsimilarsentences(threshold)
+        neighbours = [[] for _ in xrange(len(alignset))]
+        for data in rawneighbours:
+            for i in data:
+                if i >= len(alignset):
+                    continue
+                neighbours[i].extend([e - len(alignset)
+                                      for e in data if e >= len(alignset)])
+        return neighbours
 
 def align(alignset, targetset, treatments, threshold, resultfile):
     """ Try to align the items of alignset onto targetset's ones
