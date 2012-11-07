@@ -124,23 +124,23 @@ def globalalignmentmatrix(items):
 
             `(weighting, input1, input2, distance_function, normalize, args)`
 
-            * `input1` : a list of "things" (names, dates, numbers) to align on
-                 `input2`. If a value is unknown, set it as `None`.
+            * `input1` : a list of "things" (names, dates, numbers) to align onto
+                `input2`. If a value is unknown, set it as `None`.
 
             * `distance_function` : the distance function used to compute the
                  distance matrix between `input1` and `input2`
 
-            * `weighting` : the weighting of the "things" computed, compared
+            * `weighting` : the weight of the "things" computed, compared
                  with the others "things" of `items`
 
-            * `normalize` : boolean, if true, the matrix values will between 0
+            * `normalize` : boolean, if true, the matrix values will be between 0
                 and 1, else the real result of `distance_function` will be
                 stored
 
             * `args` : a dictionnay of the extra arguments the
                 `distance_function` could take (as language or granularity)
 
-     - For each tuple of `items` as `Distancematrix` is built, then all the
+     - For each tuple of `items` a `Distancematrix` is built, then all the
        matrices are summed with their own weighting and the result is the global
        alignment matrix, which is returned.
 
