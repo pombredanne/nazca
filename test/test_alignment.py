@@ -41,6 +41,7 @@ uncomment code below if you want to activate automatic test for your cube:
 
 import unittest2
 import random
+from os import path
 random.seed(42) ### Make sure tests are repeatable
 
 from alignment.distances import (levenshtein, soundex, soundexcode,   \
@@ -51,6 +52,8 @@ from alignment.normalize import (lunormalize, loadlemmas, lemmatized, \
 from alignment.matrix import Distancematrix
 from alignment.minhashing import Minlsh
 from alignment.aligner import parsefile
+
+TESTDIR = path.dirname(__file__)
 
 class DistancesTest(unittest2.TestCase):
     def test_levenshtein(self):
@@ -148,7 +151,7 @@ class DistancesTest(unittest2.TestCase):
 
 class NormalizerTestCase(unittest2.TestCase):
     def setUp(self):
-        self.lemmas = loadlemmas('data/french_lemmas.txt')
+        self.lemmas = loadlemmas(path.join(TESTDIR, 'data', 'french_lemmas.txt'))
 
     def test_unormalize(self):
         self.assertEqual(lunormalize(u'bépoèàÀêùï'),
@@ -232,14 +235,15 @@ class MinLSHTest(unittest2.TestCase):
                       "pour la santé, faîtes du sport"
                     ]
         minlsh = Minlsh()
-        lemmas = loadlemmas('data/french_lemmas.txt')
+        lemmas = loadlemmas(path.join(TESTDIR, 'data', 'french_lemmas.txt'))
         minlsh.train((simplify(s, lemmas) for s in sentences), 1, 200)
 
         self.assertEqual(minlsh.findsimilarsentences(0.65), set([(0, 1), (2, 4)]))
 
 class AlignerTestCase(unittest2.TestCase):
     def test_parser(self):
-        data = parsefile('data/file2parse', [0, (2, 3), 4, 1], delimiter=',')
+        data = parsefile(path.join(TESTDIR, 'data', 'file2parse'),
+                         [0, (2, 3), 4, 1], delimiter=',')
         self.assertEqual(data, [[1, (12, 19), 'apple', 'house'],
                                 [2, (21.9, 19), 'stramberry', 'horse'],
                                 [3, (23, 2.17), 'cherry', 'flower']])

@@ -1,9 +1,13 @@
 #!/usr/bin/python
 #-*- coding:utf-8 -*-
 
+from os import path
+
 import alignment.distances as d
 import alignment.normalize as n
 from alignment.aligner import align, parsefile, findneighbours
+
+DEMODIR = path.dirname(__file__)
 
 def demo_0():
     # prixgoncourt is the list of Goncourt Prize, extracted
@@ -18,8 +22,9 @@ def demo_0():
 
     #We try to align Goncourt winers onto dbpedia results
 
-    alignset = parsefile('demo/prixgoncourt', indexes = [1, 1])
-    targetset = parsefile('demo/dbfrenchauthors', indexes = [0, 1], delimiter='#')
+    alignset = parsefile(path.join(DEMODIR, 'demo','prixgoncourt'), indexes = [1, 1])
+    targetset = parsefile(path.join(DEMODIR, 'demo', 'dbfrenchauthors'),
+                          indexes = [0, 1], delimiter='#')
 
     def removeparenthesis(string):
         if '(' in string:
@@ -31,7 +36,7 @@ def demo_0():
               }
 
     dmatrix, hasmatched = align(alignset, targetset, [tr_name],
-                                0.4, 'demo/demo0_results')
+                                0.4, 'demo0_results')
 
     print dmatrix
 
@@ -44,8 +49,10 @@ def demo_1():
     # position (longitude, latitude)
     # ``nbmax`` is the number of locations to load
 
-    targetset = parsefile('demo/FR.txt', indexes = [0, 1, (4, 5)], nbmax = 2000)
-    alignset = parsefile('demo/frenchbnf', indexes = [0, 2, (14, 12)], nbmax = 1000)
+    targetset = parsefile(path.join(DEMODIR, 'demo', 'FR.txt'), indexes = [0, 1, (4, 5)],
+                          nbmax = 2000)
+    alignset = parsefile(path.join(DEMODIR, 'demo', 'frenchbnf'),
+                         indexes = [0, 2, (14, 12)], nbmax = 1000)
 
 
     # Let's define the treatements to apply on the location's name
@@ -70,7 +77,7 @@ def demo_1():
                                                     #   given by order.
                                 0.4,                # The maximal distance
                                                     #   threshold
-                                'demo/demo1_results')    # Filename of the output
+                                'demo1_results')    # Filename of the output
                                                     #   result file
     # the ``align()`` function return two items
     # 0. the computed distance matrix
@@ -79,8 +86,8 @@ def demo_1():
     print dmatrix
 
 def demo_2():
-    targetset = parsefile('demo/FR.txt', indexes=[0, 1, (4, 5)])
-    alignset = parsefile('demo/frenchbnf', indexes=[0, 2, (14, 12)])
+    targetset = parsefile(path.join(DEMODIR, 'demo', 'FR.txt'), indexes=[0, 1, (4, 5)])
+    alignset = parsefile(path.join(DEMODIR, 'demo', 'frenchbnf'), indexes=[0, 2, (14, 12)])
 
     neighbors = findneighbours(alignset, targetset, indexes=(2, 2),
                                mode='kdtree', threshold=0.1)
@@ -103,8 +110,8 @@ def demo_2():
               [targetset[i][:2] for i in nei], # The target dataset
               [tr_name],
               0.3,
-              'demo/demo2_results')  # Filename of the output
-                                     #   result file
+              'demo2_results')  # Filename of the output
+                                #   result file
 
 if __name__ == '__main__':
     print "Running demo_0"
