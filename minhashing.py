@@ -139,7 +139,7 @@ class Minlsh(object):
             self._trained = False
 
 
-    def findsimilarsentences(self, threshold, sentenceid = -1):
+    def findsimilarsentences(self, threshold, sentenceid = None):
         """ Return a set of tuples of *possible* similar sentences
 
             If 0 <= sentenceid <= nbsentences is given:
@@ -158,7 +158,7 @@ class Minlsh(object):
                 y = pow(x / nbrows, 1. /x) - threshold
                 return y
 
-            ## Solve f(x) = 0, with x values in [1, nbrows]
+            ## Solve f(x) = 0, with x having values in [1, nbrows]
             return int(bisect(f, 1, nbrows))
 
 
@@ -182,7 +182,7 @@ class Minlsh(object):
                 col[i] = col[i][bandsize:] #pop the first rows
             print "Progress : %.3f" % (r * 100. / self.sigmatrix.shape[0])
 
-        if 0 <= sentenceid < self.sigmatrix.shape[1]:
+        if sentenceid and 0 <= sentenceid < self.sigmatrix.shape[1]:
             return set(tuple(v) for v in buckets.itervalues()
                        if len(v) > 1 and sentenceid in v)
         return set(tuple(v) for v in buckets.itervalues() if len(v) > 1)
