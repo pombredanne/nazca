@@ -21,7 +21,12 @@ from string import punctuation
 from warnings import warn
 from unicodedata import normalize as _uninormalize
 
-from nltk.tokenize import WordPunctTokenizer
+try:
+    from nltk.tokenize import WordPunctTokenizer as Tokenizer
+except ImportError:
+    class Tokenizer(object):
+        def tokenize(self, string):
+            return string.split(' ')
 
 
 STOPWORDS = set([u'alors', u'au', u'aucuns', u'aussi', u'autre', u'avant',
@@ -97,7 +102,7 @@ def lunormalize(sentence):
 
 def simplify(sentence, lemmas = None, removeStopWords = True):
     """ Simply the given sentence
-        0) If removeStopWords, then remove the stop word
+        0) If removeStopWords, then remove the stop words
         1) If lemmas are given, the sentence is lemmatized
         2) Set the sentence to lower case
         3) Remove punctuation
@@ -118,12 +123,12 @@ def simplify(sentence, lemmas = None, removeStopWords = True):
 
 def tokenize(sentence, tokenizer = None):
     """ Tokenize a sentence.
-        Use ``tokenizer`` if given, else
-        nltk.tokenize.regexp.WordPunctTokenizer
+        Use ``tokenizer`` if given, else try to use the nltk WordPunctTokenizer,
+        in case of failure, it just split on spaces.
 
         Anyway, tokenizer must have a ``tokenize()`` method
     """
-    tokenizer = tokenizer or WordPunctTokenizer
+    tokenizer = tokenizer or Tokenizer
     return [w for w in tokenizer().tokenize(sentence)]
 
 def wordgrams(sentence, k):
