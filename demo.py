@@ -1,11 +1,9 @@
 #!/usr/bin/python
 #-*- coding:utf-8 -*-
 
-from scipy.spatial import KDTree
-
 import alignment.distances as d
 import alignment.normalize as n
-from alignment.aligner import align, parsefile
+from alignment.aligner import align, parsefile, findneighbours
 
 def demo_0():
     # prixgoncourt is the list of Goncourt Prize, extracted
@@ -81,13 +79,11 @@ def demo_1():
     print dmatrix
 
 def demo_2():
-    targetset = parsefile('demo/FR.txt', indexes = [0, 1, (4, 5)])
-    alignset = parsefile('demo/frenchbnf', indexes = [0, 2, (14, 12)])
+    targetset = parsefile('demo/FR.txt', indexes=[0, 1, (4, 5)])
+    alignset = parsefile('demo/frenchbnf', indexes=[0, 2, (14, 12)])
 
-    aligntree = KDTree([elt[2] or (0, 0) for elt in alignset])
-    targettree = KDTree([elt[2] or (0, 0) for elt in targetset])
-
-    neighbors = aligntree.query_ball_tree(targettree, 0.1)
+    neighbors = findneighbours(alignset, targetset, indexes=(2, 2),
+                               mode='kdtree', threshold=0.1)
 
     # Let's define the treatements to apply on the location's name
     tr_name = { 'normalization': [lambda x: str(x),#Some names are casted to
