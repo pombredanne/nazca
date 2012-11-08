@@ -37,7 +37,7 @@ def _autocasted(data, encoding=None):
 
 
 def findneighbours(alignset, targetset, indexes = (1, 1), mode = 'kdtree',
-                   threshold = 0.1, k = 2, n_clusters = None):
+                   threshold = 0.1, k = 1, n_clusters = None):
 
     SEARCHERS = set(['kdtree', 'minhashing', 'kmeans', 'minibatch'])
     mode = mode.lower()
