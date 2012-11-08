@@ -5,7 +5,7 @@ from os import path
 
 import alignment.distances as d
 import alignment.normalize as n
-from alignment.aligner import align, parsefile, findneighbours
+from alignment.aligner import align, parsefile, findneighbours, sparqlquery
 
 DEMODIR = path.dirname(__file__)
 
@@ -13,18 +13,19 @@ def demo_0():
     # prixgoncourt is the list of Goncourt Prize, extracted
     # from wikipedia
 
-    # dbfrenchauthors is an extract dbpedia for the query :
-    #   SELECT ?writer, ?name WHERE {
-    #      ?writer  <http://purl.org/dc/terms/subject> <http://dbpedia.org/resource/Category:French_novelists>.
-    #      ?writer rdfs:label ?name.
-    #      FILTER(lang(?name) = 'fr')
-    #   }
-
     #We try to align Goncourt winers onto dbpedia results
 
+
+    query = """
+       SELECT ?writer, ?name WHERE {
+          ?writer  <http://purl.org/dc/terms/subject> <http://dbpedia.org/resource/Category:French_novelists>.
+          ?writer rdfs:label ?name.
+          FILTER(lang(?name) = 'fr')
+       }
+    """
+
+    targetset = sparqlquery('http://dbpedia.org/sparql', query)
     alignset = parsefile(path.join(DEMODIR, 'demo','prixgoncourt'), indexes = [1, 1])
-    targetset = parsefile(path.join(DEMODIR, 'demo', 'dbfrenchauthors'),
-                          indexes = [0, 1], delimiter='#')
 
     def removeparenthesis(string):
         if '(' in string:
