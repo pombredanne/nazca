@@ -135,6 +135,33 @@ def align(alignset, targetset, treatments, threshold, resultfile):
                     ))
     return mat, True
 
+def sparqlquery(endpoint, query, indexes=[]):
+    """ Run the sparql query on the given endpoint, and wrap the items in the
+    indexes form. If indexes is empty, keep raw output"""
+
+    from SPARQLWrapper import SPARQLWrapper, JSON
+
+    sparql = SPARQLWrapper(endpoint)
+    sparql.setQuery(query)
+    sparql.setReturnFormat(JSON)
+    rawresults = sparql.query().convert()
+    labels = rawresults['head']['vars']
+    results = []
+
+    for raw in rawresults["results"]["bindings"]:
+        data = []
+        if not indexes:
+            data = [raw[label]['value'] for label in labels]
+        else:
+            for ind in indexes:
+                if isinstance(ind, tuple):
+                    data.append(tuple([raw[labels[i]] for i in ind]))
+                else:
+                    data.append(raw[ind])
+        results.append(data)
+    return results
+
+
 def parsefile(filename, indexes=[], nbmax=None, delimiter='\t', encoding='utf-8'):
     """ Parse the file (read ``nbmax`` line at maximum if given). Each
         line is splitted according ``delimiter`` and only ``indexes`` are kept
