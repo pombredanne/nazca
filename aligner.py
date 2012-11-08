@@ -45,12 +45,15 @@ def findneighbours(alignset, targetset, indexes = (1, 1), mode = 'kdtree',
     if mode not in SEARCHERS:
         raise NotImplementedError('Unknown mode given')
 
+    #If an element is None (missing), use instead the identity element.
+    #The identity element is defined as the 0-vector
+    idelement = tuple([0 for _ in xrange(len(alignset[0][indexes[0]]))])
 ##### KDTree #######
     if mode == 'kdtree':
         from scipy.spatial import KDTree
-        # XXX : If there are more than 2 dimensions ??
-        aligntree  = KDTree([elt[indexes[0]] or (0, 0) for elt in alignset])
-        targettree = KDTree([elt[indexes[1]] or (0, 0) for elt in targetset])
+
+        aligntree  = KDTree([elt[indexes[0]] or idelement for elt in alignset])
+        targettree = KDTree([elt[indexes[1]] or idelement for elt in targetset])
         extraneighbours = aligntree.query_ball_tree(targettree, threshold)
         neighbours = []
         for ind in xrange(len(alignset)):
@@ -63,8 +66,9 @@ def findneighbours(alignset, targetset, indexes = (1, 1), mode = 'kdtree',
     elif mode == 'minhashing':
         from alignment.minhashing import Minlsh
         minhasher = Minlsh()
-        minhasher.train([elt[indexes[0]] or '' for elt in alignset] +
-                        [elt[indexes[1]] or '' for elt in targetset],
+        idelement = ''
+        minhasher.train([elt[indexes[0]] or idelement for elt in alignset] +
+                        [elt[indexes[1]] or idelement for elt in targetset],
                         k)
         rawneighbours = minhasher.findsimilarsentences(threshold)
         neighbours = []
@@ -88,9 +92,10 @@ def findneighbours(alignset, targetset, indexes = (1, 1), mode = 'kdtree',
             kmeans = cluster.KMeans(n_clusters=n_clusters)
         else:
             kmeans = cluster.MiniBatchKMeans(n_clusters=n_clusters)
+
         # XXX : If there are more than 2 dimensions ??
-        kmeans.fit([elt[indexes[0]] or (0, 0) for elt in alignset])
-        predicted = kmeans.predict([elt[indexes[1]] or (0, 0) for elt in targetset])
+        kmeans.fit([elt[indexes[0]] or idelement for elt in alignset])
+        predicted = kmeans.predict([elt[indexes[1]] or idelement for elt in targetset])
 
         clusters = [[[], []] for _ in xrange(kmeans.n_clusters)]
         for ind, i in enumerate(predicted):
