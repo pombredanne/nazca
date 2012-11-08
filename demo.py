@@ -117,8 +117,10 @@ def demo_2():
 
 if __name__ == '__main__':
     import sys
+    from time import time
     runall = (len(sys.argv) == 1)
 
+    t = time()
     if runall or '0' in sys.argv:
         print "Running demo_0"
         demo_0()
@@ -133,3 +135,4 @@ if __name__ == '__main__':
         demo_2()
 
     print "Demo terminated"
+    print "Took %d min" % ((time() - t) / 60)
