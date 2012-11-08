@@ -19,10 +19,8 @@ from os.path import exists as fileexists
 
 import csv
 
-from scipy.spatial import KDTree
 
 import alignment.matrix as m
-from alignment.minhashing import Minlsh
 
 def _autocasted(data, encoding=None):
     data = data.strip()
@@ -49,6 +47,7 @@ def findneighbours(alignset, targetset, indexes = (1, 1), mode = 'kdtree',
 
 ##### KDTree #######
     if mode == 'kdtree':
+        from scipy.spatial import KDTree
         # XXX : If there are more than 2 dimensions ??
         aligntree  = KDTree([elt[indexes[0]] or (0, 0) for elt in alignset])
         targettree = KDTree([elt[indexes[1]] or (0, 0) for elt in targetset])
@@ -56,6 +55,7 @@ def findneighbours(alignset, targetset, indexes = (1, 1), mode = 'kdtree',
 
 #### Minhashing #####
     elif mode == 'minhashing':
+        from alignment.minhashing import Minlsh
         minhasher = Minlsh()
         minhasher.train([elt[indexes[0]] or '' for elt in alignset] +
                         [elt[indexes[1]] or '' for elt in targetset],
