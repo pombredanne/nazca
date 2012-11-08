@@ -129,13 +129,13 @@ def align(alignset, targetset, treatments, threshold, resultfile):
         for aligned in matched:
             for target, dist in matched[aligned]:
                 fobj.write('%s;%s;%s\n' %
-                    (ralignset[aligned][0],
-                     rtargetset[target][0],
+                    (ralignset[aligned][0].encode('utf-8'),
+                     rtargetset[target][0].encode('utf-8'),
                      dist
                     ))
     return mat, True
 
-def parsefile(filename, indexes=[], nbmax=None, delimiter='\t'):
+def parsefile(filename, indexes=[], nbmax=None, delimiter='\t', encoding='utf-8'):
     """ Parse the file (read ``nbmax`` line at maximum if given). Each
         line is splitted according ``delimiter`` and only ``indexes`` are kept
 
@@ -152,35 +152,40 @@ def parsefile(filename, indexes=[], nbmax=None, delimiter='\t'):
                     [3, (23,   2.17), 'cherry', 'flower']]
 
     """
-    def str2number(word):
+    def autocasted(data):
         try:
-            return int(word)
+            return int(data)
         except ValueError:
             try:
-                return float(word)
+                return float(data)
             except ValueError:
-                return word
+                return data.decode(encoding)
+
+    def formatedoutput(filename):
+        with open(filename, 'r') as csvfile:
+            reader = csv.reader(csvfile, delimiter=delimiter)
+            for row in reader:
+                yield [autocasted(cell) for cell in row]
+
+
 
     result = []
-    with open(filename, 'r') as csvfile:
-        reader = csv.reader(csvfile, delimiter=delimiter)
-        for ind, row in enumerate(reader):
-            data = []
-            if nbmax and ind > nbmax:
-                break
-            row = [str2number(r.strip()) for r in row]
-            if not indexes:
-                data = row
-            else:
-                for ind in indexes:
-                    if isinstance(ind, tuple):
-                        data.append(tuple([row[i] for i in ind]))
-                        if '' in data[-1]:
-                            data[-1] = None
-                    elif row[ind]:
-                        data.append(row[ind])
-                    else:
-                        data.append(None)
+    for ind, row in enumerate(formatedoutput(filename)):
+        data = []
+        if nbmax and ind > nbmax:
+            break
+        if not indexes:
+            data = row
+        else:
+            for ind in indexes:
+                if isinstance(ind, tuple):
+                    data.append(tuple([row[i] for i in ind]))
+                    if '' in data[-1]:
+                        data[-1] = None
+                elif row[ind]:
+                    data.append(row[ind])
+                else:
+                    data.append(None)
 
-            result.append(data)
+        result.append(data)
     return result
