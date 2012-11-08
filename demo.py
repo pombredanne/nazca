@@ -88,7 +88,8 @@ def demo_1():
 
 def demo_2():
     targetset = parsefile(path.join(DEMODIR, 'demo', 'FR.txt'), indexes=[0, 1, (4, 5)])
-    alignset = parsefile(path.join(DEMODIR, 'demo', 'frenchbnf'), indexes=[0, 2, (14, 12)])
+    alignset = parsefile(path.join(DEMODIR, 'demo', 'frenchbnf'), indexes=[0, 2, (14, 12)],
+                         nbmax=30000)
 
     neighbors = findneighbours(alignset, targetset, indexes=(2, 2),
                                mode='kdtree', threshold=0.1)
@@ -105,8 +106,6 @@ def demo_2():
 
     print "Start computation"
     for ind, nei in enumerate(neighbors):
-#        print alignset[ind][1]
-#        print [targetset[i][1] for i in nei]
         m, b = align([alignset[ind][:2]],      # The dataset to align
               [targetset[i][:2] for i in nei], # The target dataset
               [tr_name],
