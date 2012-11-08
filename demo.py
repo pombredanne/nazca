@@ -93,7 +93,7 @@ def demo_2():
 
     print "Finding neighbours"
     neighbours = findneighbours(alignset, targetset, indexes=(2, 2),
-                               mode='kmeans', threshold=0.1)
+                               mode='minibatch')
 
     # Let's define the treatements to apply on the location's name
     tr_name = { 'normalization': [lambda x: str(x),#Some names are casted to
