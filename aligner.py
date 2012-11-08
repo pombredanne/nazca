@@ -39,16 +39,27 @@ def _autocasted(data, encoding=None):
 
 
 def findneighbours(alignset, targetset, indexes = (1, 1), mode = 'kdtree',
-                   threshold = 0.1, extraargs = {}):
+                   threshold = 0.1, k = 2, n_clusters = None):
+
+    SEARCHERS = set(['kdtree', 'minhashing', 'kmeans', 'minibatch'])
+    mode = mode.lower()
+
+    if mode not in SEARCHERS:
+        raise NotImplementedError('Unknown mode given')
+
+##### KDTree #######
     if mode == 'kdtree':
+        # XXX : If there are more than 2 dimensions ??
         aligntree  = KDTree([elt[indexes[0]] or (0, 0) for elt in alignset])
         targettree = KDTree([elt[indexes[1]] or (0, 0) for elt in targetset])
         return aligntree.query_ball_tree(targettree, threshold)
+
+#### Minhashing #####
     elif mode == 'minhashing':
         minhasher = Minlsh()
         minhasher.train([elt[indexes[0]] or '' for elt in alignset] +
                         [elt[indexes[1]] or '' for elt in targetset],
-                        **extraargs)
+                        k)
         rawneighbours = minhasher.findsimilarsentences(threshold)
         neighbours = [[] for _ in xrange(len(alignset))]
         for data in rawneighbours:
@@ -57,6 +68,27 @@ def findneighbours(alignset, targetset, indexes = (1, 1), mode = 'kdtree',
                     continue
                 neighbours[i].extend([e - len(alignset)
                                       for e in data if e >= len(alignset)])
+        return neighbours
+
+#### Kmeans #####
+    elif mode in set(['kmeans', 'minbatch']):
+        from sklearn import cluster
+        if mode == 'kmeans':
+            kmeans = cluster.KMeans(n_clusters=n_clusters or (len(alignset)/100))
+        else:
+            kmeans = cluster.MiniBatchKMeans(n_clusters=n_clusters or (len(alignset)/100))
+        # XXX : If there are more than 2 dimensions ??
+        kmeans.fit([elt[indexes[0]] or (0, 0) for elt in alignset])
+        predicted = kmeans.predict([elt[indexes[1]] or (0, 0) for elt in targetset])
+
+        clusters = [[] for _ in xrange(kmeans.n_clusters)]
+        print kmeans.n_clusters
+        for ind, j in enumerate(predicted):
+            clusters[j].append(ind)
+        neighbours = []
+        labels = kmeans.labels_
+        for i in xrange(len(alignset)):
+            neighbours.append(clusters[labels[i]])
         return neighbours
 
 def align(alignset, targetset, treatments, threshold, resultfile):
