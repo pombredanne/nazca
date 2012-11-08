@@ -106,13 +106,14 @@ def demo_2():
               }
 
     print "Start computation"
-    for ind, nei in enumerate(neighbours):
-        m, b = align([alignset[ind][:2]],      # The dataset to align
-              [targetset[i][:2] for i in nei], # The target dataset
-              [tr_name],
-              0.3,
-              'demo2_results')  # Filename of the output
-                                #   result file
+    for ind, (alignid, targetid) in enumerate(neighbours):
+        print '%3d' % ind, len(alignid), 'x', len(targetid)
+        m, b = align([alignset[i][:2] for i in alignid],   # The dataset to align
+                     [targetset[i][:2] for i in targetid], # The target dataset
+                     [tr_name],
+                     0.3,
+                     'demo2_results')  # Filename of the output
+                                       #   result file
 
 if __name__ == '__main__':
     import sys

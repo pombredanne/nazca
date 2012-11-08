@@ -51,7 +51,16 @@ def findneighbours(alignset, targetset, indexes = (1, 1), mode = 'kdtree',
         # XXX : If there are more than 2 dimensions ??
         aligntree  = KDTree([elt[indexes[0]] or (0, 0) for elt in alignset])
         targettree = KDTree([elt[indexes[1]] or (0, 0) for elt in targetset])
-        return aligntree.query_ball_tree(targettree, threshold)
+        intraneighbours = aligntree.query_ball_tree(aligntree, threshold)
+        extraneighbours = aligntree.query_ball_tree(targettree, threshold)
+        neighbours = []
+        for intra in intraneighbours:#XXX: Return an iterator
+            neighbours.append([intra, []])
+            for i in intra:
+                neighbours[-1][1].extend(extraneighbours[i])
+            if len(neighbours[-1][1] == 0):
+                neighbours[-1].pop()
+        return neighbours
 
 #### Minhashing #####
     elif mode == 'minhashing':
@@ -61,35 +70,37 @@ def findneighbours(alignset, targetset, indexes = (1, 1), mode = 'kdtree',
                         [elt[indexes[1]] or '' for elt in targetset],
                         k)
         rawneighbours = minhasher.findsimilarsentences(threshold)
-        neighbours = [[] for _ in xrange(len(alignset))]
-        for data in rawneighbours:
+        neighbours = []
+        for data in rawneighbours: #XXX: Return an iterator
+            neighbours.append([[], []])
             for i in data:
                 if i >= len(alignset):
-                    continue
-                neighbours[i].extend([e - len(alignset)
-                                      for e in data if e >= len(alignset)])
+                    neighbours[-1][1].append(i - len(alignset))
+                else:
+                    neighbours[-1][0].append(i)
+            if len(neighbours[-1][0]) == 0 or len(neighbours[-1][1] == 0):
+                neighbours.pop()
         return neighbours
 
 #### Kmeans #####
-    elif mode in set(['kmeans', 'minbatch']):
+    elif mode in set(['kmeans', 'minibatch']):
         from sklearn import cluster
+        n_clusters = n_clusters or len(alignset) / 10
+
         if mode == 'kmeans':
-            kmeans = cluster.KMeans(n_clusters=n_clusters or (len(alignset)/100))
+            kmeans = cluster.KMeans(n_clusters=n_clusters)
         else:
-            kmeans = cluster.MiniBatchKMeans(n_clusters=n_clusters or (len(alignset)/100))
+            kmeans = cluster.MiniBatchKMeans(n_clusters=n_clusters)
         # XXX : If there are more than 2 dimensions ??
         kmeans.fit([elt[indexes[0]] or (0, 0) for elt in alignset])
         predicted = kmeans.predict([elt[indexes[1]] or (0, 0) for elt in targetset])
 
-        clusters = [[] for _ in xrange(kmeans.n_clusters)]
-        print kmeans.n_clusters
-        for ind, j in enumerate(predicted):
-            clusters[j].append(ind)
-        neighbours = []
-        labels = kmeans.labels_
-        for i in xrange(len(alignset)):
-            neighbours.append(clusters[labels[i]])
-        return neighbours
+        clusters = [[[], []] for _ in xrange(kmeans.n_clusters)]
+        for ind, i in enumerate(predicted):
+            clusters[i][1].append(ind)
+        for ind, i in enumerate(kmeans.labels_):
+            clusters[i][0].append(ind)
+        return clusters
 
 def align(alignset, targetset, treatments, threshold, resultfile):
     """ Try to align the items of alignset onto targetset's ones
