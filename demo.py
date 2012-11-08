@@ -91,8 +91,9 @@ def demo_2():
     alignset = parsefile(path.join(DEMODIR, 'demo', 'frenchbnf'), indexes=[0, 2, (14, 12)],
                          nbmax=30000)
 
-    neighbors = findneighbours(alignset, targetset, indexes=(2, 2),
-                               mode='kdtree', threshold=0.1)
+    print "Finding neighbours"
+    neighbours = findneighbours(alignset, targetset, indexes=(2, 2),
+                               mode='kmeans', threshold=0.1)
 
     # Let's define the treatements to apply on the location's name
     tr_name = { 'normalization': [lambda x: str(x),#Some names are casted to
@@ -105,7 +106,7 @@ def demo_2():
               }
 
     print "Start computation"
-    for ind, nei in enumerate(neighbors):
+    for ind, nei in enumerate(neighbours):
         m, b = align([alignset[ind][:2]],      # The dataset to align
               [targetset[i][:2] for i in nei], # The target dataset
               [tr_name],
