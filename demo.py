@@ -115,12 +115,20 @@ def demo_2():
                                 #   result file
 
 if __name__ == '__main__':
-    print "Running demo_0"
-    demo_0()
+    import sys
+    runall = (len(sys.argv) == 1)
 
-    print "Running demo_1"
-    demo_1()
+    if runall or '0' in sys.argv:
+        print "Running demo_0"
+        demo_0()
 
-    print "Running demo_2"
-    ## Same as demo_1, but in a more efficient way, using a KDTree
-    demo_2()
+    if runall or '1' in sys.argv:
+        print "Running demo_1"
+        demo_1()
+
+    if runall or '2' in sys.argv:
+        print "Running demo_2"
+        ## Same as demo_1, but in a more efficient way, using a KDTree
+        demo_2()
+
+    print "Demo terminated"
