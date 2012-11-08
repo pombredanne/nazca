@@ -51,15 +51,12 @@ def findneighbours(alignset, targetset, indexes = (1, 1), mode = 'kdtree',
         # XXX : If there are more than 2 dimensions ??
         aligntree  = KDTree([elt[indexes[0]] or (0, 0) for elt in alignset])
         targettree = KDTree([elt[indexes[1]] or (0, 0) for elt in targetset])
-        intraneighbours = aligntree.query_ball_tree(aligntree, threshold)
         extraneighbours = aligntree.query_ball_tree(targettree, threshold)
         neighbours = []
-        for intra in intraneighbours:#XXX: Return an iterator
-            neighbours.append([intra, []])
-            for i in intra:
-                neighbours[-1][1].extend(extraneighbours[i])
-            if len(neighbours[-1][1] == 0):
-                neighbours[-1].pop()
+        for ind in xrange(len(alignset)):
+            neighbours.append([[ind], extraneighbours[ind]])
+            if len(neighbours[-1][1]) == 0:
+                neighbours.pop()
         return neighbours
 
 #### Minhashing #####
@@ -78,7 +75,7 @@ def findneighbours(alignset, targetset, indexes = (1, 1), mode = 'kdtree',
                     neighbours[-1][1].append(i - len(alignset))
                 else:
                     neighbours[-1][0].append(i)
-            if len(neighbours[-1][0]) == 0 or len(neighbours[-1][1] == 0):
+            if len(neighbours[-1][0]) == 0 or len(neighbours[-1][1]) == 0:
                 neighbours.pop()
         return neighbours
 
