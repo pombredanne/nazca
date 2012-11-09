@@ -38,6 +38,37 @@ def _autocasted(data, encoding=None):
 
 def findneighbours(alignset, targetset, indexes=(1, 1), mode='kdtree',
                    threshold=0.1, n_clusters=None, kwordsgram=1, siglen=200):
+    """ This function helps to find neighbours from items of alignset and
+        targetset. “Neighbours” are items that are “not so far”, ie having a
+        close label, are located in the same area etc.
+
+        This function handles two types of neighbouring : text and numeric.
+        For text value, you have to use the “minhashing” and for numeric, you
+        can choose from “kdtree“, “kdmeans“ and “minibatch”
+
+        The arguments to give are :
+            - `alignset` and `targetset` are the sets where neighbours have to
+              be found.
+            - `indexes` are the location of items to compare
+            - `mode` is the search type to use
+            - `threshold` is the `mode` threshold
+
+            - `n_clusters` is used for "kmeans" and "minibatch" methods, and it
+              is the number of clusters to use.
+
+            - `kwordsgram` and `siglen` are used for "minhashing". `kwordsgram`
+              is the length of wordsgrams to use, and `siglen` is the length of
+              the minhashing signature matrix.
+
+        return a list of lists, built as the following :
+            [
+                [[indexes_of_alignset_0], [indexes_of_targetset_0]],
+                [[indexes_of_alignset_1], [indexes_of_targetset_1]],
+                [[indexes_of_alignset_2], [indexes_of_targetset_2]],
+                [[indexes_of_alignset_3], [indexes_of_targetset_3]],
+                ...
+            ]
+    """
 
     SEARCHERS = set(['kdtree', 'minhashing', 'kmeans', 'minibatch'])
     mode = mode.lower()
