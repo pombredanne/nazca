@@ -72,7 +72,7 @@ def findneighbours(alignset, targetset, indexes=(1, 1), mode='kdtree',
                         kwordsgram, siglen)
         rawneighbours = minhasher.findsimilarsentences(threshold)
         neighbours = []
-        for data in rawneighbours: #XXX: Return an iterator
+        for data in rawneighbours:
             neighbours.append([[], []])
             for i in data:
                 if i >= len(alignset):
@@ -93,7 +93,6 @@ def findneighbours(alignset, targetset, indexes=(1, 1), mode='kdtree',
         else:
             kmeans = cluster.MiniBatchKMeans(n_clusters=n_clusters)
 
-        # XXX : If there are more than 2 dimensions ??
         kmeans.fit([elt[indexes[0]] or idelement for elt in alignset])
         predicted = kmeans.predict([elt[indexes[1]] or idelement for elt in targetset])
 
@@ -102,6 +101,7 @@ def findneighbours(alignset, targetset, indexes=(1, 1), mode='kdtree',
             clusters[i][1].append(ind)
         for ind, i in enumerate(kmeans.labels_):
             clusters[i][0].append(ind)
+        #XXX: Check all lists have one element at least ?
         return clusters
 
 def align(alignset, targetset, treatments, threshold, resultfile):
