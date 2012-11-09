@@ -36,8 +36,8 @@ def _autocasted(data, encoding=None):
 
 
 
-def findneighbours(alignset, targetset, indexes = (1, 1), mode = 'kdtree',
-                   threshold = 0.1, k = 1, n_clusters = None):
+def findneighbours(alignset, targetset, indexes=(1, 1), mode='kdtree',
+                   threshold=0.1, n_clusters=None, kwordsgram=1, siglen=200):
 
     SEARCHERS = set(['kdtree', 'minhashing', 'kmeans', 'minibatch'])
     mode = mode.lower()
@@ -69,7 +69,7 @@ def findneighbours(alignset, targetset, indexes = (1, 1), mode = 'kdtree',
         idelement = ''
         minhasher.train([elt[indexes[0]] or idelement for elt in alignset] +
                         [elt[indexes[1]] or idelement for elt in targetset],
-                        k)
+                        kwordsgram, siglen)
         rawneighbours = minhasher.findsimilarsentences(threshold)
         neighbours = []
         for data in rawneighbours: #XXX: Return an iterator
