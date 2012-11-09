@@ -57,9 +57,9 @@ def findneighbours(alignset, targetset, indexes=(1, 1), mode='kdtree',
         extraneighbours = aligntree.query_ball_tree(targettree, threshold)
         neighbours = []
         for ind in xrange(len(alignset)):
+            if not extraneighbours[ind]:
+                continue
             neighbours.append([[ind], extraneighbours[ind]])
-            if len(neighbours[-1][1]) == 0:
-                neighbours.pop()
         return neighbours
 
 #### Minhashing #####
