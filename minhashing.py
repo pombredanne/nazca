@@ -75,20 +75,15 @@ class Minlsh(object):
 
         """
 
-        rows = []
-        data = []
-        universe = {}
-        sizeofuniverse = 0
+        rows, data, universe, sizeofuniverse = [], [], {}, 0
         for sent in sentences:
             row = []
-            rowdata = []
             for w in iter_wordgrams(sent, k):
                 row.append(universe.setdefault(w, sizeofuniverse))
                 if row[-1] == sizeofuniverse:
                     sizeofuniverse += 1
-                rowdata.append(1)
             rows.append(row)
-            data.append(rowdata)
+            data.append([1] * len(row))
 
         matrixdoc = lil_matrix((len(rows), sizeofuniverse))
         matrixdoc.rows = rows
@@ -138,7 +133,6 @@ class Minlsh(object):
         else:
             self._trained = False
 
-
     def findsimilarsentences(self, threshold, sentenceid = None):
         """ Return a set of tuples of *possible* similar sentences
 
@@ -172,15 +166,12 @@ class Minlsh(object):
 
         col = [self.sigmatrix[:, i] for i in xrange(self.sigmatrix.shape[1])]
         bandsize = computebandsize(threshold, self.sigmatrix.shape[0])
-        buckets = defaultdict(set)
 
+        buckets = defaultdict(set)
         for r in xrange(0, self.sigmatrix.shape[0], bandsize):
             for i in xrange(len(col)):
-                stri = ''.join(str(val) for val in col[i][:bandsize])
-                buckets[hash(stri)].add(i)
-                ## Let's make some memory space
-                col[i] = col[i][bandsize:] #pop the first rows
-            print "Progress : %.3f" % (r * 100. / self.sigmatrix.shape[0])
+                buckets[tuple(col[i][r:r+bandsize])].add(i)
+            #print "Progress : %.3f" % (r * 100. / self.sigmatrix.shape[0])
 
         if sentenceid and 0 <= sentenceid < self.sigmatrix.shape[1]:
             return set(tuple(v) for v in buckets.itervalues()
