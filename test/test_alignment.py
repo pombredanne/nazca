@@ -101,7 +101,7 @@ class DistancesTest(unittest2.TestCase):
 
         self.assertEqual(jaccard('bonjour', 'bonjour'), 0.0)
         self.assertAlmostEqual(jaccard('boujour', 'bonjour'), 1, 2)
-        self.assertAlmostEqual(jaccard('sacré rubert', 'sacré hubert'), 0.5, 2)
+        self.assertAlmostEqual(jaccard(u'sacré rubert', u'sacré hubert'), 0.667, 2)
 
         #Test symetry
         self.assertEqual(jaccard('orange', 'morange'),
@@ -161,11 +161,13 @@ class NormalizerTestCase(unittest2.TestCase):
         self.assertEqual(simplify(u"J'aime les frites, les pommes et les" \
                                   u" scoubidous !", self.lemmas),
                          u"aimer frites pomme scoubidou")
+
     def test_tokenize(self):
         self.assertEqual(tokenize(u"J'aime les frites !"),
                          [u'J', u"'", u'aime', u'les', u'frites', u'!',])
 
     def test_lemmatizer(self):
+        self.assertEqual(lemmatized(u'sacré rubert', self.lemmas), u'sacré rubert')
         self.assertEqual(lemmatized(u"J'aime les frites !", self.lemmas),
                          u'je aimer le frite')
         self.assertEqual(lemmatized(u", J'aime les frites", self.lemmas),

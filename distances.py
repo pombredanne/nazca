@@ -22,36 +22,9 @@ from scipy import matrix
 
 from alignment.normalize import tokenize
 
-def levenshtein(stra, strb):
-    """ Compute the Levenshtein distance between stra and strb.
 
-    The Levenshtein distance is defined as the minimal cost to transform stra
-    into strb, where 3 operators are allowed :
-        - Replace one character of stra into a character of strb
-        - Add one character of strb into stra
-        - Remove one character of strb
-
-        If spaces are found in stra or strb, this method returns
-            _handlespaces(stra, strb, levenshtein)
-    """
-
-    if ' ' in stra or ' ' in strb:
-        return _handlespaces(stra, strb, levenshtein)
-
-    lena = len(stra)
-    lenb = len(strb)
-    onerowago = None
-    thisrow = range(1, lenb + 1) + [0]
-    for x in xrange(lena):
-        onerowago, thisrow = thisrow, [0] * lenb + [x+1]
-        for y in xrange(lenb):
-            delcost = onerowago[y] + 1
-            addcost = thisrow[y - 1] + 1
-            subcost = onerowago[y - 1] + (stra[x] != strb[y])
-            thisrow[y] = min(delcost, addcost, subcost)
-    return thisrow[lenb - 1]
-
-def _handlespaces(stra, strb, distance, **args):
+### UTILITY FUNCTIONS #########################################################
+def _handlespaces(stra, strb, distance, tokenizer=None, **kwargs):
     """ Compute the matrix of distances between all tokens of stra and strb
         (with function ``distance``). Extra args are given to the distance
         function
@@ -74,21 +47,62 @@ def _handlespaces(stra, strb, distance, **args):
     if ' ' not in strb:
         strb += ' '
 
-    toka, tokb = stra.split(' '), strb.split(' ')
+    toka = tokenize(stra, tokenizer)
+    tokb = tokenize(strb, tokenizer)
+    # If not same number of tokens, complete the smallest list with empty strings
+    if len(toka) != len(tokb):
+        mint = toka if len(toka)<len(tokb) else tokb
+        maxt = toka if len(toka)>len(tokb) else tokb
+        mint.extend(['' for i in range(len(maxt)-len(mint))])
 
     listmatrix = []
     for i in xrange(len(toka)):
-        listmatrix.append([])
-        for j in xrange(len(tokb)):
-            listmatrix[-1].append(distance(toka[i], tokb[j], **args))
+        listmatrix.append([distance(toka[i], tokb[j], **kwargs) for j in xrange(len(tokb))])
     m = matrix(listmatrix)
     minlist = [m[i,:].min() for i in xrange(m.shape[0])]
     minlist.extend([m[:,i].min() for i in xrange(m.shape[1])])
-
     return max(minlist)
 
 
-def soundexcode(word, language = 'french'):
+### NUMERICAL DISTANCES #######################################################
+def euclidean(a, b):
+    """ Simple euclidian distance
+    """
+    try:
+        return abs(a - b)
+    except TypeError:
+        return abs(float(a) - float(b))
+
+
+### STRING DISTANCES ##########################################################
+def levenshtein(stra, strb, tokenizer=None):
+    """ Compute the Levenshtein distance between stra and strb.
+
+    The Levenshtein distance is defined as the minimal cost to transform stra
+    into strb, where 3 operators are allowed :
+        - Replace one character of stra into a character of strb
+        - Add one character of strb into stra
+        - Remove one character of strb
+
+        If spaces are found in stra or strb, this method returns
+            _handlespaces(stra, strb, levenshtein)
+    """
+    if ' ' in stra or ' ' in strb:
+        return _handlespaces(stra, strb, levenshtein, tokenizer)
+
+    lenb = len(strb)
+    onerowago = None
+    thisrow = range(1, lenb + 1) + [0]
+    for x in xrange(len(stra)):
+        onerowago, thisrow = thisrow, [0] * lenb + [x+1]
+        for y in xrange(lenb):
+            delcost = onerowago[y] + 1
+            addcost = thisrow[y - 1] + 1
+            subcost = onerowago[y - 1] + (stra[x] != strb[y])
+            thisrow[y] = min(delcost, addcost, subcost)
+    return thisrow[lenb - 1]
+
+def soundexcode(word, language='french'):
     """ Return the Soundex code of the word ``word``
         For more information about soundex code see wiki_
 
@@ -123,7 +137,8 @@ def soundexcode(word, language = 'french'):
                           }
     else:
         raise NotImplementedError('Soundex code is not supported (yet ?) for'
-                                  'this language')
+                                  'this language (%s). '
+                                  'Supported languages are french and english' % language)
     word = word.strip().upper()
     code = word[0]
     #After this ``for`` code is
@@ -146,17 +161,17 @@ def soundexcode(word, language = 'french'):
     ###First four letters, completed by zeros
     return code[:4] + '0' * (4 - len(code))
 
-def soundex(stra, strb, language = 'french'):
+def soundex(stra, strb, language='french', tokenizer=None):
     """ Return the 1/0 distance between the soundex code of stra and strb.
         0 means they have the same code, 1 they don't
     """
     if ' ' in stra or ' ' in strb:
-        return _handlespaces(stra, strb, soundex, language = language)
+        return _handlespaces(stra, strb, soundex, tokenizer=tokenizer, language=language)
 
     return 0 if (soundexcode(stra, language) == soundexcode(strb, language)) \
              else 1
 
-def jaccard(stra, strb, tokenizer = None):
+def jaccard(stra, strb, tokenizer=None):
     """ Return the jaccard distance between stra and strb, condering the tokens
         set of stra and strb. If no tokenizer is given, it use if
         alignement.normalize.tokenize's default one.
@@ -167,12 +182,12 @@ def jaccard(stra, strb, tokenizer = None):
 
     seta = set(tokenize(stra, tokenizer))
     setb = set(tokenize(strb, tokenizer))
+    return 1.0 - 1.0 * len(seta.intersection(setb)) / len(seta.union(setb))
 
-    jacc = 1.0 * len(seta.intersection(setb)) / len(seta.union(setb))
-    return 1.0 - jacc
 
-def temporal(stra, strb, granularity = u'days', language = u'french',
-             dayfirst = True, yearfirst = False):
+### TEMPORAL DISTANCES ########################################################
+def temporal(stra, strb, granularity=u'days', language=u'french',
+             dayfirst=True, yearfirst=False):
     """ Return the distance between two strings (read as dates).
 
         ``granularity`` can be either ``days`` or ``months`` or ``years``
@@ -205,25 +220,21 @@ def temporal(stra, strb, granularity = u'days', language = u'french',
                         (u'Ven', u'Vendredi'),
                         (u'Sam', u'Samedi'),
                         (u'Dim', u'Dimanche'),]
-    datea = dateparser.parse(stra, parserinfo = customparserinfo(dayfirst,
-                             yearfirst), fuzzy = True)
-    dateb = dateparser.parse(strb, parserinfo = customparserinfo(dayfirst,
-                             yearfirst), fuzzy = True)
-    diff  = datea - dateb
+    datea = dateparser.parse(stra, parserinfo=customparserinfo(dayfirst,
+                             yearfirst), fuzzy=True)
+    dateb = dateparser.parse(strb, parserinfo=customparserinfo(dayfirst,
+                             yearfirst), fuzzy=True)
+    diff = datea - dateb
     if granularity.lower() == 'years':
         return abs(diff.days / 365.25)
     if granularity.lower() == 'months':
         return abs(diff.days / 30.5)
     return abs(diff.days)
 
-def euclidean(a, b):
-    try:
-        return abs(a - b)
-    except TypeError:
-        return abs(float(a) - float(b))
 
-def geographical(pointa, pointb, inRadians = False, planetRadius = 6371009,
-                 units = 'm'):
+### GEOGRAPHICAL DISTANCES ####################################################
+def geographical(pointa, pointb, inRadians=False, planetRadius=6371009,
+                 units='m'):
     """ Return the geographical distance between two points.
 
         Both points must be tuples (latitude, longitude)

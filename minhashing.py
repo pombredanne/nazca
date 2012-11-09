@@ -24,7 +24,7 @@ from numpy import ones
 from scipy.sparse import lil_matrix
 from scipy.optimize import bisect
 
-from alignment.normalize import wordgrams
+from alignment.normalize import iter_wordgrams
 
 def randomhashfunction(zr):
     """ Return a random hash function, mapping x in Z to ZR
@@ -82,7 +82,7 @@ class Minlsh(object):
         for sent in sentences:
             row = []
             rowdata = []
-            for w in wordgrams(sent, k):
+            for w in iter_wordgrams(sent, k):
                 row.append(universe.setdefault(w, sizeofuniverse))
                 if row[-1] == sizeofuniverse:
                     sizeofuniverse += 1

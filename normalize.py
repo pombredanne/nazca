@@ -16,17 +16,9 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import re
-
 from string import punctuation
 from warnings import warn
 from unicodedata import normalize as _uninormalize
-
-try:
-    from nltk.tokenize import WordPunctTokenizer as Tokenizer
-except ImportError:
-    class Tokenizer(object):
-        def tokenize(self, string):
-            return string.split(' ')
 
 
 STOPWORDS = set([u'alors', u'au', u'aucuns', u'aussi', u'autre', u'avant',
@@ -63,6 +55,22 @@ MANUAL_UNICODE_MAP = {
     u'\xdf': u'ss',   # LATIN SMALL LETTER SHARP S
     }
 
+class Tokenizer(object):
+    """ Simple tokenizer similar to the one in NLTK.
+    """
+    def tokenize(self, string):
+        return [s for s in string.split(' ') if s]
+
+
+class WordTokenizer(Tokenizer):
+    """ Simple punctutation tokenizer similar to the one in NLTK.
+    XXX THIS CANNOT HANDLE UNICODE.
+    """
+    regexp = re.compile(r'\w+|[^\w\s]+')
+    def tokenize(self, string):
+        return [t for t in self.regexp.findall(string) if t]
+
+
 def unormalize(ustring, ignorenonascii=None, substitute=None):
     """replace diacritical characters with their corresponding ascii characters
 
@@ -96,11 +104,11 @@ def unormalize(ustring, ignorenonascii=None, substitute=None):
         res.append(replacement)
     return u''.join(res)
 
-def lunormalize(sentence):
+def lunormalize(sentence, ignorenonascii=None, substitute=None):
     """ Normalize a sentence (ie remove accents, set to lower, etc) """
-    return unormalize(sentence).lower()
+    return unormalize(sentence, ignorenonascii, substitute).lower()
 
-def simplify(sentence, lemmas = None, removeStopWords = True):
+def simplify(sentence, lemmas=None, removeStopWords=True):
     """ Simply the given sentence
         0) If removeStopWords, then remove the stop words
         1) If lemmas are given, the sentence is lemmatized
@@ -110,28 +118,32 @@ def simplify(sentence, lemmas = None, removeStopWords = True):
     if lemmas:
         sentence = lemmatized(sentence, lemmas)
     sentence = sentence.lower()
-    cleansent = ''
-    for s in sentence:
-        if s not in punctuation:
-            cleansent += s
+    cleansent = ''.join([s for s in sentence if s not in punctuation])
 
     if not removeStopWords:
         return cleansent
     else:
         return ' '.join([w for w in cleansent.split(' ') if w not in STOPWORDS])
 
-
-def tokenize(sentence, tokenizer = None):
+def tokenize(sentence, tokenizer=None):
     """ Tokenize a sentence.
         Use ``tokenizer`` if given, else try to use the nltk WordPunctTokenizer,
         in case of failure, it just split on spaces.
 
         Anyway, tokenizer must have a ``tokenize()`` method
     """
-    tokenizer = tokenizer or Tokenizer
-    return [w for w in tokenizer().tokenize(sentence)]
+    if not tokenizer and isinstance(sentence, str):
+        tokenizer = WordTokenizer
+    elif not tokenizer and isinstance(sentence, unicode):
+        # XXX Unicode, could not use WorkTokenizer
+        if sentence == unormalize(sentence):
+            # This may be still used with the WordTokenizer
+            tokenizer = WordTokenizer
+        else:
+            tokenizer = Tokenizer
+    return tokenizer().tokenize(sentence)
 
-def wordgrams(sentence, k):
+def iter_wordgrams(sentence, k):
     """ Generator of k-wordgrams on the given sentence
     """
     words = sentence.split(' ')
@@ -141,11 +153,10 @@ def wordgrams(sentence, k):
 def loadlemmas(filename):
     """ Return the default lemmas dictionnary
     """
-    return dict([line.strip().split('\t')
-                 for line in open(filename)
-                     if len(line.strip().split('\t'))==2])
+    return dict([line.strip().split('\t') for line in open(filename)
+                 if len(line.strip().split('\t'))==2])
 
-def lemmatized(sentence, lemmas, tokenizer = None):
+def lemmatized(sentence, lemmas, tokenizer=None):
     """ Return the lemmatized sentence
     """
     tokenized_sent = tokenize(sentence, tokenizer)
@@ -171,14 +182,13 @@ def lemmatized_word(word, lemmas):
             lemma = _words[0]
     return lemma
 
-def roundstr(number, ndigits = 0):
+def roundstr(number, ndigits=0):
     """Return an unicode string of ``number`` rounded to a given precision
         in decimal digits (default 0 digits)
 
         If ``number`` is not a float, this method casts it to a float. (An
         exception may be raised if it's not possible)
     """
-
     return format(round(float(number), ndigits), '0.%df' % ndigits)
 
 def rgxformat(string, regexp, output):
