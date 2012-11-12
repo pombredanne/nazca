@@ -192,28 +192,30 @@ if __name__ == '__main__':
     lemmas = loadlemmas('data/french_lemmas.txt')
     minlsh = Minlsh()
 
-    t0 = time()
-    minlsh.train((simplify(s, lemmas) for s in sentences), 1, 100)
-    t1 = time()
+    def compute_complexite(size):
+        t0 = time()
+        length = int(size * len(sentences) / 100)
+        minlsh.train((simplify(s, lemmas) for s in sentences[:length]), 1, 100)
+        t1 = time()
+        minlsh.findsimilarsentences(0.7)
+        t2 = time()
+        print 'Nb sentences : %d' % length
+        print 'Training + signaturing time : %.3fs' % (t1 - t0)
+        print 'Similarity %.3fs' % (t2 - t1)
+        print 'Total : %.3fs' % (t2 - t0)
+        return len(sentences[:length]), (t2 - t0)
 
+    import matplotlib.pyplot as plt
+    from scipy import polyfit
+    x = []
+    y = []
+    size = 0.1
+    while size < 100:
+        size *= 2.5
+        p = compute_complexite(size)
+        x.append(p[0])
+        y.append(p[1])
 
-#    print 'Les phrases sont : '
-#    for s in sentences:
-#        print ' - %s' % s
-
-    print '\nLes phrases *possiblement* similaires sont : '
-    t2 = None
-    for s in minlsh.findsimilarsentences(0.7):
-        if not t2:
-            t2 = time()
-        for e in s:
-            print ' -', sentences[e]
-        print
-        if raw_input():
-            break
-
-    print 'Training + signaturing time : %.3fs (for %d sentences)' \
-          % ((t1 - t0), len(sentences))
-
-    print '%.3fs' % (t2 - t1)
-
+    plt.plot(x, y)
+    print polyfit(x, y, 1)
+    plt.show()
