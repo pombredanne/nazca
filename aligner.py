@@ -24,6 +24,19 @@ from scipy.spatial import KDTree
 import alignment.matrix as m
 from alignment.minhashing import Minlsh
 
+def _autocasted(data, encoding=None):
+    data = data.strip()
+    try:
+        return int(data)
+    except ValueError:
+        try:
+            return float(data)
+        except ValueError:
+            if encoding:
+                return data.decode(encoding)
+            return data
+
+
 
 def findneighbours(alignset, targetset, indexes = (1, 1), mode = 'kdtree',
                    threshold = 0.1, extraargs = {}):
@@ -128,9 +141,13 @@ def align(alignset, targetset, treatments, threshold, resultfile):
             fobj.write('aligned;targetted;distance\n')
         for aligned in matched:
             for target, dist in matched[aligned]:
+                alignid = ralignset[aligned][0]
+                targetid = rtargetset[target][0]
                 fobj.write('%s;%s;%s\n' %
-                    (ralignset[aligned][0].encode('utf-8'),
-                     rtargetset[target][0].encode('utf-8'),
+                    (alignid.encode('utf-8') if isinstance(alignid, basestring)
+                                             else alignid,
+                     targetid.encode('utf-8') if isinstance(targetid, basestring)
+                                              else targetid,
                      dist
                     ))
     return mat, True
@@ -151,13 +168,13 @@ def sparqlquery(endpoint, query, indexes=[]):
     for raw in rawresults["results"]["bindings"]:
         data = []
         if not indexes:
-            data = [raw[label]['value'] for label in labels]
+            data = [_autocasted(raw[label]['value']) for label in labels]
         else:
             for ind in indexes:
                 if isinstance(ind, tuple):
-                    data.append(tuple([raw[labels[i]] for i in ind]))
+                    data.append(tuple([_autocasted(raw[labels[i]]['value']) for i in ind]))
                 else:
-                    data.append(raw[ind])
+                    data.append(_autocasted(raw[labels[ind]]['value']))
         results.append(data)
     return results
 
@@ -179,20 +196,11 @@ def parsefile(filename, indexes=[], nbmax=None, delimiter='\t', encoding='utf-8'
                     [3, (23,   2.17), 'cherry', 'flower']]
 
     """
-    def autocasted(data):
-        try:
-            return int(data)
-        except ValueError:
-            try:
-                return float(data)
-            except ValueError:
-                return data.decode(encoding)
-
     def formatedoutput(filename):
         with open(filename, 'r') as csvfile:
             reader = csv.reader(csvfile, delimiter=delimiter)
             for row in reader:
-                yield [autocasted(cell) for cell in row]
+                yield [_autocasted(cell) for cell in row]
 
 
 
