@@ -20,7 +20,7 @@ import cPickle
 from random import randint
 from collections import defaultdict
 
-from numpy import ones
+import numpy as np
 from scipy.sparse import lil_matrix
 from scipy.optimize import bisect
 
@@ -89,7 +89,7 @@ class Minlsh(object):
         matrixdoc.rows = rows
         matrixdoc.data = data
 
-        return matrixdoc.T
+        return matrixdoc
 
     def _signaturematrix(self, matrixdocument, siglen):
         """ Return a matrix where each column is the signature the document
@@ -99,15 +99,18 @@ class Minlsh(object):
         """
 
         nrows, ncols = matrixdocument.shape
-        sig = ones((siglen, ncols)) * (nrows + 1)
-        hashfunc = [randomhashfunction(nrows) for _ in xrange(siglen)]
+        sig = np.empty((siglen, nrows))
+        #Generate the random hash functions
+        hashfunc = [randomhashfunction(ncols) for _ in xrange(siglen)]
+        #Compute hashing values
+        hashvalues = np.array([[hashfunc[i](r) for r in xrange(ncols)]
+                                for i in  xrange(siglen)])
 
-        for r in xrange(nrows):
-            hashrs = [(i, func(r)) for i, func in enumerate(hashfunc)]
-            for c in matrixdocument.rows[r]:
-                for i, hashr in hashrs:
-                    if hashr < sig[i, c]:
-                        sig[i, c] = hashr
+        for docind, doc in enumerate(matrixdocument.rows):
+            #Concatenate the needed rows.
+            tmp = np.dstack([hashvalues[:,r] for r in doc])
+            #Take the mininum of hashes
+            sig[:,docind] = np.min(tmp[0], 1)
         return sig
 
     def save(self, savefile):
