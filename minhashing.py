@@ -167,13 +167,13 @@ class Minlsh(object):
             print "Threshold must be in ]0 ; 1]"
             return
 
-        col = [self.sigmatrix[:, i] for i in xrange(self.sigmatrix.shape[1])]
+        sig = self.sigmatrix
         bandsize = computebandsize(threshold, self.sigmatrix.shape[0])
 
         buckets = defaultdict(set)
-        for r in xrange(0, self.sigmatrix.shape[0], bandsize):
-            for i in xrange(len(col)):
-                buckets[tuple(col[i][r:r+bandsize])].add(i)
+        for r in xrange(0, sig.shape[0], bandsize):
+            for i in xrange(sig.shape[1]):
+                buckets[tuple(sig[r:r+bandsize, i])].add(i)
             #print "Progress : %.3f" % (r * 100. / self.sigmatrix.shape[0])
 
         if sentenceid and 0 <= sentenceid < self.sigmatrix.shape[1]:
