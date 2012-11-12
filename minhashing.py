@@ -180,26 +180,37 @@ class Minlsh(object):
 
 if __name__ == '__main__':
     from alignment.normalize import (loadlemmas, simplify)
+    from time import time
 
-    sentences = ["j'aime le poisson", "le poisson c'est bon",
-                 "je cuis le poisson", "je fais du sport",
-                 "le sport c'est bon pour la sante",
-                 "pour la sante le sport est bon",
-                 "le programme TV de ce soir est interessant",
-                 "le poisson est cuit",
-                 "les carottes sont cuites"]
+    with open('data/french_sentences.txt') as fobj:
+        sentences = [line.strip() for line in fobj]
+
 
     lemmas = loadlemmas('data/french_lemmas.txt')
     minlsh = Minlsh()
-    minlsh.train((simplify(s, lemmas) for s in sentences), 1, 200)
 
-    print 'Les phrases sont : '
-    for s in sentences:
-        print ' - %s' % s
+    t0 = time()
+    minlsh.train((simplify(s, lemmas) for s in sentences), 1, 100)
+    t1 = time()
+
+
+#    print 'Les phrases sont : '
+#    for s in sentences:
+#        print ' - %s' % s
 
     print '\nLes phrases *possiblement* similaires sont : '
+    t2 = None
     for s in minlsh.findsimilarsentences(0.7):
+        if not t2:
+            t2 = time()
         for e in s:
             print ' -', sentences[e]
         print
+        if raw_input():
+            break
+
+    print 'Training + signaturing time : %.3fs (for %d sentences)' \
+          % ((t1 - t0), len(sentences))
+
+    print '%.3fs' % (t2 - t1)
 
