@@ -21,100 +21,47 @@ from copy import deepcopy
 from scipy import array, empty
 from scipy import where
 
-class Distancematrix(object):
-    """ Construct and compute a matrix of distance given a distance function.
+""" Construct and compute a matrix of distance given a distance function.
 
-        Given :
-            input1 = ['Victor Hugo', 'Albert Camus']
-            input2 = ['Victor Wugo', 'Albert Camus']
-            distance = levenshtein
+    Given :
+        input1 = ['Victor Hugo', 'Albert Camus']
+        input2 = ['Victor Wugo', 'Albert Camus']
+        distance = levenshtein
 
-            constructs the following matrix :
-                 +----+----+
-                 | 1  | 11 |
-                 +----+----+
-                 | 11 | 0  |
-                 +----+----+
-    """
+        constructs the following matrix :
+             +----+----+
+             | 1  | 11 |
+             +----+----+
+             | 11 | 0  |
+             +----+----+
+"""
 
-    def __init__(self, weighting, input1, input2, distance, normalized = True, kargs = {}):
-        self.distance = distance
-        self._matrix = empty((len(input1), len(input2)), dtype='float32')
-        self.size = self._matrix.shape
-        self.normalized = normalized
-        self._compute(weighting, input1, input2, kargs)
+def cdist(input1, input2, distance, normalized = True, kargs = {}):
+    distmatrix = empty((len(input1), len(input2)), dtype='float32')
+    size = distmatrix.shape
+    for i in xrange(size[0]):
+        for j in xrange(size[1]):
+            d = 1
+            if input1[i] and input2[j]:
+                d = distance(input1[i], input2[j], **kargs)
+                if normalized:
+                    d = 1 - (1.0 / (1.0 + d))
+            distmatrix[i, j] = d
+    return distmatrix
 
-    def _compute(self, weighting, input1, input2, kargs):
-        for i in xrange(self.size[0]):
-            for j in xrange(self.size[1]):
-                d = 1
-                if input1[i] and input2[j]:
-                    d = self.distance(input1[i], input2[j], **kargs)
-                    if self.normalized:
-                        d = 1 - (1.0 / (1.0 + d))
-                    d *= weighting
-                self._matrix[i, j] = d
+def matched(distmatrix, cutoff = 0, normalized = False):
+    match = defaultdict(list)
+    if normalized:
+        distmatrix /= distmatrix.max()
 
-    def __getitem__(self, index):
-        return self._matrix[index]
+    ind = (distmatrix <= cutoff).nonzero()
+    indrow = ind[0].tolist()
+    indcol = ind[1].tolist()
 
-    def __repr__(self):
-        return self._matrix.__repr__()
+    for (i, j) in zip(indrow, indcol):
+        match[i].append((j, distmatrix[i, j]))
 
-    def __rmul__(self, number):
-        return self * number
-
-    def __mul__(self, val):
-        if not (isinstance(val, int) or isinstance(val, float)
-                or isinstance(val, Distancematrix)):
-            raise NotImplementedError
-
-        other = deepcopy(self)
-        other._matrix *= val
-        return other
-
-    def __add__(self, other):
-        if not isinstance(other, Distancematrix):
-            raise NotImplementedError
-
-        result = deepcopy(self)
-        result._matrix = (self._matrix + other._matrix)
-        return result
-
-    def __sub__(self, other):
-        if not isinstance(other, Distancematrix):
-            raise NotImplementedError
-
-        result = deepcopy(self)
-        result._matrix = (self._matrix - other._matrix)
-        return result
-
-    def __eq__(self, other):
-        if not isinstance(other, Distancematrix):
-            return False
-
-        if (self._matrix != other._matrix).any():
-            return False
-
-        if self.distance != other.distance:
-            return False
-
-        return True
-
-
-    def matched(self, cutoff = 0, normalized = False):
-        match = defaultdict(list)
-        if normalized:
-            self._matrix /= self._matrix.max()
-
-        ind = (self._matrix <= cutoff).nonzero()
-        indrow = ind[0].tolist()
-        indcol = ind[1].tolist()
-
-        for (i, j) in zip(indrow, indcol):
-            match[i].append((j, self._matrix[i, j]))
-
-        return match
+    return match
 
 def globalalignmentmatrix(items):
     """ Compute and return the global alignment matrix.
@@ -147,7 +94,7 @@ def globalalignmentmatrix(items):
        /!\ All `input1` and `input2` of each tuple must have the same size
            in twos
     """
-    globalmatrix = Distancematrix(*items[0])
+    globalmatrix = items[0][0]*cdist(*items[0][1:])
     for item in items[1:]:
-        globalmatrix += Distancematrix(*item)
+        globalmatrix += item[0]*cdist(*item[1:])
     return globalmatrix

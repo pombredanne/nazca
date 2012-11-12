@@ -206,7 +206,7 @@ def align(alignset, targetset, treatments, threshold, resultfile):
         items.append(item)
 
     mat = m.globalalignmentmatrix(items)
-    matched = mat.matched(threshold)
+    matched = m.matched(mat, threshold)
 
     if not matched:
         return mat, False

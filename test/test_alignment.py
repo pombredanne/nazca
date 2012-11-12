@@ -49,7 +49,7 @@ from alignment.distances import (levenshtein, soundex, soundexcode,   \
                                  geographical)
 from alignment.normalize import (lunormalize, loadlemmas, lemmatized, \
                                  roundstr, rgxformat, tokenize, simplify)
-from alignment.matrix import Distancematrix
+import alignment.matrix as am
 from alignment.minhashing import Minlsh
 from alignment.aligner import parsefile
 
@@ -197,7 +197,7 @@ class MatrixTestCase(unittest2.TestCase):
         self.input1 = [u'Victor Hugo', u'Albert Camus', 'Jean Valjean']
         self.input2 = [u'Victor Wugo', u'Albert Camus', 'Albert Camu']
         self.distance = levenshtein
-        self.matrix = Distancematrix(1, self.input1, self.input2, self.distance, False)
+        self.matrix = am.cdist(self.input1, self.input2, self.distance, False)
     def test_matrixconstruction(self):
         d = self.distance
         i1, i2 = self.input1, self.input2
@@ -214,19 +214,19 @@ class MatrixTestCase(unittest2.TestCase):
 
         #Only the element 1 of input1 has *exactly* matched with the element 1
         #of input2
-        self.assertEqual(m.matched(), {1: [(1, 0)]})
+        self.assertEqual(am.matched(m), {1: [(1, 0)]})
 
         #Victor Hugo --> Victor Wugo
         #Albert Camus --> Albert Camus, Albert Camu
-        self.assertEqual(m.matched(cutoff = 2),
+        self.assertEqual(am.matched(m, cutoff = 2),
                         {0: [(0, d(i1[0], i2[0]))], 1: [(1, d(i1[1], i2[1])),
                                                         (2, d(i1[1], i2[2]))]})
 
     def test_operation(self):
         m = self.matrix
-        self.assertEqual(3 * m, m * 3)
-        self.assertEqual((m - 0.5*m), (0.5 * m))
-        self.assertEqual(m + 10*m - m * 3, 8 * m)
+        self.assertTrue((3 * m == m * 3).all())
+        self.assertTrue(((m - 0.5*m) == (0.5 * m)).all())
+        self.assertTrue(((m + 10*m - m * 3) == (8 * m)).all())
 
 class MinLSHTest(unittest2.TestCase):
     def test_all(self):
