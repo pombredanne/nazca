@@ -93,9 +93,9 @@ class Minlsh(object):
 
     def _signaturematrix(self, matrixdocument, siglen):
         """ Return a matrix where each column is the signature the document
-            The signature is composed of siglen number
+            The signature is composed of `siglen` numbers
 
-            The more the document have rows in commun, the closer they are.
+            The more the documents have rows in commun, the closer they are.
         """
 
         nrows, ncols = matrixdocument.shape
