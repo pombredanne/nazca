@@ -233,13 +233,13 @@ def temporal(stra, strb, granularity=u'days', language=u'french',
 
 
 ### GEOGRAPHICAL DISTANCES ####################################################
-def geographical(pointa, pointb, inRadians=False, planetRadius=6371009,
+def geographical(pointa, pointb, in_radians=False, planetRadius=6371009,
                  units='m'):
     """ Return the geographical distance between two points.
 
         Both points must be tuples (latitude, longitude)
 
-        - inRadians is True, if latitude and longitude are in radians, false
+        - in_radians is True, if latitude and longitude are in radians, false
           otherwise
         - planetRadius is the planet's radius in meters. By default, it's the
           Earth'one.
@@ -253,7 +253,7 @@ def geographical(pointa, pointb, inRadians=False, planetRadius=6371009,
     difflong = pointa[1] - pointb[1]
     meanlat = (pointa[0] + pointb[0])/2.0
 
-    if not inRadians:
+    if not in_radians:
         difflat *= pi / 180.0
         difflong *= pi / 180.0
         meanlat *= pi / 180.0
