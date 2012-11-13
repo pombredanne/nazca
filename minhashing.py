@@ -26,6 +26,7 @@ from scipy.optimize import bisect
 
 from alignment.normalize import iter_wordgrams
 
+
 def randomhashfunction(zr):
     """ Return a random hash function, mapping x in Z to ZR
         h:x -> ax + b mod R
@@ -48,7 +49,7 @@ class Minlsh(object):
         self._trained = False
         self.sigmatrix = None
 
-    def train(self, sentences, k = 2, siglen = 200):
+    def train(self, sentences, k=2, siglen=200):
         """ Train the minlsh on the given sentences.
 
             - `k` is the length of the k-wordgrams used
@@ -102,7 +103,8 @@ class Minlsh(object):
         sig = np.empty((siglen, nrows))
         #Generate the random hash functions
         hashfunc = [randomhashfunction(ncols) for _ in xrange(siglen)]
-        #Compute hashing values
+        #Compute hashing values just for once.
+        #Avoid multiple recomputations for the same column.
         hashvalues = np.array([[hashfunc[i](r) for r in xrange(ncols)]
                                 for i in  xrange(siglen)])
 
@@ -136,29 +138,23 @@ class Minlsh(object):
         else:
             self._trained = False
 
-    def findsimilarsentences(self, threshold, sentenceid = None):
+    def computebandsize(self, threshold, nbrows):
+        """ Compute the bandsize according to the threshold given """
+
+        ### t ~ (1/b)^(1/r), where t is the threshold, b the number of
+        ### bands, and r the number of rows per band. And nbrows (the length
+        ### of the matrix is nbrows = b * r, so t ~ (r / L)^(1 / r). So, let's
+        ### find the root of f(x) = (x / L)^(1/r) - t.
+        def f(x):
+            y = pow(x / nbrows, 1. /x) - threshold
+            return y
+
+        ## Solve f(x) = 0, with x having values in [1, nbrows]
+        return int(bisect(f, 1, nbrows))
+
+    def predict(self, threshold):
         """ Return a set of tuples of *possible* similar sentences
-
-            If 0 <= sentenceid <= nbsentences is given:
-                return a set of tuples of *possible* similar sentences to this
-                one
         """
-
-        def computebandsize(threshold, nbrows):
-            """ Compute the bandsize according to the threshold given """
-
-            ### t ~ (1/b)^(1/r), where t is the threshold, b the number of
-            ### bands, and r the number of rows per band. And nbrows (the length
-            ### of the matrix is nbrows = b * r, so t ~ (r / L)^(1 / r). So, let's
-            ### find the root of f(x) = (x / L)^(1/r) - t.
-            def f(x):
-                y = pow(x / nbrows, 1. /x) - threshold
-                return y
-
-            ## Solve f(x) = 0, with x having values in [1, nbrows]
-            return int(bisect(f, 1, nbrows))
-
-
         if not self._trained:
             print "Train it before"
             return
@@ -168,18 +164,17 @@ class Minlsh(object):
             return
 
         sig = self.sigmatrix
-        bandsize = computebandsize(threshold, self.sigmatrix.shape[0])
+        # Treshold is a percent of similarity
+        # It should be inverted here (0 is closed, 1 is far)
+        threshold = 1 - threshold
+        bandsize = self.computebandsize(threshold, self.sigmatrix.shape[0])
 
         buckets = defaultdict(set)
         for r in xrange(0, sig.shape[0], bandsize):
             for i in xrange(sig.shape[1]):
                 buckets[tuple(sig[r:r+bandsize, i])].add(i)
-            #print "Progress : %.3f" % (r * 100. / self.sigmatrix.shape[0])
-
-        if sentenceid and 0 <= sentenceid < self.sigmatrix.shape[1]:
-            return set(tuple(v) for v in buckets.itervalues()
-                       if len(v) > 1 and sentenceid in v)
         return set(tuple(v) for v in buckets.itervalues() if len(v) > 1)
+
 
 if __name__ == '__main__':
     from alignment.normalize import (loadlemmas, simplify)
@@ -202,7 +197,7 @@ if __name__ == '__main__':
         length = int(size * len(sentences) / 100)
         minlsh.train((simplify(s, lemmas) for s in sentences[:length]), 1, 100)
         t1 = time()
-        r = minlsh.findsimilarsentences(0.7)
+        r = minlsh.predict(0.7)
         t2 = time()
         for _e in r:
             for e in _e:
