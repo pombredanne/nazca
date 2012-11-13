@@ -80,7 +80,7 @@ def findneighbours_minhashing(alignset, targetset, indexes=(1, 1), threshold=0.1
             neighbours.pop()
     return neighbours
 
-def findneighbours_clustering(alignset, targetset, indexes=(1, 1), threshold=0.1,
+def findneighbours_clustering(alignset, targetset, indexes=(1, 1),
                               mode='kmeans', n_clusters=None):
     """ Find the neigbhours using clustering (kmeans or minibatchkmeans)
     """
@@ -154,8 +154,7 @@ def findneighbours(alignset, targetset, indexes=(1, 1), mode='kdtree',
     elif mode in set(['kmeans', 'minibatch']):
         try:
             from sklearn import cluster
-            return findneighbours_clustering(alignset, targetset, indexes, neighbours_threshold,
-                                             mode, n_clusters)
+            return findneighbours_clustering(alignset, targetset, indexes, mode, n_clusters)
         except:
             raise NotImplementedError('Scikit learn does not seem to be installed')
 
