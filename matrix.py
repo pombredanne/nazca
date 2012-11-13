@@ -21,6 +21,8 @@ from copy import deepcopy
 from scipy import array, empty
 from scipy import where
 
+import alignment.distances as ds
+
 """ Construct and compute a matrix of distance given a distance function.
 
     Given :
@@ -36,20 +38,47 @@ from scipy import where
              +----+----+
 """
 
-def cdist(input1, input2, distance, normalized = True, kargs = {}):
-    distmatrix = empty((len(input1), len(input2)), dtype='float32')
+METRICS = {'euclidean': ds.euclidean, 'levenshtein': ds.levenshtein,
+           'soundex': ds.soundex, 'jaccard': ds.jaccard,
+           'temporal': ds.temporal, 'geographical': ds.geographical}
+
+
+def pdist(X, metric='euclidean', matrix_normalized=True, metric_params=None):
+    """ Compute the upper triangular matrix in a way similar
+    to scipy.spatial.metric"""
+    metric = metric if not isinstance(metric, basestring) else METRICS.get(metric, ds.euclidean)
+    values = []
+    for i in xrange(len(X)):
+        for j in xrange(i+1, len(X)):
+            d = 1
+            if X[i] and X[j]:
+                d = metric(X[i], X[j], **(metric_params or {}))
+                if matrix_normalized:
+                    d = 1 - (1.0 / (1.0 + d))
+            values.append(d)
+    return values
+
+def cdist(X, Y, metric='euclidean', matrix_normalized=True, metric_params=None):
+    """ Compute the metric matrix, given two inputs and a metric
+    """
+    metric = metric if not isinstance(metric, basestring) else METRICS.get(metric, ds.euclidean)
+    distmatrix = empty((len(X), len(Y)), dtype='float32')
     size = distmatrix.shape
     for i in xrange(size[0]):
         for j in xrange(size[1]):
             d = 1
-            if input1[i] and input2[j]:
-                d = distance(input1[i], input2[j], **kargs)
-                if normalized:
+            if X[i] and Y[j]:
+                d = metric(X[i], Y[j], **(metric_params or {}))
+                if matrix_normalized:
                     d = 1 - (1.0 / (1.0 + d))
             distmatrix[i, j] = d
     return distmatrix
 
 def matched(distmatrix, cutoff = 0, normalized = False):
+    """ Return the matched elements within a dictionnary,
+    each key being the indice from X, and the corresponding
+    values being a list of couple (indice from Y, distance)
+    """
     match = defaultdict(list)
     if normalized:
         distmatrix /= distmatrix.max()
