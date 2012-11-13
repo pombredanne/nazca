@@ -21,21 +21,22 @@ from warnings import warn
 from unicodedata import normalize as _uninormalize
 
 
-STOPWORDS = set([u'alors', u'au', u'aucuns', u'aussi', u'autre', u'avant',
+STOPWORDS = set([u'alors', u'au', u'aux', u'aucuns', u'aussi', u'autre', u'avant',
 u'avec', u'avoir', u'bon', u'car', u'ce', u'cela', u'ces', u'ceux', u'chaque',
-u'ci', u'comme', u'comment', u'dans', u'des', u'du', u'dedans', u'dehors',
+u'ci', u'comme', u'comment', u'dans', u'de', u'des', u'du', u'dedans', u'dehors',
 u'depuis', u'deux', u'devrait', u'doit', u'donc', u'dos', u'droite', u'début',
-u'elle', u'elles', u'en', u'encore', u'essai', u'est', u'et', u'eu', u'fait',
+u'elle', u'elles', u'en', u'encore', u'essai', u'est', u'et', u'eu', u'eux', u'fait',
 u'faites', u'fois', u'font', u'force', u'haut', u'hors', u'ici', u'il', u'ils',
-u'je', u'juste', u'la', u'le', u'les', u'leur', u'là', u'ma', u'maintenant',
-u'mais', u'mes', u'mine', u'moins', u'mon', u'mot', u'même', u'ni', u'nommés',
-u'notre', u'nous', u'nouveaux', u'ou', u'où', u'par', u'parce', u'parole',
+u'je', u'juste', u'la', u'le', u'les', u'leur', u'lui', u'là', u'ma', u'maintenant',
+u'mais', u'me', u'mes', u'moi', u'moins', u'mon', u'mot', u'même', u'ne',
+u'ni', u'nommés', u'nos',
+u'notre', u'nous', u'nouveaux', u'on', u'ou', u'où', u'par', u'parce', u'parole',
 u'pas', u'personnes', u'peut', u'peu', u'pièce', u'plupart', u'pour',
 u'pourquoi', u'quand', u'que', u'quel', u'quelle', u'quelles', u'quels', u'qui',
-u'sa', u'sans', u'ses', u'seulement', u'si', u'sien', u'son', u'sont', u'sous',
-u'soyez', u'sujet', u'sur', u'ta', u'tandis', u'tellement', u'tels', u'tes',
-u'ton', u'tous', u'tout', u'trop', u'très', u'tu', u'valeur', u'voie',
-u'voient', u'vont', u'votre', u'vous', u'vu', u'ça', u'étaient', u'état',
+u'sa', u'sans', u'se', u'ses', u'seulement', u'si', u'sien', u'son', u'sont', u'sous',
+u'soyez', u'sujet', u'sur', u'ta', u'tandis', u'tellement', u'te', u'tels', u'tes', u'toi',
+u'ton', u'tous', u'tout', u'trop', u'très', u'tu', u'un', u'une', u'valeur', u'voie',
+u'voient', u'vont', u'vos', u'votre', u'vous', u'vu', u'ça', u'étaient', u'état',
 u'étions', u'été', u'être'])
 
 MANUAL_UNICODE_MAP = {
@@ -54,21 +55,6 @@ MANUAL_UNICODE_MAP = {
     u'\xbb': u'"',    # RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
     u'\xdf': u'ss',   # LATIN SMALL LETTER SHARP S
     }
-
-class Tokenizer(object):
-    """ Simple tokenizer similar to the one in NLTK.
-    """
-    def tokenize(self, string):
-        return [s for s in string.split(' ') if s]
-
-
-class WordTokenizer(Tokenizer):
-    """ Simple punctutation tokenizer similar to the one in NLTK.
-    XXX THIS CANNOT HANDLE UNICODE.
-    """
-    regexp = re.compile(r'\w+|[^\w\s]+')
-    def tokenize(self, string):
-        return [t for t in self.regexp.findall(string) if t]
 
 
 def unormalize(ustring, ignorenonascii=None, substitute=None):
@@ -108,9 +94,9 @@ def lunormalize(sentence, ignorenonascii=None, substitute=None):
     """ Normalize a sentence (ie remove accents, set to lower, etc) """
     return unormalize(sentence, ignorenonascii, substitute).lower()
 
-def simplify(sentence, lemmas=None, removeStopWords=True):
+def simplify(sentence, lemmas=None, remove_stopwords=True):
     """ Simply the given sentence
-        0) If removeStopWords, then remove the stop words
+        0) If remove_stopwords, then remove the stop words
         1) If lemmas are given, the sentence is lemmatized
         2) Set the sentence to lower case
         3) Remove punctuation
@@ -120,28 +106,32 @@ def simplify(sentence, lemmas=None, removeStopWords=True):
     sentence = sentence.lower()
     cleansent = ''.join([s for s in sentence if s not in punctuation])
 
-    if not removeStopWords:
+    if not remove_stopwords:
         return cleansent
     else:
         return ' '.join([w for w in cleansent.split(' ') if w not in STOPWORDS])
 
-def tokenize(sentence, tokenizer=None):
+def tokenize(sentence, tokenizer=None, regexp=re.compile(r"[^\s]+")):
     """ Tokenize a sentence.
         Use ``tokenizer`` if given, else try to use the nltk WordPunctTokenizer,
         in case of failure, it just split on spaces.
 
         Anyway, tokenizer must have a ``tokenize()`` method
     """
-    if not tokenizer and isinstance(sentence, str):
-        tokenizer = WordTokenizer
-    elif not tokenizer and isinstance(sentence, unicode):
-        # XXX Unicode, could not use WorkTokenizer
-        if sentence == unormalize(sentence):
-            # This may be still used with the WordTokenizer
-            tokenizer = WordTokenizer
+    if tokenizer:
+        return tokenizer().tokenize(sentence)
+    # XXX Unicode, could not use WorkTokenizer.
+    # Instead split on whitespaces
+    chunks = []
+    for chunk in [t for t in regexp.findall(sentence) if t]:
+        # Deals with '
+        if "'" in chunk:
+            schunks = chunk.split("'")
+            chunks.extend([c+"'" for c in schunks[:-1]])
+            chunks.append(schunks[-1])
         else:
-            tokenizer = Tokenizer
-    return tokenizer().tokenize(sentence)
+            chunks.append(chunk)
+    return chunks
 
 def iter_wordgrams(sentence, k):
     """ Generator of k-wordgrams on the given sentence
@@ -153,7 +143,7 @@ def iter_wordgrams(sentence, k):
 def loadlemmas(filename):
     """ Return the default lemmas dictionnary
     """
-    return dict([line.strip().split('\t') for line in open(filename)
+    return dict([line.decode('utf-8').strip().split('\t') for line in open(filename)
                  if len(line.strip().split('\t'))==2])
 
 def lemmatized(sentence, lemmas, tokenizer=None):
@@ -166,9 +156,7 @@ def lemmatized(sentence, lemmas, tokenizer=None):
             tokenized_sentformated[-1] += w
         elif w not in punctuation:
             tokenized_sentformated.append(w)
-
-    return ' '.join([lemmatized_word(w, lemmas)
-                     for w in tokenized_sentformated])
+    return u' '.join([lemmatized_word(w, lemmas) for w in tokenized_sentformated])
 
 def lemmatized_word(word, lemmas):
     """ Return the lemmatized word
