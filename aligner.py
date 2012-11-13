@@ -17,27 +17,97 @@
 
 from os.path import exists as fileexists
 
-import csv
+from scipy.spatial import KDTree
+from scipy.sparse import lil_matrix
 
-
+from alignment.minhashing import Minlsh
 import alignment.matrix as m
 
-def _autocasted(data, encoding=None):
-    data = data.strip()
-    try:
-        return int(data)
-    except ValueError:
-        try:
-            return float(data)
-        except ValueError:
-            if encoding:
-                return data.decode(encoding)
-            return data
 
+def normalize_set(rset, treatments):
+    """ Apply all the normalization functions to the given rset """
+    for row in rset:
+        for ind, attribut in enumerate(row):
+            treat = treatments.get(ind)
+            if not attribut or not treat:
+                continue
+            for f in treat.get('normalization', []):
+                farg = f.func_code.co_varnames #List of the arguments of f
+                # A kind of union between the arguments needed by f, and the
+                # provided ones
+                givenargs = dict((arg, treat['norm_params'][arg])
+                                 for arg in farg if arg in treat.get('norm_params', []))
+                attribut = f(attribut, **givenargs)
+            row[ind] = attribut
+    return rset
 
+def findneighbours_kdtree(alignset, targetset, indexes=(1, 1), threshold=0.1):
+    """ Find the neigbhours using kdree
+    """
+    #If an element is None (missing), use instead the identity element.
+    #The identity element is defined as the 0-vector
+    idelement = tuple([0 for _ in xrange(len(alignset[0][indexes[0]]))])
+    aligntree  = KDTree([elt[indexes[0]] or idelement for elt in alignset])
+    targettree = KDTree([elt[indexes[1]] or idelement for elt in targetset])
+    extraneighbours = aligntree.query_ball_tree(targettree, threshold)
+    neighbours = []
+    for ind in xrange(len(alignset)):
+        if not extraneighbours[ind]:
+            continue
+        neighbours.append([[ind], extraneighbours[ind]])
+    return neighbours
+
+def findneighbours_minhashing(alignset, targetset, indexes=(1, 1), threshold=0.1,
+                              kwordsgram=1, siglen=200):
+    """ Find the neigbhours using minhashing
+    """
+    #If an element is None (missing), use instead the identity element.
+    idelement = ''
+    minhasher = Minlsh()
+    minhasher.train([elt[indexes[0]] or idelement for elt in alignset] +
+                    [elt[indexes[1]] or idelement for elt in targetset],
+                    kwordsgram, siglen)
+    rawneighbours = minhasher.predict(threshold)
+    neighbours = []
+    for data in rawneighbours:
+        neighbours.append([[], []])
+        for i in data:
+            if i >= len(alignset):
+                neighbours[-1][1].append(i - len(alignset))
+            else:
+                neighbours[-1][0].append(i)
+        if len(neighbours[-1][0]) == 0 or len(neighbours[-1][1]) == 0:
+            neighbours.pop()
+    return neighbours
+
+def findneighbours_clustering(alignset, targetset, indexes=(1, 1), threshold=0.1,
+                              mode='kmeans', n_clusters=None):
+    """ Find the neigbhours using clustering (kmeans or minibatchkmeans)
+    """
+    from sklearn import cluster
+    #If an element is None (missing), use instead the identity element.
+    #The identity element is defined as the 0-vector
+    idelement = tuple([0 for _ in xrange(len(alignset[0][indexes[0]]))])
+    n_clusters = n_clusters or len(alignset) / 10
+
+    if mode == 'kmeans':
+        kmeans = cluster.KMeans(n_clusters=n_clusters)
+    else:
+        kmeans = cluster.MiniBatchKMeans(n_clusters=n_clusters)
+
+    kmeans.fit([elt[indexes[0]] or idelement for elt in alignset])
+    predicted = kmeans.predict([elt[indexes[1]] or idelement for elt in targetset])
+
+    neighbours = [[[], []] for _ in xrange(kmeans.n_clusters)]
+    for ind, i in enumerate(predicted):
+        neighbours[i][1].append(ind)
+    for ind, i in enumerate(kmeans.labels_):
+        neighbours[i][0].append(ind)
+    #XXX: Check all lists have one element at least ?
+    return neighbours
 
 def findneighbours(alignset, targetset, indexes=(1, 1), mode='kdtree',
-                   threshold=0.1, n_clusters=None, kwordsgram=1, siglen=200):
+                   neighbours_threshold=0.1, n_clusters=None, kwordsgram=1, siglen=200):
     """ This function helps to find neighbours from items of alignset and
         targetset. “Neighbours” are items that are “not so far”, ie having a
         close label, are located in the same area etc.
@@ -51,7 +121,7 @@ def findneighbours(alignset, targetset, indexes=(1, 1), mode='kdtree',
               be found.
             - `indexes` are the location of items to compare
             - `mode` is the search type to use
-            - `threshold` is the `mode` threshold
+            - `neighbours_threshold` is the `mode` neighbours_threshold
 
             - `n_clusters` is used for "kmeans" and "minibatch" methods, and it
               is the number of clusters to use.
@@ -75,67 +145,20 @@ def findneighbours(alignset, targetset, indexes=(1, 1), mode='kdtree',
 
     if mode not in SEARCHERS:
         raise NotImplementedError('Unknown mode given')
-
-    #If an element is None (missing), use instead the identity element.
-    #The identity element is defined as the 0-vector
-    idelement = tuple([0 for _ in xrange(len(alignset[0][indexes[0]]))])
-##### KDTree #######
     if mode == 'kdtree':
-        from scipy.spatial import KDTree
-
-        aligntree  = KDTree([elt[indexes[0]] or idelement for elt in alignset])
-        targettree = KDTree([elt[indexes[1]] or idelement for elt in targetset])
-        extraneighbours = aligntree.query_ball_tree(targettree, threshold)
-        neighbours = []
-        for ind in xrange(len(alignset)):
-            if not extraneighbours[ind]:
-                continue
-            neighbours.append([[ind], extraneighbours[ind]])
-        return neighbours
-
-#### Minhashing #####
+        return findneighbours_kdtree(alignset, targetset, indexes, neighbours_threshold)
     elif mode == 'minhashing':
-        from alignment.minhashing import Minlsh
-        minhasher = Minlsh()
-        idelement = ''
-        minhasher.train([elt[indexes[0]] or idelement for elt in alignset] +
-                        [elt[indexes[1]] or idelement for elt in targetset],
-                        kwordsgram, siglen)
-        rawneighbours = minhasher.findsimilarsentences(threshold)
-        neighbours = []
-        for data in rawneighbours:
-            neighbours.append([[], []])
-            for i in data:
-                if i >= len(alignset):
-                    neighbours[-1][1].append(i - len(alignset))
-                else:
-                    neighbours[-1][0].append(i)
-            if len(neighbours[-1][0]) == 0 or len(neighbours[-1][1]) == 0:
-                neighbours.pop()
-        return neighbours
-
-#### Kmeans #####
+        return findneighbours_minhashing(alignset, targetset, indexes, neighbours_threshold,
+                                         kwordsgram, siglen)
     elif mode in set(['kmeans', 'minibatch']):
-        from sklearn import cluster
-        n_clusters = n_clusters or len(alignset) / 10
+        try:
+            from sklearn import cluster
+            return findneighbours_clustering(alignset, targetset, indexes, neighbours_threshold,
+                                             mode, n_clusters)
+        except:
+            raise NotImplementedError('Scikit learn does not seem to be installed')
 
-        if mode == 'kmeans':
-            kmeans = cluster.KMeans(n_clusters=n_clusters)
-        else:
-            kmeans = cluster.MiniBatchKMeans(n_clusters=n_clusters)
-
-        kmeans.fit([elt[indexes[0]] or idelement for elt in alignset])
-        predicted = kmeans.predict([elt[indexes[1]] or idelement for elt in targetset])
-
-        clusters = [[[], []] for _ in xrange(kmeans.n_clusters)]
-        for ind, i in enumerate(predicted):
-            clusters[i][1].append(ind)
-        for ind, i in enumerate(kmeans.labels_):
-            clusters[i][0].append(ind)
-        #XXX: Check all lists have one element at least ?
-        return clusters
-
-def align(alignset, targetset, treatments, threshold, resultfile):
+def align(alignset, targetset, threshold, treatments=None, resultfile=None):
     """ Try to align the items of alignset onto targetset's ones
 
         `alignset` and `targetset` are the sets to align. Each set contains
@@ -143,21 +166,21 @@ def align(alignset, targetset, treatments, threshold, resultfile):
         the attributs to align. (Note that the order is important !) Both must
         have the same number of columns.
 
-        `treatments` is a list of dictionnaries. Each dictionnary contains the
-        treatments to do on the different attributs. The first dictionnary is
-        for the first attribut (not the identifier !), the second for the
-        second, etc. Each dictionnary is built as the following:
+        `treatments` is a dictionnary of dictionnaries.
+        Each key is the indice of the row, and each value is a dictionnary
+        that contains the treatments to do on the different attributs.
+        Each dictionnary is built as the following:
 
             treatment = { 'normalization': [f1, f2, f3],
-                          'norm_args': { 'arg1': arg01, 'arg2': arg02},
-                          'distance': d1,
-                          'distance_args': { 'arg1': arg11 },
+                          'norm_params': { 'arg1': arg01, 'arg2': arg02},
+                          'metric': d1,
+                          'metric_params': { 'arg1': arg11 },
                           'weighting': w,
                           'matrix_normalize': True
                         }
 
             `normalization` is the list of functions called to normalize the
-            given attribut (in order). Each functions is called with `norm_args`
+            given attribut (in order). Each functions is called with `norm_params`
             as arguments
 
             Idem for `distance` and `distance_args`
@@ -165,142 +188,74 @@ def align(alignset, targetset, treatments, threshold, resultfile):
             `weighting` is the weighting for the current attribut in regard to
             the others
 
-        `resultfile` is the name of the output csv.
+            `resultfile` (default is None). Write the matched elements in a file.
+
+    Return the distance matrix and the matched list.
     """
+    treatments = treatments or {}
 
-    def normalizerset(rset):
-        """ Apply all the normalization functions to the given rset """
-        for row in rset:
-            for ind, attribut in enumerate(row[1:]):
-                treat = treatments[ind]
-                if not attribut:
-                    continue
-                for f in treat['normalization']:
-                    farg = f.func_code.co_varnames #List of the arguments of f
-                    # A kind of union between the arguments needed by f, and the
-                    # provided ones
-                    givenargs = dict((arg, treat['norm_args'][arg])
-                                 for arg in farg if arg in treat['norm_args'])
-                    attribut = f(attribut, **givenargs)
-                row[ind + 1] = attribut
-        return rset
-
-    ## Just to be certain we have all the keys
-    for t in treatments:
-        t.setdefault('norm_args', {})
-        t.setdefault('distance_args', {})
-        t.setdefault('weighting', 1)
-        t.setdefault('matrix_normalize', True)
-
-    ralignset = normalizerset(alignset)
-    rtargetset = normalizerset(targetset)
+    ralignset = normalize_set(alignset, treatments)
+    rtargetset = normalize_set(targetset, treatments)
 
     items = []
-    for ind, tr in enumerate(treatments):
-        item = (tr['weighting'],
-                [ralignset[i][ind + 1] for i in xrange(len(ralignset))],
-                [rtargetset[i][ind + 1] for i in xrange(len(rtargetset))],
-                tr['distance'],
-                tr['matrix_normalize'],
-                tr['distance_args'])
-        items.append(item)
+    for ind, tr in treatments.iteritems():
+        items.append((tr.get('weighting', 1),
+                      [ralignset[i][ind] for i in xrange(len(ralignset))],
+                      [rtargetset[i][ind] for i in xrange(len(rtargetset))],
+                      tr['metric'],
+                      tr.get('matrix_normalized', True),
+                      tr.get('metric_params', {})))
 
     mat = m.globalalignmentmatrix(items)
     matched = m.matched(mat, threshold)
 
-    if not matched:
-        return mat, False
+    # Write file if asked
+    if resultfile:
+        openmode = 'a' if fileexists(resultfile) else 'w'
+        with open(resultfile, openmode) as fobj:
+            if openmode == 'w':
+                fobj.write('aligned;targetted;distance\n')
+            for aligned in matched:
+                for target, dist in matched[aligned]:
+                    alignid = ralignset[aligned][0]
+                    targetid = rtargetset[target][0]
+                    fobj.write('%s;%s;%s\n' %
+                        (alignid.encode('utf-8') if isinstance(alignid, basestring)
+                                                 else alignid,
+                         targetid.encode('utf-8') if isinstance(targetid, basestring)
+                                                  else targetid,
+                         dist
+                         ))
 
-    openmode = 'a' if fileexists(resultfile) else 'w'
-    with open(resultfile, openmode) as fobj:
-        if openmode == 'w':
-            fobj.write('aligned;targetted;distance\n')
-        for aligned in matched:
-            for target, dist in matched[aligned]:
-                alignid = ralignset[aligned][0]
-                targetid = rtargetset[target][0]
-                fobj.write('%s;%s;%s\n' %
-                    (alignid.encode('utf-8') if isinstance(alignid, basestring)
-                                             else alignid,
-                     targetid.encode('utf-8') if isinstance(targetid, basestring)
-                                              else targetid,
-                     dist
-                    ))
-    return mat, True
+    return mat, matched
 
-def sparqlquery(endpoint, query, indexes=[]):
-    """ Run the sparql query on the given endpoint, and wrap the items in the
-    indexes form. If indexes is empty, keep raw output"""
-
-    from SPARQLWrapper import SPARQLWrapper, JSON
-
-    sparql = SPARQLWrapper(endpoint)
-    sparql.setQuery(query)
-    sparql.setReturnFormat(JSON)
-    rawresults = sparql.query().convert()
-    labels = rawresults['head']['vars']
-    results = []
-
-    for raw in rawresults["results"]["bindings"]:
-        data = []
-        if not indexes:
-            data = [_autocasted(raw[label]['value']) for label in labels]
-        else:
-            for ind in indexes:
-                if isinstance(ind, tuple):
-                    data.append(tuple([_autocasted(raw[labels[i]]['value']) for i in ind]))
-                else:
-                    data.append(_autocasted(raw[labels[ind]]['value']))
-        results.append(data)
-    return results
+def subalign(alignset, targetset, alignind, targetind, threshold, treatments=None):
+    """ Compute a subalignment for a list of indices of the alignset and
+    a list of indices for the targetset """
+    mat, matched = align([alignset[i] for i in alignind],
+                         [targetset[i] for i in targetind], threshold, treatments)
+    new_matched = {}
+    for k, values in matched.iteritems():
+        new_matched[alignind[k]] = [(targetind[i], d) for i, d in values]
+    return mat, new_matched
 
 
-def parsefile(filename, indexes=[], nbmax=None, delimiter='\t',
-              encoding='utf-8', field_size_limit=None):
-    """ Parse the file (read ``nbmax`` line at maximum if given). Each
-        line is splitted according ``delimiter`` and only ``indexes`` are kept
-
-        eg : The file is :
-                1, house, 12, 19, apple
-                2, horse, 21.9, 19, stramberry
-                3, flower, 23, 2.17, cherry
-
-            data = parsefile('myfile', [0, (2, 3), 4, 1], delimiter=',')
-
-            The result will be :
-            data = [[1, (12,   19), 'apple', 'house'],
-                    [2, (21.9, 19), 'stramberry', 'horse'],
-                    [3, (23,   2.17), 'cherry', 'flower']]
-
+def conquer_and_divide_alignment(alignset, targetset, threshold, treatments=None,
+                                 indexes=(1,1), mode='kdtree', neighbours_threshold=0.1,
+                                 n_clusters=None, kwordsgram=1, siglen=200):
+    """ Full conquer and divide method for alignment.
+    Compute neighbours and merge the different subalignments.
+    XXX
     """
-    def formatedoutput(filename):
-        if field_size_limit:
-            csv.field_size_limit(field_size_limit)
-
-        with open(filename, 'r') as csvfile:
-            reader = csv.reader(csvfile, delimiter=delimiter)
-            for row in reader:
-                yield [_autocasted(cell) for cell in row]
-
-
-
-    result = []
-    for ind, row in enumerate(formatedoutput(filename)):
-        data = []
-        if nbmax and ind > nbmax:
-            break
-        if not indexes:
-            data = row
-        else:
-            for ind in indexes:
-                if isinstance(ind, tuple):
-                    data.append(tuple([row[i] for i in ind]))
-                    if '' in data[-1]:
-                        data[-1] = None
-                elif row[ind]:
-                    data.append(row[ind])
-                else:
-                    data.append(None)
-
-        result.append(data)
-    return result
+    global_matched = {}
+    global_mat = lil_matrix((len(alignset), len(targetset)))
+    for alignind, targetind in findneighbours(alignset, targetset, indexes, mode,
+                                              neighbours_threshold, n_clusters, kwordsgram, siglen):
+        mat, matched = subalign(alignset, targetset, alignind, targetind, threshold, treatments)
+        for k, values in matched.iteritems():
+            subdict = global_matched.setdefault(k, set())
+            for v, d in values:
+                subdict.add((v, d))
+                # XXX avoid issue in sparse matrix
+                global_mat[k, v] = d or 10**(-10)
+    return global_mat, global_matched
