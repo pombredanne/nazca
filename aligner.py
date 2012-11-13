@@ -255,7 +255,8 @@ def sparqlquery(endpoint, query, indexes=[]):
     return results
 
 
-def parsefile(filename, indexes=[], nbmax=None, delimiter='\t', encoding='utf-8'):
+def parsefile(filename, indexes=[], nbmax=None, delimiter='\t',
+              encoding='utf-8', field_size_limit=None):
     """ Parse the file (read ``nbmax`` line at maximum if given). Each
         line is splitted according ``delimiter`` and only ``indexes`` are kept
 
@@ -273,6 +274,9 @@ def parsefile(filename, indexes=[], nbmax=None, delimiter='\t', encoding='utf-8'
 
     """
     def formatedoutput(filename):
+        if field_size_limit:
+            csv.field_size_limit(field_size_limit)
+
         with open(filename, 'r') as csvfile:
             reader = csv.reader(csvfile, delimiter=delimiter)
             for row in reader:

@@ -183,39 +183,53 @@ class Minlsh(object):
 
 if __name__ == '__main__':
     from alignment.normalize import (loadlemmas, simplify)
+    from alignment.aligner import parsefile
     from time import time
+    import matplotlib.pyplot as plt
+    from scipy import polyfit
 
-    with open('data/french_sentences.txt') as fobj:
-        sentences = [line.strip() for line in fobj]
+    sentences = [s[0] for s in parsefile('data/US.txt', indexes=[1],
+                               field_size_limit=1000000000) if s[0]]
+    print sentences[:10]
 
 
     lemmas = loadlemmas('data/french_lemmas.txt')
     minlsh = Minlsh()
 
     def compute_complexite(size):
+        print "%d%%" % size
         t0 = time()
         length = int(size * len(sentences) / 100)
         minlsh.train((simplify(s, lemmas) for s in sentences[:length]), 1, 100)
         t1 = time()
-        minlsh.findsimilarsentences(0.7)
+        r = minlsh.findsimilarsentences(0.7)
         t2 = time()
+        for _e in r:
+            for e in _e:
+                print sentences[e]
+            break
         print 'Nb sentences : %d' % length
         print 'Training + signaturing time : %.3fs' % (t1 - t0)
         print 'Similarity %.3fs' % (t2 - t1)
         print 'Total : %.3fs' % (t2 - t0)
-        return len(sentences[:length]), (t2 - t0)
+        return len(sentences[:length]), (t1 - t0), (t2 - t1)
 
-    import matplotlib.pyplot as plt
-    from scipy import polyfit
     x = []
-    y = []
-    size = 0.1
-    while size < 100:
-        size *= 2.5
+    ytrain = []
+    ysimil = []
+    ycumul = []
+    print "Start the computation"
+    for size in xrange(1, 100, 5):
         p = compute_complexite(size)
         x.append(p[0])
-        y.append(p[1])
+        ytrain.append(p[1])
+        ysimil.append(p[2])
+        ycumul.append(p[1] + p[2])
 
-    plt.plot(x, y)
-    print polyfit(x, y, 1)
+    plt.plot(x, ytrain, label='trainning')
+    plt.plot(x, ysimil, label='buckets')
+    plt.plot(x, ycumul, label='cumul')
+    plt.legend()
+    print polyfit(x, ytrain, 1)
+    print polyfit(x, ysimil, 1)
     plt.show()
