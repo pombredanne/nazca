@@ -15,12 +15,12 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from os.path import exists as fileexists
 
 from scipy.spatial import KDTree
 from scipy.sparse import lil_matrix
 
 from alignment.minhashing import Minlsh
+from alignment.dataio import write_results
 import alignment.matrix as m
 
 
@@ -211,21 +211,7 @@ def align(alignset, targetset, threshold, treatments=None, resultfile=None):
 
     # Write file if asked
     if resultfile:
-        openmode = 'a' if fileexists(resultfile) else 'w'
-        with open(resultfile, openmode) as fobj:
-            if openmode == 'w':
-                fobj.write('aligned;targetted;distance\n')
-            for aligned in matched:
-                for target, dist in matched[aligned]:
-                    alignid = ralignset[aligned][0]
-                    targetid = rtargetset[target][0]
-                    fobj.write('%s;%s;%s\n' %
-                        (alignid.encode('utf-8') if isinstance(alignid, basestring)
-                                                 else alignid,
-                         targetid.encode('utf-8') if isinstance(targetid, basestring)
-                                                  else targetid,
-                         dist
-                         ))
+        write_results(matched, alignset, targetset, resultfile)
 
     return mat, matched
 

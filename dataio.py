@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from os.path import exists as fileexists
+
 import csv
 
 
@@ -107,3 +109,23 @@ def parsefile(filename, indexes=[], nbmax=None, delimiter='\t',
 
         result.append(data)
     return result
+
+def write_results(matched, alignset, targetset, resultfile):
+    """ Given a matched dictionnay, an alignset and a targetset to the
+        resultfile
+    """
+    openmode = 'a' if fileexists(resultfile) else 'w'
+    with open(resultfile, openmode) as fobj:
+        if openmode == 'w':
+            fobj.write('aligned;targetted;distance\n')
+        for aligned in matched:
+            for target, dist in matched[aligned]:
+                alignid = alignset[aligned][0]
+                targetid = targetset[target][0]
+                fobj.write('%s;%s;%s\n' %
+                    (alignid.encode('utf-8') if isinstance(alignid, basestring)
+                                             else alignid,
+                     targetid.encode('utf-8') if isinstance(targetid, basestring)
+                                              else targetid,
+                     dist
+                     ))

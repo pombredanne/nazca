@@ -6,7 +6,7 @@ from os import path
 import alignment.distances as d
 import alignment.normalize as n
 from alignment.aligner import align, subalign, findneighbours
-from alignment.dataio import parsefile, sparqlquery
+from alignment.dataio import parsefile, sparqlquery, write_results
 
 DEMODIR = path.dirname(__file__)
 
@@ -113,13 +113,13 @@ def demo_2():
     print "Start computation"
     for ind, (alignid, targetid) in enumerate(neighbours):
         print '%3d' % ind, len(alignid), 'x', len(targetid)
-        m, b = subalign(alignset,   # The dataset to align
-                        targetset,  # The target dataset
-                        alignid,
-                        targetid,
-                        0.3,
-                        treatments)
-        #XXX Write b
+        mat, matched = subalign(alignset,   # The dataset to align
+                                targetset,  # The target dataset
+                                alignid,
+                                targetid,
+                                0.3,
+                                treatments)
+        write_results(matched, alignset, targetset, 'demo2_results')
 
 if __name__ == '__main__':
     import sys
