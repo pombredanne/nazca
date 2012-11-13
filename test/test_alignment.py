@@ -309,18 +309,19 @@ class AlignerTestCase(unittest2.TestCase):
         for align in ([[2, 4], [1]], [[0], [0]], [[3], [2]]):
             self.assertIn(align, neighbours)
 
-    ## def test_findneighbours_clustering(self):
-    ##     alignset = [['V1', 'label1', (6.14194444444, 48.67)],
-    ##                 ['V2', 'label2', (6.2, 49)],
-    ##                 ['V3', 'label3', (5.1, 48)],
-    ##                 ['V4', 'label4', (5.2, 48.1)],
-    ##                 ]
-    ##     targetset = [['T1', 'labelt1', (6.2, 48.9)],
-    ##                  ['T2', 'labelt2', (5.3, 48.2)],
-    ##                  ['T3', 'labelt3', (6.25, 48.91)],
-    ##                  ]
-    ##     neighbours = alig.findneighbours_clustering(alignset, targetset, indexes=(2, 2), threshold=0.3)
-    ##     self.assertEqual(neighbours, [[[0], [0, 2]], [[1], [0, 2]], [[2], [1]], [[3], [1]]])
+    def test_findneighbours_clustering(self):
+        alignset = [['V1', 'label1', (6.14194444444, 48.67)],
+                    ['V2', 'label2', (6.2, 49)],
+                    ['V3', 'label3', (5.1, 48)],
+                    ['V4', 'label4', (5.2, 48.1)],
+                    ]
+        targetset = [['T1', 'labelt1', (6.2, 48.9)],
+                     ['T2', 'labelt2', (5.3, 48.2)],
+                     ['T3', 'labelt3', (6.25, 48.91)],
+                     ]
+        neighbours = alig.findneighbours_clustering(alignset, targetset, indexes=(2, 2))
+        for neighbour in neighbours:
+            self.assertIn(neighbour, [[[0, 1], [0, 2]], [[2, 3], [1]]])
 
     def test_align(self):
         alignset = [['V1', 'label1', (6.14194444444, 48.67)],
