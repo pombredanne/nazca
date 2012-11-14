@@ -400,7 +400,6 @@ class AlignerTestCase(unittest2.TestCase):
                      ]
         all_matched = set([('V1','T1'), ('V1', 'T3'), ('V2','T3'), ('V4','T2')])
         uniq_matched = set([('V2', 'T3'), ('V4', 'T2'), ('V1', 'T1')])
-        neighbours = alig.findneighbours_kdtree(alignset, targetset, indexes=(2, 2), threshold=0.3)
         treatments = {2: {'metric': 'geographical', 'matrix_normalized': False,
                           'metric_params': {'units': 'km', 'in_radians': False}}}
 
