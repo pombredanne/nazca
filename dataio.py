@@ -86,7 +86,7 @@ def parsefile(filename, indexes=[], nbmax=None, delimiter='\t',
         with open(filename, 'r') as csvfile:
             reader = csv.reader(csvfile, delimiter=delimiter)
             for row in reader:
-                yield [autocasted(cell) for cell in row]
+                yield [autocasted(cell, encoding) for cell in row]
 
 
     result = []
