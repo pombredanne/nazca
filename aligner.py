@@ -238,8 +238,10 @@ def conquer_and_divide_alignment(alignset, targetset, threshold, treatments=None
     if get_global_mat:
         global_mat = lil_matrix((len(alignset), len(targetset)))
     for alignind, targetind in findneighbours(alignset, targetset, indexes, mode,
-                                              neighbours_threshold, n_clusters, kwordsgram, siglen):
-        mat, matched = subalign(alignset, targetset, alignind, targetind, threshold, treatments)
+                                              neighbours_threshold, n_clusters,
+                                              kwordsgram, siglen):
+        mat, matched = subalign(alignset, targetset, alignind, targetind,
+                                threshold, treatments)
         for k, values in matched.iteritems():
             subdict = global_matched.setdefault(k, set())
             for v, d in values:
