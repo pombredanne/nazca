@@ -168,12 +168,17 @@ class Minlsh(object):
         # It should be inverted here (0 is closed, 1 is far)
         threshold = 1 - threshold
         bandsize = self.computebandsize(threshold, self.sigmatrix.shape[0])
+        nb_bands = self.sigmatrix.shape[0] / bandsize + 1
 
         buckets = defaultdict(set)
-        for r in xrange(0, sig.shape[0], bandsize):
+        similars = [set(),] * nb_bands
+        for current_band, r in enumerate(xrange(0, sig.shape[0], bandsize)):
+            buckets.clear()
             for i in xrange(sig.shape[1]):
                 buckets[tuple(sig[r:r+bandsize, i])].add(i)
-        return set(tuple(v) for v in buckets.itervalues() if len(v) > 1)
+            similars[current_band] = set(tuple(v) for v in buckets.itervalues()
+                                         if len(v) > 1)
+        return set.union(*similars)
 
 
 if __name__ == '__main__':
