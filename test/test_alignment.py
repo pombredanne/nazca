@@ -388,6 +388,38 @@ class AlignerTestCase(unittest2.TestCase):
                 predict_matched.add((k, v))
         self.assertEqual(predict_matched, true_matched)
 
+    def test_alignall(self):
+        alignset = [['V1', 'label1', (6.14194444444, 48.67)],
+                    ['V2', 'label2', (6.2, 49)],
+                    ['V3', 'label3', (5.1, 48)],
+                    ['V4', 'label4', (5.2, 48.1)],
+                    ]
+        targetset = [['T1', 'labelt1', (6.17, 48.7)],
+                     ['T2', 'labelt2', (5.3, 48.2)],
+                     ['T3', 'labelt3', (6.25, 48.91)],
+                     ]
+        all_matched = set([('V1','T1'), ('V1', 'T3'), ('V2','T3'), ('V4','T2')])
+        uniq_matched = set([('V2', 'T3'), ('V4', 'T2'), ('V1', 'T1')])
+        neighbours = alig.findneighbours_kdtree(alignset, targetset, indexes=(2, 2), threshold=0.3)
+        treatments = {2: {'metric': 'geographical', 'matrix_normalized': False,
+                          'metric_params': {'units': 'km', 'in_radians': False}}}
+
+        predict_uniq_matched = set(alig.alignall(alignset, targetset,
+                                                 threshold=30,
+                                                 treatments=treatments,
+                                                 indexes=(2,2),
+                                                 neighbours_threshold=0.3,
+                                                 uniq=True))
+        predict_matched = set(alig.alignall(alignset, targetset,
+                                            threshold=30,
+                                            treatments=treatments,
+                                            indexes=(2,2),
+                                            neighbours_threshold=0.3,
+                                            uniq=False))
+
+        self.assertEqual(predict_matched, all_matched)
+        self.assertEqual(predict_uniq_matched, uniq_matched)
+
 
 
 if __name__ == '__main__':
