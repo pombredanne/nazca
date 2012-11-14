@@ -178,7 +178,7 @@ class Minlsh(object):
 
 if __name__ == '__main__':
     from alignment.normalize import (loadlemmas, simplify)
-    from alignment.aligner import parsefile
+    from alignment.dataio import parsefile
     from time import time
     import matplotlib.pyplot as plt
     from scipy import polyfit
@@ -197,12 +197,8 @@ if __name__ == '__main__':
         length = int(size * len(sentences) / 100)
         minlsh.train((simplify(s, lemmas) for s in sentences[:length]), 1, 100)
         t1 = time()
-        r = minlsh.predict(0.7)
+        r = minlsh.predict(0.3)
         t2 = time()
-        for _e in r:
-            for e in _e:
-                print sentences[e]
-            break
         print 'Nb sentences : %d' % length
         print 'Training + signaturing time : %.3fs' % (t1 - t0)
         print 'Similarity %.3fs' % (t2 - t1)
