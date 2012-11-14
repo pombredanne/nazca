@@ -190,7 +190,7 @@ def align(alignset, targetset, threshold, treatments=None, resultfile=None):
 
             `resultfile` (default is None). Write the matched elements in a file.
 
-    Return the distance matrix and the matched list.
+        Return the distance matrix and the matched list.
     """
     treatments = treatments or {}
 
@@ -228,13 +228,15 @@ def subalign(alignset, targetset, alignind, targetind, threshold, treatments=Non
 
 def conquer_and_divide_alignment(alignset, targetset, threshold, treatments=None,
                                  indexes=(1,1), mode='kdtree', neighbours_threshold=0.1,
-                                 n_clusters=None, kwordsgram=1, siglen=200):
+                                 n_clusters=None, kwordsgram=1, siglen=200,
+                                 get_global_mat=True):
     """ Full conquer and divide method for alignment.
     Compute neighbours and merge the different subalignments.
     XXX
     """
     global_matched = {}
-    global_mat = lil_matrix((len(alignset), len(targetset)))
+    if get_global_mat:
+        global_mat = lil_matrix((len(alignset), len(targetset)))
     for alignind, targetind in findneighbours(alignset, targetset, indexes, mode,
                                               neighbours_threshold, n_clusters, kwordsgram, siglen):
         mat, matched = subalign(alignset, targetset, alignind, targetind, threshold, treatments)
@@ -243,5 +245,8 @@ def conquer_and_divide_alignment(alignset, targetset, threshold, treatments=None
             for v, d in values:
                 subdict.add((v, d))
                 # XXX avoid issue in sparse matrix
-                global_mat[k, v] = d or 10**(-10)
-    return global_mat, global_matched
+                if get_global_mat:
+                    global_mat[k, v] = d or 10**(-10)
+    if get_global_mat:
+        return global_mat, global_matched
+    return global_matched
