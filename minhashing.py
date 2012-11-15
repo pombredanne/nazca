@@ -58,10 +58,10 @@ class Minlsh(object):
 
         """
 
-        matrixdocument = self._buildmatrixdocument(sentences, k)
+        rows, shape = self._buildmatrixdocument(sentences, k)
         print "Training is done. Wait while signaturing"
 
-        self.sigmatrix = self._signaturematrix(matrixdocument, siglen)
+        self._computesignaturematrix(rows, shape, siglen)
         self._trained = True
 
 
@@ -76,7 +76,7 @@ class Minlsh(object):
 
         """
 
-        rows, data, universe, sizeofuniverse = [], [], {}, 0
+        rows, universe, sizeofuniverse = [], {}, 0
         for sent in sentences:
             row = []
             for w in iter_wordgrams(sent, k):
@@ -84,22 +84,17 @@ class Minlsh(object):
                 if row[-1] == sizeofuniverse:
                     sizeofuniverse += 1
             rows.append(row)
-            data.append([1] * len(row))
 
-        matrixdoc = lil_matrix((len(rows), sizeofuniverse))
-        matrixdoc.rows = rows
-        matrixdoc.data = data
+        return rows, (len(rows), sizeofuniverse)
 
-        return matrixdoc
-
-    def _signaturematrix(self, matrixdocument, siglen):
+    def _computesignaturematrix(self, rows, shape, siglen):
         """ Return a matrix where each column is the signature the document
             The signature is composed of `siglen` numbers
 
             The more the documents have rows in commun, the closer they are.
         """
 
-        nrows, ncols = matrixdocument.shape
+        nrows, ncols = shape
         sig = np.empty((siglen, nrows))
         #Generate the random hash functions
         hashfunc = [randomhashfunction(ncols) for _ in xrange(siglen)]
@@ -108,12 +103,15 @@ class Minlsh(object):
         hashvalues = np.array([[hashfunc[i](r) for r in xrange(ncols)]
                                 for i in  xrange(siglen)])
 
-        for docind, doc in enumerate(matrixdocument.rows):
+        docind = 0
+        while rows:
+            doc = rows.pop(0)
             #Concatenate the needed rows.
-            tmp = np.dstack([hashvalues[:,r] for r in doc])
+            tmp = np.dstack([hashvalues[:, r] for r in doc])
             #Take the mininum of hashes
-            sig[:,docind] = np.min(tmp[0], 1)
-        return sig
+            sig[:, docind] = np.min(tmp[0], 1)
+            docind += 1
+        self.sigmatrix = sig
 
     def save(self, savefile):
         """ Save the training into `savefile` for a future use """
