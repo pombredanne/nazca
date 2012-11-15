@@ -45,7 +45,10 @@ METRICS = {'euclidean': ds.euclidean, 'levenshtein': ds.levenshtein,
 
 def pdist(X, metric='euclidean', matrix_normalized=True, metric_params=None):
     """ Compute the upper triangular matrix in a way similar
-    to scipy.spatial.metric"""
+    to scipy.spatial.metric
+    XXX Comment on normalization 
+    
+    """
     metric = metric if not isinstance(metric, basestring) else METRICS.get(metric, ds.euclidean)
     values = []
     for i in xrange(len(X)):
@@ -60,6 +63,7 @@ def pdist(X, metric='euclidean', matrix_normalized=True, metric_params=None):
 
 def cdist(X, Y, metric='euclidean', matrix_normalized=True, metric_params=None):
     """ Compute the metric matrix, given two inputs and a metric
+    XXX Comment on normalization 
     """
     metric = metric if not isinstance(metric, basestring) else METRICS.get(metric, ds.euclidean)
     distmatrix = empty((len(X), len(Y)), dtype='float32')
@@ -122,6 +126,7 @@ def globalalignmentmatrix(items):
 
        /!\ All `input1` and `input2` of each tuple must have the same size
            in twos
+      XXX Write an assertion
     """
     globalmatrix = items[0][0]*cdist(*items[0][1:])
     for item in items[1:]:

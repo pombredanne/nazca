@@ -71,6 +71,7 @@ def euclidean(a, b):
     try:
         return abs(a - b)
     except TypeError:
+        #a and b may be strings
         return abs(float(a) - float(b))
 
 
@@ -234,7 +235,7 @@ def temporal(stra, strb, granularity=u'days', language=u'french',
 
 
 ### GEOGRAPHICAL DISTANCES ####################################################
-def geographical(pointa, pointb, in_radians=False, planetRadius=6371009,
+def geographical(pointa, pointb, in_radians=False, planet_radius=6371009,
                  units='m'):
     """ Return the geographical distance between two points.
 
@@ -260,4 +261,4 @@ def geographical(pointa, pointb, in_radians=False, planetRadius=6371009,
         meanlat *= pi/180.0
 
     coef = 1. if units == 'm' else 0.001
-    return coef*planetRadius*sqrt(difflat**2 + (cos(meanlat)*difflong)**2)
+    return coef*planet_radius*sqrt(difflat**2 + (cos(meanlat)*difflong)**2)

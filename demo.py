@@ -3,6 +3,7 @@
 
 from os import path
 
+#XXX aln, ald
 import alignment.distances as d
 import alignment.normalize as n
 from alignment.aligner import align, subalign, findneighbours
@@ -16,6 +17,8 @@ def demo_0():
 
     #We try to align Goncourt winers onto dbpedia results
 
+    #XXX Make some prints
+
 
     query = """
        SELECT ?writer, ?name WHERE {
@@ -25,6 +28,7 @@ def demo_0():
        }
     """
 
+    print "Sending query to dbpedia"
     targetset = sparqlquery('http://dbpedia.org/sparql', query)
     alignset = parsefile(path.join(DEMODIR, 'demo','prixgoncourt'), indexes=[1, 1])
 
@@ -37,7 +41,7 @@ def demo_0():
                'metric': d.levenshtein
               }
 
-    treatments = {1: tr_name }
+    treatments = {1: tr_name}
 
     dmatrix, hasmatched = align(alignset, targetset, 0.4, treatments,
                                 'demo0_results')
@@ -54,9 +58,9 @@ def demo_1():
     # ``nbmax`` is the number of locations to load
 
     targetset = parsefile(path.join(DEMODIR, 'demo', 'FR.txt'), indexes=[0, 1, (4, 5)],
-                          nbmax = 2000)
+                          nbmax=2000)
     alignset = parsefile(path.join(DEMODIR, 'demo', 'frenchbnf'),
-                         indexes = [0, 2, (14, 12)], nbmax=1000)
+                         indexes=[0, 2, (14, 12)], nbmax=1000)
 
 
     # Let's define the treatments to apply on the location's name
@@ -90,6 +94,26 @@ def demo_1():
     #    otherwise
     print dmatrix
 
+
+#def parsefile(filepath, transforms):
+#    pass
+#
+#
+#parsefile('fr.txt', {0: int, 1: lambda x: x.decode('utf-8'), 14: float, 12:
+#                     float}, indexes=[0, 2, (14, 12)])
+#
+#
+#def make_index_transformer(indexes, transform_map):
+#    def xxx(row):
+#        data = [transform_map[i](row[i]) for in indexes]
+#        return data
+#    return xxx
+#
+#
+#
+#parsefile('fr.txt', line_transformer=make_index_transformer)
+#
+#
 def demo_2():
     targetset = parsefile(path.join(DEMODIR, 'demo', 'FR.txt'), indexes=[0, 1, (4, 5)])
     alignset = parsefile(path.join(DEMODIR, 'demo', 'frenchbnf'), indexes=[0, 2, (14, 12)],

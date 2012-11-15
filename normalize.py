@@ -137,12 +137,14 @@ def iter_wordgrams(sentence, k):
     """ Generator of k-wordgrams on the given sentence
     """
     words = sentence.split(' ')
+    #XXX Call tokenizer
     for r in xrange(len(words)):
         yield ' '.join(words[r:r + k])
 
 def loadlemmas(filename):
     """ Return the default lemmas dictionnary
     """
+    #XXX Make a loop
     return dict([line.decode('utf-8').strip().split('\t') for line in open(filename)
                  if len(line.strip().split('\t'))==2])
 

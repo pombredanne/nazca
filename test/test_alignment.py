@@ -374,7 +374,6 @@ class AlignerTestCase(unittest2.TestCase):
                      ['T2', 'labelt2', (5.3, 48.2)],
                      ['T3', 'labelt3', (6.25, 48.91)],
                      ]
-        neighbours = alig.findneighbours_kdtree(alignset, targetset, indexes=(2, 2), threshold=0.3)
         treatments = {2: {'metric': 'geographical', 'matrix_normalized':False,
                           'metric_params': {'units': 'km', 'in_radians': False}}}
         global_mat, global_matched = alig.conquer_and_divide_alignment(alignset, targetset,
