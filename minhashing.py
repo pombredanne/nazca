@@ -45,9 +45,10 @@ class Minlsh(object):
     """ Operate minhashing + locally-sensitive-hashing to find similar sentences
     """
 
-    def __init__(self):
+    def __init__(self, verbose=False):
         self._trained = False
         self.sigmatrix = None
+        self._verbose = verbose
 
     def train(self, sentences, k=2, siglen=200):
         """ Train the minlsh on the given sentences.
@@ -59,7 +60,8 @@ class Minlsh(object):
         """
 
         rows, shape = self._buildmatrixdocument(sentences, k)
-        print "Training is done. Wait while signaturing"
+
+        if self._verbose: print "Training is done. Wait while signaturing"
 
         self._computesignaturematrix(rows, shape, siglen)
         self._trained = True
@@ -77,13 +79,15 @@ class Minlsh(object):
         """
 
         rows, universe, sizeofuniverse = [], {}, 0
-        for sent in sentences:
+        for nb, sent in enumerate(sentences):
             row = []
             for w in iter_wordgrams(sent, k):
                 row.append(universe.setdefault(w, sizeofuniverse))
                 if row[-1] == sizeofuniverse:
                     sizeofuniverse += 1
             rows.append(row)
+            if self._verbose and nb % 50000 == 0:
+                print nb
 
         return rows, (len(rows), sizeofuniverse)
 
@@ -111,6 +115,8 @@ class Minlsh(object):
             #Take the mininum of hashes
             sig[:, docind] = np.min(tmp[0], 1)
             docind += 1
+            if self._verbose and docind % 50000 == 0:
+                print (docind * 100) / nrows
         self.sigmatrix = sig
 
     def save(self, savefile):
