@@ -153,7 +153,6 @@ def findneighbours(alignset, targetset, indexes=(1, 1), mode='kdtree',
                                          kwordsgram, siglen)
     elif mode in set(['kmeans', 'minibatch']):
         try:
-            from sklearn import cluster
             return findneighbours_clustering(alignset, targetset, indexes, mode, n_clusters)
         except:
             raise NotImplementedError('Scikit learn does not seem to be installed')
