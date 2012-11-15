@@ -94,7 +94,7 @@ def levenshtein(stra, strb, tokenizer=None):
     onerowago = None
     thisrow = range(1, lenb + 1) + [0]
     for x in xrange(len(stra)):
-        onerowago, thisrow = thisrow, [0] * lenb + [x+1]
+        onerowago, thisrow = thisrow, [0]*lenb + [x+1]
         for y in xrange(lenb):
             delcost = onerowago[y] + 1
             addcost = thisrow[y - 1] + 1
@@ -111,29 +111,29 @@ def soundexcode(word, language='french'):
         .:: wiki_ : https://en.wikipedia.org/wiki/Soundex
 
         If spaces are found in stra or strb, this method returns
-            _handlespaces(stra, strb), soundex, language = language)
+            _handlespaces(stra, strb), soundex, language=language)
     """
 
     vowels = 'AEHIOUWY'
     if language.lower() == 'french' :
-        consonnantscode = { 'B' : '1', 'P' : '1',
-                            'C' : '2', 'K' : '2', 'Q' : '2',
-                            'D' : '3', 'T' : '3',
-                            'L' : '4',
-                            'M' : '5', 'N' : '5',
-                            'R' : '6',
-                            'G' : '7', 'J' : '7',
-                            'X' : '8', 'Z' : '8', 'S' : '8',
-                            'F' : '9', 'V' : '9'
+        consonnantscode = {'B': '1', 'P': '1',
+                           'C': '2', 'K': '2', 'Q': '2',
+                           'D': '3', 'T': '3',
+                           'L': '4',
+                           'M': '5', 'N': '5',
+                           'R': '6',
+                           'G': '7', 'J': '7',
+                           'X': '8', 'Z': '8', 'S': '8',
+                           'F': '9', 'V': '9'
                           }
     elif language.lower() == 'english':
-        consonnantscode = { 'B' : '1', 'F' : '1', 'P' : '1', 'V' : '1',
-                            'C' : '2', 'G' : '2', 'J' : '2', 'K' : '2',
-                            'Q' : '2', 'S' : '2', 'X' : '2', 'Z' : '2',
-                            'D' : '3', 'T' : '3',
-                            'L' : '4',
-                            'M' : '5', 'N' : '5',
-                            'R' : '6'
+        consonnantscode = {'B': '1', 'F': '1', 'P': '1', 'V': '1',
+                           'C': '2', 'G': '2', 'J': '2', 'K': '2',
+                           'Q': '2', 'S': '2', 'X': '2', 'Z': '2',
+                           'D': '3', 'T': '3',
+                           'L': '4',
+                           'M': '5', 'N': '5',
+                           'R': '6'
                           }
     else:
         raise NotImplementedError('Soundex code is not supported (yet ?) for'
@@ -159,7 +159,7 @@ def soundexcode(word, language='french'):
     #Replace according to the codes
     code = code[0] + ''.join([consonnantscode[c] for c in code[1:]])
     ###First four letters, completed by zeros
-    return code[:4] + '0' * (4 - len(code))
+    return code[:4] + '0'*(4 - len(code))
 
 def soundex(stra, strb, language='french', tokenizer=None):
     """ Return the 1/0 distance between the soundex code of stra and strb.
@@ -176,13 +176,13 @@ def jaccard(stra, strb, tokenizer=None):
         set of stra and strb. If no tokenizer is given, it use if
         alignement.normalize.tokenize's default one.
 
-        J(A, B) = (A \cap B) / (A \cup B)
+        J(A, B) = (A \cap B)/(A \cup B)
         d(A, B) = 1 - J(A, B)
     """
 
     seta = set(tokenize(stra, tokenizer))
     setb = set(tokenize(strb, tokenizer))
-    return 1.0 - 1.0 * len(seta.intersection(setb)) / len(seta.union(setb))
+    return 1.0 - 1.0*len(seta.intersection(setb))/len(seta.union(setb))
 
 
 ### TEMPORAL DISTANCES ########################################################
@@ -202,33 +202,34 @@ def temporal(stra, strb, granularity=u'days', language=u'french',
 
     class customparserinfo(dateparser.parserinfo):
         if language.lower() == u'french':
-            HMS      = [(u'h', u'heure', u'heures'),
-                        (u'm', u'minute', u'minutes'),
+            HMS = [(u'h', u'heure', u'heures'),
+                   (u'm', u'minute', u'minutes'),
                         (u's', u'seconde', u'seconde'),]
-            JUMP     = [u' ', u'.', u',', u';', u'-', u'/', u"'",
-                        u'a', u'le', u'et', u'er']
-            MONTHS   = [(u'Jan', u'Janvier'), (u'Fev', u'Fevrier'), (u'Mar', u'Mars'),
-                       (u'Avr', u'Avril'), (u'Mai', u'Mai'), (u'Jun', u'Juin'),
-                       (u'Jui', u'Juillet'), (u'Aou', u'Aout'),
-                       (u'Sep', u'Septembre'), (u'Oct', u'Octobre'),
-                       (u'Nov', u'Novembre'), (u'Dec', u'Decembre'),]
-            PERTAIN  = [u'de']
+            JUMP = [u' ', u'.', u',', u';', u'-', u'/', u"'",
+                   u'a', u'le', u'et', u'er']
+            MONTHS = [(u'Jan', u'Janvier'), (u'Fev', u'Fevrier'),
+                      (u'Mar', u'Mars'), (u'Avr', u'Avril'), (u'Mai', u'Mai'),
+                      (u'Jun', u'Juin'), (u'Jui', u'Juillet'),
+                      (u'Aou', u'Aout'), (u'Sep', u'Septembre'),
+                      (u'Oct', u'Octobre'), (u'Nov', u'Novembre'),
+                      (u'Dec', u'Decembre')]
+            PERTAIN = [u'de']
             WEEKDAYS = [(u'Lun', u'Lundi'),
                         (u'Mar', u'Mardi'),
                         (u'Mer', u'Mercredi'),
                         (u'Jeu', u'Jeudi'),
                         (u'Ven', u'Vendredi'),
                         (u'Sam', u'Samedi'),
-                        (u'Dim', u'Dimanche'),]
+                        (u'Dim', u'Dimanche')]
     datea = dateparser.parse(stra, parserinfo=customparserinfo(dayfirst,
                              yearfirst), fuzzy=True)
     dateb = dateparser.parse(strb, parserinfo=customparserinfo(dayfirst,
                              yearfirst), fuzzy=True)
     diff = datea - dateb
     if granularity.lower() == 'years':
-        return abs(diff.days / 365.25)
+        return abs(diff.days/365.25)
     if granularity.lower() == 'months':
-        return abs(diff.days / 30.5)
+        return abs(diff.days/30.5)
     return abs(diff.days)
 
 
@@ -254,9 +255,9 @@ def geographical(pointa, pointb, in_radians=False, planetRadius=6371009,
     meanlat = (pointa[0] + pointb[0])/2.0
 
     if not in_radians:
-        difflat *= pi / 180.0
-        difflong *= pi / 180.0
-        meanlat *= pi / 180.0
+        difflat *= pi/180.0
+        difflong *= pi/180.0
+        meanlat *= pi/180.0
 
     coef = 1. if units == 'm' else 0.001
-    return coef * planetRadius * sqrt(difflat**2 + (cos(meanlat) * difflong)**2)
+    return coef*planetRadius*sqrt(difflat**2 + (cos(meanlat)*difflong)**2)

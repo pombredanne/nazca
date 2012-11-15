@@ -26,18 +26,18 @@ def demo_0():
     """
 
     targetset = sparqlquery('http://dbpedia.org/sparql', query)
-    alignset = parsefile(path.join(DEMODIR, 'demo','prixgoncourt'), indexes = [1, 1])
+    alignset = parsefile(path.join(DEMODIR, 'demo','prixgoncourt'), indexes=[1, 1])
 
     def removeparenthesis(string):
         if '(' in string:
             return string[:string.index('(')]
         return string
 
-    tr_name = { 'normalization' : [removeparenthesis, n.simplify],
-                'metric': d.levenshtein
+    tr_name = {'normalization': [removeparenthesis, n.simplify],
+               'metric': d.levenshtein
               }
 
-    treatments = { 1: tr_name }
+    treatments = {1: tr_name }
 
     dmatrix, hasmatched = align(alignset, targetset, 0.4, treatments,
                                 'demo0_results')
@@ -53,25 +53,25 @@ def demo_1():
     # position (longitude, latitude)
     # ``nbmax`` is the number of locations to load
 
-    targetset = parsefile(path.join(DEMODIR, 'demo', 'FR.txt'), indexes = [0, 1, (4, 5)],
+    targetset = parsefile(path.join(DEMODIR, 'demo', 'FR.txt'), indexes=[0, 1, (4, 5)],
                           nbmax = 2000)
     alignset = parsefile(path.join(DEMODIR, 'demo', 'frenchbnf'),
-                         indexes = [0, 2, (14, 12)], nbmax = 1000)
+                         indexes = [0, 2, (14, 12)], nbmax=1000)
 
 
     # Let's define the treatments to apply on the location's name
-    tr_name = { 'normalization': [n.simplify], # Simply all the names (remove
-                                               #   punctuation, lower case, etc)
-                'metric': d.levenshtein,       # Use the levenshtein distance
-                'weighting': 1                 # Use 1 a name-distance matrix
-                                               #   weighting coefficient
+    tr_name = {'normalization': [n.simplify], # Simply all the names (remove
+                                              #   punctuation, lower case, etc)
+               'metric': d.levenshtein,       # Use the levenshtein distance
+               'weighting': 1                 # Use 1 a name-distance matrix
+                                              #   weighting coefficient
               }
-    tr_geo = { 'normalization': [],              # No normalization needed
-               'metric': d.geographical,         # Use the geographical distance
-               'metric_params': {'units' : 'km'},# Arguments given the
-                                                 #   distance function. Here,
-                                                 #   the unit to use
-               'weighting': 1
+    tr_geo = {'normalization': [],              # No normalization needed
+              'metric': d.geographical,         # Use the geographical distance
+              'metric_params': {'units': 'km'},# Arguments given the
+                                                #   distance function. Here,
+                                                #   the unit to use
+              'weighting': 1
              }
 
     treatments = {1: tr_name, 2: tr_geo}
@@ -100,13 +100,13 @@ def demo_2():
                                mode='minibatch')
 
     # Let's define the treatments to apply on the location's name
-    tr_name = { 'normalization': [lambda x: str(x),#Some names are casted to
-                                                   #int/float, just correct it
-                                  n.simplify], # Simply all the names (remove
-                                               #   punctuation, lower case, etc)
-                'metric': d.levenshtein,       # Use the levenshtein distance
-                'weighting': 1                 # Use 1 a name-distance matrix
-                                               #   weighting coefficient
+    tr_name = {'normalization': [lambda x: str(x),#Some names are casted to
+                                                  #int/float, just correct it
+                                 n.simplify], # Simply all the names (remove
+                                              #   punctuation, lower case, etc)
+               'metric': d.levenshtein,       # Use the levenshtein distance
+               'weighting': 1                 # Use 1 a name-distance matrix
+                                              #   weighting coefficient
               }
 
     treatments = {1: tr_name}
@@ -141,4 +141,4 @@ if __name__ == '__main__':
         demo_2()
 
     print "Demo terminated"
-    print "Took %d min" % ((time() - t) / 60)
+    print "Took %d min" % ((time() - t)/60)

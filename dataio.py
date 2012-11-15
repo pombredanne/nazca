@@ -35,7 +35,7 @@ def autocasted(data, encoding=None):
                 return data.decode(encoding)
             return data
 
-def sparqlquery(endpoint, query, indexes=[]):
+def sparqlquery(endpoint, query, indexes=None):
     """ Run the sparql query on the given endpoint, and wrap the items in the
     indexes form. If indexes is empty, keep raw output"""
 
@@ -47,6 +47,7 @@ def sparqlquery(endpoint, query, indexes=[]):
     rawresults = sparql.query().convert()
     labels = rawresults['head']['vars']
     results = []
+    indexes = indexes or []
 
     for raw in rawresults["results"]["bindings"]:
         data = []
@@ -61,7 +62,7 @@ def sparqlquery(endpoint, query, indexes=[]):
         results.append(data)
     return results
 
-def parsefile(filename, indexes=[], nbmax=None, delimiter='\t',
+def parsefile(filename, indexes=None, nbmax=None, delimiter='\t',
               encoding='utf-8', field_size_limit=None):
     """ Parse the file (read ``nbmax`` line at maximum if given). Each
         line is splitted according ``delimiter`` and only ``indexes`` are kept
@@ -90,6 +91,7 @@ def parsefile(filename, indexes=[], nbmax=None, delimiter='\t',
 
 
     result = []
+    indexes = indexes or []
     for ind, row in enumerate(formatedoutput(filename)):
         data = []
         if nbmax and ind > nbmax:

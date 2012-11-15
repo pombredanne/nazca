@@ -171,12 +171,12 @@ def align(alignset, targetset, threshold, treatments=None, resultfile=None):
         that contains the treatments to do on the different attributs.
         Each dictionnary is built as the following:
 
-            treatment = { 'normalization': [f1, f2, f3],
-                          'norm_params': { 'arg1': arg01, 'arg2': arg02},
-                          'metric': d1,
-                          'metric_params': { 'arg1': arg11 },
-                          'weighting': w,
-                          'matrix_normalize': True
+            treatment = {'normalization': [f1, f2, f3],
+                         'norm_params': {'arg1': arg01, 'arg2': arg02},
+                         'metric': d1,
+                         'metric_params': {'arg1': arg11},
+                         'weighting': w,
+                         'matrix_normalize': True
                         }
 
             `normalization` is the list of functions called to normalize the

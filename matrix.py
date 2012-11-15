@@ -54,7 +54,7 @@ def pdist(X, metric='euclidean', matrix_normalized=True, metric_params=None):
             if X[i] and X[j]:
                 d = metric(X[i], X[j], **(metric_params or {}))
                 if matrix_normalized:
-                    d = 1 - (1.0 / (1.0 + d))
+                    d = 1 - (1.0/(1.0 + d))
             values.append(d)
     return values
 
@@ -70,11 +70,11 @@ def cdist(X, Y, metric='euclidean', matrix_normalized=True, metric_params=None):
             if X[i] and Y[j]:
                 d = metric(X[i], Y[j], **(metric_params or {}))
                 if matrix_normalized:
-                    d = 1 - (1.0 / (1.0 + d))
+                    d = 1 - (1.0/(1.0 + d))
             distmatrix[i, j] = d
     return distmatrix
 
-def matched(distmatrix, cutoff = 0, normalized = False):
+def matched(distmatrix, cutoff=0, normalized=False):
     """ Return the matched elements within a dictionnary,
     each key being the indice from X, and the corresponding
     values being a list of couple (indice from Y, distance)

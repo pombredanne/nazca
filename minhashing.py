@@ -36,7 +36,7 @@ def randomhashfunction(zr):
     b = randint(1, zr - 1)
 
     def hashfunc(x):
-        return ((a * x + b) % zr)
+        return ((a*x + b)%zr)
 
     return hashfunc
 
@@ -141,10 +141,10 @@ class Minlsh(object):
 
         ### t ~ (1/b)^(1/r), where t is the threshold, b the number of
         ### bands, and r the number of rows per band. And nbrows (the length
-        ### of the matrix is nbrows = b * r, so t ~ (r / L)^(1 / r). So, let's
-        ### find the root of f(x) = (x / L)^(1/r) - t.
+        ### of the matrix is nbrows = b*r, so t ~ (r/L)^(1/r). So, let's
+        ### find the root of f(x) = (x/L)^(1/r) - t.
         def f(x):
-            y = pow(x / nbrows, 1. /x) - threshold
+            y = pow(x/nbrows, 1. /x) - threshold
             return y
 
         ## Solve f(x) = 0, with x having values in [1, nbrows]
@@ -186,8 +186,7 @@ if __name__ == '__main__':
     from scipy import polyfit
 
     sentences = [s[0] for s in parsefile('data/US.txt', indexes=[1],
-                               field_size_limit=1000000000) if s[0]]
-    print sentences[:10]
+                               field_size_limit=1000000000, nbmax=None) if s[0]]
 
 
     lemmas = loadlemmas('data/french_lemmas.txt')
@@ -196,7 +195,7 @@ if __name__ == '__main__':
     def compute_complexite(size):
         print "%d%%" % size
         t0 = time()
-        length = int(size * len(sentences) / 100)
+        length = int(size*len(sentences)/100)
         minlsh.train((simplify(s, lemmas) for s in sentences[:length]), 1, 100)
         t1 = time()
         r = minlsh.predict(0.3)
