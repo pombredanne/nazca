@@ -236,7 +236,20 @@ def conquer_and_divide_alignment(alignset, targetset, threshold, treatments=None
     global_matched = {}
     if get_global_mat:
         global_mat = lil_matrix((len(alignset), len(targetset)))
-    for alignind, targetind in findneighbours(alignset, targetset, indexes, mode,
+
+    #XXX The treaments must be applied before the findneighbours() function is
+    #    called, otherwise it's a little bit useless. But, the treatments are
+    #    also applied by align() function. It's too much and useless.  We should
+    #    find a way to apply it once whatever is the called function (because
+    #    align() can be called lonely…)
+    #
+    #    The *temporary* solution is to call normalize_set twice, but it has to
+    #    be just a *temporary* solution !
+    treatments = treatments or {}
+    ralignset = normalize_set(alignset, treatments)
+    rtargetset = normalize_set(targetset, treatments)
+
+    for alignind, targetind in findneighbours(ralignset, rtargetset, indexes, mode,
                                               neighbours_threshold, n_clusters,
                                               kwordsgram, siglen):
         mat, matched = subalign(alignset, targetset, alignind, targetind,
