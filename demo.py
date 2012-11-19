@@ -37,9 +37,6 @@ def demo_0():
 
     #We try to align Goncourt winers onto dbpedia results
 
-    #XXX Make some prints
-
-
     query = """
        SELECT ?writer, ?name WHERE {
           ?writer  <http://purl.org/dc/terms/subject> <http://dbpedia.org/resource/Category:French_novelists>.
@@ -50,6 +47,7 @@ def demo_0():
 
     print "Sending query to dbpedia"
     targetset = sparqlquery('http://dbpedia.org/sparql', query)
+    print "Reading the prixgoncourt file"
     alignset = parsefile(dpath('prixgoncourt'), indexes=[1, 1])
 
     tr_name = {'normalization': [lambda x:remove_after(x, '('),
@@ -59,11 +57,11 @@ def demo_0():
 
     treatments = {1: tr_name}
 
+    print "Alignment started"
     dmatrix, hasmatched = align(alignset, targetset, 0.4, treatments,
                                 dpath('demo0_results'))
 
-    print dmatrix
-
+    print "Done, see the resuls in %s" % dpath('demo0_results')
 
 def demo_1():
     # FR.txt is an extract of geonames, where locations have been sorted by name
@@ -73,6 +71,7 @@ def demo_1():
     # position (longitude, latitude)
     # ``nbmax`` is the number of locations to load
 
+    print "Parsing the input files"
     targetset = parsefile(dpath('FR.txt'), indexes=[0, 1, (4, 5)],
                           nbmax=2000)
     alignset = parsefile(dpath('frenchbnf'),
@@ -96,6 +95,7 @@ def demo_1():
 
     treatments = {1: tr_name, 2: tr_geo}
 
+    print "Alignment started"
     dmatrix, hasmatched = align(alignset,           # The dataset to align
                                 targetset,          # The target dataset
                                 0.4,                # The maximal distance
@@ -109,7 +109,7 @@ def demo_1():
     # 0. the computed distance matrix
     # 1. a boolean, True if at least one alignment has been done, False
     #    otherwise
-    print dmatrix
+    print "Done, see the results in %s" % dpath('demo1_results')
 
 #def parsefile(filepath, transforms):
 #    pass
@@ -160,6 +160,7 @@ def demo_2():
                                 0.3,
                                 treatments)
         write_results(matched, alignset, targetset, dpath('demo2_results'))
+    print "Done, see the results in %s" % dpath('demo2_results')
 
 def demo_3():
     print "Parsing files"
@@ -181,12 +182,15 @@ def demo_3():
 
     print "Done, writing output"
 
-    with open(dpath('demo3_res'), 'w') as fout:
+    with open(dpath('demo3_results'), 'w') as fout:
         for line in alignset:
             sent = u'http://demo.cubicweb.org/elections/commune/%s;'\
                    u'http://www.geonames.org/%s\n' \
                    % (line[0], dicresults.get(line[0], 'not_found'))
             fout.write(sent.encode('utf-8'))
+
+    print "See the results in %s" % dpath('demo3_results')
+
 if __name__ == '__main__':
     import sys
     from time import time
@@ -211,4 +215,4 @@ if __name__ == '__main__':
         demo_3()
 
     print "Demo terminated"
-    print "Took %d min" % ((time() - t)/60)
+    print "Took %d min" % ((time() - t)/60.)
