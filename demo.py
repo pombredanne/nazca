@@ -3,16 +3,33 @@
 
 from os import path
 
+import urllib
+
 #XXX aln, ald
 import alignment.distances as d
 import alignment.normalize as n
-from alignment.aligner import align, subalign, findneighbours
+from alignment.aligner import align, subalign, findneighbours, alignall
 from alignment.dataio import parsefile, sparqlquery, write_results
 
 DEMODIR = path.dirname(__file__)
 
 def dpath(filename):
     return path.join(DEMODIR, 'demo', filename)
+
+def remove_after(string, sub):
+    try:
+        return string[:string.lower().index(sub)].strip()
+    except ValueError:
+        return string
+
+def parserql(host, rql):
+    filehandle = urllib.urlopen('%(host)sview?'
+                                'rql=%(rql)s&vid=csvexport'
+                                % {'rql': rql, 'host': host})
+    filehandle.readline()
+    rset = [[e.decode('utf-8') for e in line.strip().split(';')]
+            for line in filehandle]
+    return rset
 
 def demo_0():
     # prixgoncourt is the list of Goncourt Prize, extracted
@@ -35,12 +52,8 @@ def demo_0():
     targetset = sparqlquery('http://dbpedia.org/sparql', query)
     alignset = parsefile(dpath('prixgoncourt'), indexes=[1, 1])
 
-    def removeparenthesis(string):
-        if '(' in string:
-            return string[:string.index('(')]
-        return string
-
-    tr_name = {'normalization': [removeparenthesis, n.simplify],
+    tr_name = {'normalization': [lambda x:remove_after(x, '('),
+                                 n.simplify],
                'metric': d.levenshtein
               }
 
@@ -148,6 +161,32 @@ def demo_2():
                                 treatments)
         write_results(matched, alignset, targetset, dpath('demo2_results'))
 
+def demo_3():
+    print "Parsing files"
+    alignset = parserql(host='http://demo.cubicweb.org/elections/',
+                        rql='Any E, N WHERE X is Commune, X eid E, X label N')
+    targetset = parsefile(dpath('FR.txt'), indexes=[0, 1])
+    print '%s×%s' % (len(alignset), len(targetset))
+
+    tr_name = {'normalization': [n.simplify],
+               'metric': 'levenshtein'
+              }
+
+    print "Alignment started"
+    #XXX alignall rewrite the data (see normalize_set())
+    results = alignall(alignset, targetset, 0.75, treatments={1: tr_name},
+                       indexes=(1,1), mode='minhashing', kwordsgram=1, siglen=200,
+                       uniq=True)
+    dicresults = dict([(a, b) for (a, b) in results])
+
+    print "Done, writing output"
+
+    with open(dpath('demo3_res'), 'w') as fout:
+        for line in alignset:
+            sent = u'http://demo.cubicweb.org/elections/commune/%s;'\
+                   u'http://www.geonames.org/%s\n' \
+                   % (line[0], dicresults.get(line[0], 'not_found'))
+            fout.write(sent.encode('utf-8'))
 if __name__ == '__main__':
     import sys
     from time import time
@@ -166,6 +205,10 @@ if __name__ == '__main__':
         print "Running demo_2"
         ## Same as demo_1, but in a more efficient way, using a KDTree
         demo_2()
+
+    if runall or '3' in sys.argv:
+        print "Running demo_3"
+        demo_3()
 
     print "Demo terminated"
     print "Took %d min" % ((time() - t)/60)
