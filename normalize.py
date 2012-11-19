@@ -104,7 +104,10 @@ def simplify(sentence, lemmas=None, remove_stopwords=True):
     if lemmas:
         sentence = lemmatized(sentence, lemmas)
     sentence = sentence.lower()
-    cleansent = ''.join([s for s in sentence if s not in punctuation])
+    cleansent = ''.join([s if s not in punctuation
+                           else ' ' for s in sentence]).strip()
+    #comma followed by a space is replaced by two spaces, keep only one
+    cleansent = cleansent.replace('  ', ' ')
 
     if not remove_stopwords:
         return cleansent
