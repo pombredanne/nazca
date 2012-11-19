@@ -11,6 +11,9 @@ from alignment.dataio import parsefile, sparqlquery, write_results
 
 DEMODIR = path.dirname(__file__)
 
+def dpath(filename):
+    return path.join(DEMODIR, 'demo', filename)
+
 def demo_0():
     # prixgoncourt is the list of Goncourt Prize, extracted
     # from wikipedia
@@ -30,7 +33,7 @@ def demo_0():
 
     print "Sending query to dbpedia"
     targetset = sparqlquery('http://dbpedia.org/sparql', query)
-    alignset = parsefile(path.join(DEMODIR, 'demo','prixgoncourt'), indexes=[1, 1])
+    alignset = parsefile(dpath('prixgoncourt'), indexes=[1, 1])
 
     def removeparenthesis(string):
         if '(' in string:
@@ -44,7 +47,7 @@ def demo_0():
     treatments = {1: tr_name}
 
     dmatrix, hasmatched = align(alignset, targetset, 0.4, treatments,
-                                'demo0_results')
+                                dpath('demo0_results'))
 
     print dmatrix
 
@@ -57,9 +60,9 @@ def demo_1():
     # position (longitude, latitude)
     # ``nbmax`` is the number of locations to load
 
-    targetset = parsefile(path.join(DEMODIR, 'demo', 'FR.txt'), indexes=[0, 1, (4, 5)],
+    targetset = parsefile(dpath('FR.txt'), indexes=[0, 1, (4, 5)],
                           nbmax=2000)
-    alignset = parsefile(path.join(DEMODIR, 'demo', 'frenchbnf'),
+    alignset = parsefile(dpath('frenchbnf'),
                          indexes=[0, 2, (14, 12)], nbmax=1000)
 
 
@@ -86,14 +89,14 @@ def demo_1():
                                                     #   threshold
                                 treatments,         # The list of treatments to
                                                     #   apply.
-                                'demo1_results')    # Filename of the output
+                                dpath('demo1_results'))
+                                                    # Filename of the output
                                                     #   result file
     # the ``align()`` function return two items
     # 0. the computed distance matrix
     # 1. a boolean, True if at least one alignment has been done, False
     #    otherwise
     print dmatrix
-
 
 #def parsefile(filepath, transforms):
 #    pass
@@ -115,8 +118,8 @@ def demo_1():
 #
 #
 def demo_2():
-    targetset = parsefile(path.join(DEMODIR, 'demo', 'FR.txt'), indexes=[0, 1, (4, 5)])
-    alignset = parsefile(path.join(DEMODIR, 'demo', 'frenchbnf'), indexes=[0, 2, (14, 12)],
+    targetset = parsefile(dpath('FR.txt'), indexes=[0, 1, (4, 5)])
+    alignset = parsefile(dpath('frenchbnf'), indexes=[0, 2, (14, 12)],
                          nbmax=30000)
 
     print "Finding neighbours"
@@ -143,7 +146,7 @@ def demo_2():
                                 targetid,
                                 0.3,
                                 treatments)
-        write_results(matched, alignset, targetset, 'demo2_results')
+        write_results(matched, alignset, targetset, dpath('demo2_results'))
 
 if __name__ == '__main__':
     import sys
