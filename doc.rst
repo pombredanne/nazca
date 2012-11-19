@@ -19,18 +19,17 @@ The alignment process is divided into three main steps:
 
 1. Gather and format the data we want to align.
    In this step, we define two sets that we call the ``alignset`` and the
-   ``targetset``. The ``alignset`` is the set containing our data (in this case, the
-   Goncourt prize winners), and the ``targetset`` contains the data on which we would
-   like to make the links (dbpedia in this case)
-2. Compute the similarity between the items gathered
+   ``targetset``. The ``alignset`` is the set containing our data, and the
+   ``targetset`` contains the data on which we would like to make the links.
+2. Compute the similarity between the items gathered.
    We compute a distance matrix between the two sets according a given distance.
-3. Find the items having a high similarity thank to the distance matrix
+3. Find the items having a high similarity thanks to the distance matrix.
 
 
 Simple case
 ^^^^^^^^^^^
 
-Let's defining our ``alignset`` and our ``targetset`` as simple python
+Let's defining ``alignset`` and ``targetset`` as simple python
 lists.
 
 .. code-block:: python
@@ -41,14 +40,14 @@ lists.
 Now, we have to compute the similarity between each items. For that purpose, the
 `Levehshtein's distance <http://en.wikipedia.org/wiki/Levenshtein_distance>`_
 [#]_, which is well accurate to compute the distance between few words, is used.
+Such a function is provided in ``alignment.distance`` module.
 
 .. [#] Also called the *edit distance*, because the distance between two words
-       is equal to the number of single-character edits required to change one 
+       is equal to the number of single-character edits required to change one
        word into the other.
 
-Such a function is provided in ``alignment.distance`` module. The next step
-is to compute the distance matrix according to the Levenshtein distance. The
-result is given in the following tables.
+The next step is to compute the distance matrix according to the Levenshtein
+distance. The result is given in the following tables.
 
 
 +--------------+--------------+-----------------------+-------------+
@@ -66,7 +65,7 @@ A more complex one
 ^^^^^^^^^^^^^^^^^^
 
 The previous case was simple, because we had only one *thing* to align (the
-name), but it is frequent to have a lot of *thing* to align, such as the name
+name), but it is frequent to have a lot of *things* to align, such as the name
 and the birth date and the birth city. The steps remains the same, except that
 three distance matrices will be computed, and *items* will be represented as
 nested lists. See the following example:
@@ -175,7 +174,7 @@ the separators (``-`` and ``,``) by ``#``. So, the beginning of our file is :
     | 1906#Jérôme et Jean Tharaud#Dingley, l'illustre écrivain (Cahiers de la Quinzaine)
 
 When using the high-level functions of this library, each item must have at
-least two elements : an *identifier* (the name, or the URI) and the *thing* to
+least two elements: an *identifier* (the name, or the URI) and the *thing* to
 compare. With the previous file, we will use the name (so the column number 1)
 as *identifier* and *thing* to align. This is told to python thanks to the
 following code:
@@ -227,11 +226,11 @@ The `align` function returns the global alignment matrix and a boolean set to
 ``True`` if at least one matching has been done, ``False`` otherwise.
 
 It may be important to apply some pre-treatment on the data to align. For
-instance, names can be written with extra characters as punctuation or
-unwanted information in parenthesis and so on. That is why we provide some
-functions to `normalize` your data. The most useful may be the `simplify()` one
-(see the docstring for more information). So the treatments list can be given as
-follow:
+instance, names can be written with lower or upper charater, with extra
+characters as punctuation or unwanted information in parenthesis and so on. That
+is why we provide some functions to `normalize` your data. The most useful may
+be the `simplify()` one (see the docstring for more information). So the
+treatments list can be given as follow:
 
 
 .. code-block:: python
@@ -295,9 +294,12 @@ a single tuple.
 Next, we define the treatments to apply. It is the same as before, but we ask
 for a non-normalized matrix (ie: the real output of the levenshtein distance).
 Finally, we call the ``alignall`` function. ``indexes`` is a tuple saying the
-position of the point on which build the kdtree, ``mode`` is the mode used to
-find neighbours [#]_, ``uniq`` ask to the function to return the best candidate
-(ie: the one having the shortest distance above the given threshold)
+position of the point on which the kdtree must be built, ``mode`` is the mode
+used to find neighbours [#]_, ``uniq`` ask to the function to return the best
+candidate (ie: the one having the shortest distance above the given threshold)
 
 .. [#] The available modes are ``kdtree``, ``kmeans`` and ``minibatch`` for
        numerical data and ``minhashing`` for text one.
+
+The function output a generator yielding tuples where the first element is the
+identifier of the ``alignset`` item and the second is the ``targetset`` one.
