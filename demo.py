@@ -5,9 +5,8 @@ from os import path
 
 import urllib
 
-#XXX aln, ald
-import alignment.distances as d
-import alignment.normalize as n
+import alignment.distances as ald
+import alignment.normalize as aln
 from alignment.aligner import align, subalign, findneighbours, alignall
 from alignment.dataio import parsefile, sparqlquery, write_results
 
@@ -51,8 +50,8 @@ def demo_0():
     alignset = parsefile(dpath('prixgoncourt'), indexes=[1, 1])
 
     tr_name = {'normalization': [lambda x:remove_after(x, '('),
-                                 n.simplify],
-               'metric': d.levenshtein
+                                 aln.simplify],
+               'metric': ald.levenshtein
               }
 
     treatments = {1: tr_name}
@@ -79,14 +78,14 @@ def demo_1():
 
 
     # Let's define the treatments to apply on the location's name
-    tr_name = {'normalization': [n.simplify], # Simply all the names (remove
+    tr_name = {'normalization': [aln.simplify], # Simply all the names (remove
                                               #   punctuation, lower case, etc)
-               'metric': d.levenshtein,       # Use the levenshtein distance
+               'metric': ald.levenshtein,       # Use the levenshtein distance
                'weighting': 1                 # Use 1 a name-distance matrix
                                               #   weighting coefficient
               }
     tr_geo = {'normalization': [],              # No normalization needed
-              'metric': d.geographical,         # Use the geographical distance
+              'metric': ald.geographical,         # Use the geographical distance
               'metric_params': {'units': 'km'},# Arguments given the
                                                 #   distance function. Here,
                                                 #   the unit to use
@@ -142,9 +141,9 @@ def demo_2():
     # Let's define the treatments to apply on the location's name
     tr_name = {'normalization': [lambda x: str(x),#Some names are casted to
                                                   #int/float, just correct it
-                                 n.simplify], # Simply all the names (remove
+                                 aln.simplify], # Simply all the names (remove
                                               #   punctuation, lower case, etc)
-               'metric': d.levenshtein,       # Use the levenshtein distance
+               'metric': ald.levenshtein,     # Use the levenshtein distance
                'weighting': 1                 # Use 1 a name-distance matrix
                                               #   weighting coefficient
               }
@@ -169,12 +168,11 @@ def demo_3():
     targetset = parsefile(dpath('FR.txt'), indexes=[0, 1])
     print '%s×%s' % (len(alignset), len(targetset))
 
-    tr_name = {'normalization': [n.simplify],
+    tr_name = {'normalization': [aln.simplify],
                'metric': 'levenshtein'
               }
 
     print "Alignment started"
-    #XXX alignall rewrite the data (see normalize_set())
     results = alignall(alignset, targetset, 0.75, treatments={1: tr_name},
                        indexes=(1,1), mode='minhashing', kwordsgram=1, siglen=200,
                        uniq=True)
@@ -207,7 +205,8 @@ if __name__ == '__main__':
 
     if runall or '2' in sys.argv:
         print "Running demo_2"
-        ## Same as demo_1, but in a more efficient way, using a KDTree
+        ## Same as demo_1, but in a more efficient way, using a method to find
+        ## neighbours
         demo_2()
 
     if runall or '3' in sys.argv:
