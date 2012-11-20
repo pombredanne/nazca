@@ -7,8 +7,8 @@ What is it for ?
 This python library aims to help you to *align data*. For instance, you have a
 list of cities, described by their name and their country and you would like to
 find their URI on dbpedia to have more information about, as the longitude and
-the latitude for example. If you have two or three cities, you can do it with
-your bare hands, but you could not if you have hundreds or thousands cities.
+the latitude for example. If you have two or three cities, it can be done with
+bare hands, but it could not if there are hundreds or thousands cities.
 This library provides you all the stuff we need to do it.
 
 
@@ -18,13 +18,12 @@ Introduction
 The alignment process is divided into three main steps:
 
 1. Gather and format the data we want to align.
-   In this step, we define two sets that we call the ``alignset`` and the
-   ``targetset``. The ``alignset`` is the set containing our data, and the
+   In this step, we define two sets called the ``alignset`` and the
+   ``targetset``. The ``alignset`` contains our data, and the
    ``targetset`` contains the data on which we would like to make the links.
 2. Compute the similarity between the items gathered.
    We compute a distance matrix between the two sets according a given distance.
 3. Find the items having a high similarity thanks to the distance matrix.
-
 
 Simple case
 ^^^^^^^^^^^
@@ -38,9 +37,9 @@ lists.
     targetset = ['Albert Camus', 'Guillaume Apollinaire', 'Victor Hugo']
 
 Now, we have to compute the similarity between each items. For that purpose, the
-`Levehshtein's distance <http://en.wikipedia.org/wiki/Levenshtein_distance>`_
+`Levenshtein distance <http://en.wikipedia.org/wiki/Levenshtein_distance>`_
 [#]_, which is well accurate to compute the distance between few words, is used.
-Such a function is provided in ``alignment.distance`` module.
+Such a function is provided in the ``alignment.distance`` module.
 
 .. [#] Also called the *edit distance*, because the distance between two words
        is equal to the number of single-character edits required to change one
@@ -82,12 +81,12 @@ nested lists. See the following example:
 
 
 In such a case, two distance functions are used, the Levenshtein one for the
-name and the city and a temporal one [#]_.
+name and the city and a temporal one for the birth date [#]_.
 
 .. [#] Provided in the ``alignment.distance`` module.
 
 
-We obtain the three following matrices
+We obtain the three following matrices:
 
 For the name
     +----------------+-------------+----------------+----------------+-------------+
@@ -137,13 +136,15 @@ The next step is gathering those three matrices into a global one, called the
 Allowing some misspelling mistakes (for example *Dupont* and *Dupond* are very
 close), the matching threshold can be set to 1 or 2. Thus we can see that the
 item 0 in our ``alignset`` is the same that the item 0 in the ``targetset``, the
-1 in the ``alignset`` and the 2 of the ``targetset`` too.
+1 in the ``alignset`` and the 2 of the ``targetset`` too : the links can be
+done !
+
 It's important to notice that even if the item 0 of the ``alignset`` and the 3
-of the ``targetset`` have the same name and the same birthplace they are not
-likely identical because of their very different birth date.
+of the ``targetset`` have the same name and the same birthplace they are
+unlikely identical because of their very different birth date.
 
 
-You may have noticed that working with matrice as I did for the example is a
+You may have noticed that working with matrices as I did for the example is a
 little bit boring. The good news is this project makes all this job for you. You
 just have to give the sets and distance functions and that's all. An other good
 news is the project comes with the needed functions to build the sets !
@@ -151,6 +152,15 @@ news is the project comes with the needed functions to build the sets !
 
 Real applications
 -----------------
+
+Just before we start, we will assume the following imports have been done:
+
+.. code-block:: python
+
+    from alignment import dataio as aldio #Functions for input and output data
+    from alignment import distance as ald #Functions to compute the distances
+    from alignment import normalize as aln#Functions to normalize data
+    from alignment import aligner as ala  #Functions to align data
 
 The Goncourt prize
 ^^^^^^^^^^^^^^^^^^
@@ -181,14 +191,19 @@ following code:
 
 .. code-block:: python
 
-    from alignment import dataio as aldio #Functions for input and output data
-    from alignment import distance as ald #Functions to compute the distances
-    from alignment import aligner as ala  #Functions to align data
-    from alignment import normalize as aln#Functions to normalize data
-
     alignset = adio.parsefile('prixgoncourt', indexes=[1, 1], delimiter='#')
 
-Now, let's building the ``targetset`` thanks to a *sparql query* and the dbpedia
+So, the beginning of our ``alignset`` is:
+
+.. code-block:: python
+
+    >>> alignset[:3]
+    [[u'John-Antoine Nau', u'John-Antoine Nau'],
+     [u'Léon Frapié', u'Léon, Frapié'],
+     [u'Claude Farrère', u'Claude Farrère']]
+
+
+Now, let's build the ``targetset`` thanks to a *sparql query* and the dbpedia
 end-point:
 
 .. code-block:: python
@@ -216,17 +231,17 @@ Finally, the last thing we have to do, is to call the ``align`` function:
 .. code-block:: python
 
     global_matrix, hasmathed = ala.align(alignset,
-                                        targset,
-                                        0.4,   #This is the matching threshold
-                                        treatments,
-                                        'goncourtprize_alignment')
+                                         targset,
+                                         0.4,   #This is the matching threshold
+                                         treatments,
+                                         'goncourtprize_alignment')
 
 The alignment results will be written into the `goncourtprize_alignment` file.
 The `align` function returns the global alignment matrix and a boolean set to
 ``True`` if at least one matching has been done, ``False`` otherwise.
 
 It may be important to apply some pre-treatment on the data to align. For
-instance, names can be written with lower or upper charater, with extra
+instance, names can be written with lower or upper characters, with extra
 characters as punctuation or unwanted information in parenthesis and so on. That
 is why we provide some functions to `normalize` your data. The most useful may
 be the `simplify()` one (see the docstring for more information). So the
@@ -262,9 +277,9 @@ the number of items was small, and the computation fast. But in a more real use
 case, the number of items to align may be huge (some thousands or millions…). Is
 such a case it's unthinkable to build the global alignment matrix because it
 would be to big and it would take fews days to achieve the computation. So the
-idea is to make small groups of possible similar data. For this purpose, we
-provide some functions to group data. We have functions to group text and
-numerical data.
+idea is to make small groups of possible similar data to compute smaller
+matrices. For this purpose, we provide some functions to group data. We have
+functions to group text and numerical data.
 
 
 This is done by the following python code:
@@ -294,7 +309,7 @@ a single tuple.
 Next, we define the treatments to apply. It is the same as before, but we ask
 for a non-normalized matrix (ie: the real output of the levenshtein distance).
 Finally, we call the ``alignall`` function. ``indexes`` is a tuple saying the
-position of the point on which the kdtree must be built, ``mode`` is the mode
+position of the point on which the kdtree_ must be built, ``mode`` is the mode
 used to find neighbours [#]_, ``uniq`` ask to the function to return the best
 candidate (ie: the one having the shortest distance above the given threshold)
 
@@ -302,4 +317,8 @@ candidate (ie: the one having the shortest distance above the given threshold)
        numerical data and ``minhashing`` for text one.
 
 The function output a generator yielding tuples where the first element is the
-identifier of the ``alignset`` item and the second is the ``targetset`` one.
+identifier of the ``alignset`` item and the second is the ``targetset`` one (It
+may take some time before yielding the first tuples, because all the computation
+must be done…)
+
+.. _kdtree: http://en.wikipedia.org/wiki/K-d_tree
