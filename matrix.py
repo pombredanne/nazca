@@ -23,21 +23,6 @@ from scipy import where
 
 import alignment.distances as ds
 
-""" Construct and compute a matrix of distance given a distance function.
-
-    Given :
-        input1 = ['Victor Hugo', 'Albert Camus']
-        input2 = ['Victor Wugo', 'Albert Camus']
-        distance = levenshtein
-
-        constructs the following matrix :
-             +----+----+
-             | 1  | 11 |
-             +----+----+
-             | 11 | 0  |
-             +----+----+
-"""
-
 METRICS = {'euclidean': ds.euclidean, 'levenshtein': ds.levenshtein,
            'soundex': ds.soundex, 'jaccard': ds.jaccard,
            'temporal': ds.temporal, 'geographical': ds.geographical}
@@ -46,8 +31,12 @@ METRICS = {'euclidean': ds.euclidean, 'levenshtein': ds.levenshtein,
 def pdist(X, metric='euclidean', matrix_normalized=True, metric_params=None):
     """ Compute the upper triangular matrix in a way similar
     to scipy.spatial.metric
-    XXX Comment on normalization 
-    
+
+    If matrix_normalized is True, the distance between two points is changed to
+    a value between 0 (equal) and 1 (totaly different). To avoid useless
+    computation and scale problems the following “normalization” is done:
+        d = 1 - 1/(1 + d(x, y))
+
     """
     metric = metric if not isinstance(metric, basestring) else METRICS.get(metric, ds.euclidean)
     values = []
@@ -63,7 +52,12 @@ def pdist(X, metric='euclidean', matrix_normalized=True, metric_params=None):
 
 def cdist(X, Y, metric='euclidean', matrix_normalized=True, metric_params=None):
     """ Compute the metric matrix, given two inputs and a metric
-    XXX Comment on normalization 
+
+    If matrix_normalized is True, the distance between two points is changed to
+    a value between 0 (equal) and 1 (totaly different). To avoid useless
+    computation and scale problems the following “normalization” is done:
+        d = 1 - 1/(1 + d(x, y))
+
     """
     metric = metric if not isinstance(metric, basestring) else METRICS.get(metric, ds.euclidean)
     distmatrix = empty((len(X), len(Y)), dtype='float32')
