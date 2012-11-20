@@ -41,10 +41,11 @@ uncomment code below if you want to activate automatic test for your cube:
 
 import unittest2
 import random
+random.seed(6) ### Make sure tests are repeatable
 import numpy as np
 
 from os import path
-random.seed(6) ### Make sure tests are repeatable
+from dateutil import parser as dateparser
 
 from alignment.distances import (levenshtein, soundex, soundexcode,   \
                                  jaccard, temporal, euclidean,        \
@@ -120,13 +121,13 @@ class DistancesTest(unittest2.TestCase):
         self.assertEqual(temporal('14 aout 1991', '08/15/1992'), 367)
         #Test a case of ambiguity
         self.assertEqual(temporal('1er mai 2012', '01/05/2012'), 0)
-        self.assertEqual(temporal('1er mai 2012', '05/01/2012', dayfirst = False), 0)
+        self.assertEqual(temporal('1er mai 2012', '05/01/2012', dayfirst=False), 0)
         #Test the different granularities available
         self.assertAlmostEqual(temporal('14 aout 1991', '08/15/1992', 'years'), 1.0, 1)
         self.assertAlmostEqual(temporal('1991', '1992', 'years'), 1.0, 1)
         self.assertAlmostEqual(temporal('13 mars', '13 mai', 'months'), 2.0, 1)
         self.assertAlmostEqual(temporal('13 march', '13 may', 'months',
-                                        'english'), 2.0, 1)
+                                        parserinfo=dateparser.parserinfo), 2.0, 1)
 
         #Test fuzzyness
         self.assertEqual(temporal('Jean est né le 1er octobre 1958',
@@ -148,7 +149,7 @@ class DistancesTest(unittest2.TestCase):
     def test_geographical(self):
         paris = (48.856578, 2.351828)
         london = (51.504872, -0.07857)
-        dist_parislondon = geographical(paris, london, in_radians = False)
+        dist_parislondon = geographical(paris, london, in_radians=False)
 
         self.assertAlmostEqual(dist_parislondon, 341564, 0)
 
@@ -224,7 +225,7 @@ class MatrixTestCase(unittest2.TestCase):
 
         #Victor Hugo --> Victor Wugo
         #Albert Camus --> Albert Camus, Albert Camu
-        self.assertEqual(am.matched(m, cutoff = 2),
+        self.assertEqual(am.matched(m, cutoff=2),
                         {0: [(0, d(i1[0], i2[0]))], 1: [(1, d(i1[1], i2[1])),
                                                         (2, d(i1[1], i2[2]))]})
 

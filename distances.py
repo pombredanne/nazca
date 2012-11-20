@@ -187,7 +187,32 @@ def jaccard(stra, strb, tokenizer=None):
 
 
 ### TEMPORAL DISTANCES ########################################################
-def temporal(stra, strb, granularity=u'days', language=u'french',
+class FrenchParserInfo(dateparser.parserinfo):
+    """ Inherit of the dateutil.parser.parserinfo and translate the english
+        dependant variables into french.
+    """
+
+    HMS = [(u'h', u'heure', u'heures'),
+           (u'm', u'minute', u'minutes'),
+                (u's', u'seconde', u'seconde'),]
+    JUMP = [u' ', u'.', u',', u';', u'-', u'/', u"'",
+           u'a', u'le', u'et', u'er']
+    MONTHS = [(u'Jan', u'Janvier'), (u'Fev', u'Fevrier'),
+              (u'Mar', u'Mars'), (u'Avr', u'Avril'), (u'Mai', u'Mai'),
+              (u'Jun', u'Juin'), (u'Jui', u'Juillet'),
+              (u'Aou', u'Aout'), (u'Sep', u'Septembre'),
+              (u'Oct', u'Octobre'), (u'Nov', u'Novembre'),
+              (u'Dec', u'Decembre')]
+    PERTAIN = [u'de']
+    WEEKDAYS = [(u'Lun', u'Lundi'),
+                (u'Mar', u'Mardi'),
+                (u'Mer', u'Mercredi'),
+                (u'Jeu', u'Jeudi'),
+                (u'Ven', u'Vendredi'),
+                (u'Sam', u'Samedi'),
+                (u'Dim', u'Dimanche')]
+
+def temporal(stra, strb, granularity=u'days', parserinfo=FrenchParserInfo,
              dayfirst=True, yearfirst=False):
     """ Return the distance between two strings (read as dates).
 
@@ -201,30 +226,9 @@ def temporal(stra, strb, granularity=u'days', language=u'french',
         Neither stra nor strb can have accent. Clean it before.
     """
 
-    class customparserinfo(dateparser.parserinfo):
-        if language.lower() == u'french':
-            HMS = [(u'h', u'heure', u'heures'),
-                   (u'm', u'minute', u'minutes'),
-                        (u's', u'seconde', u'seconde'),]
-            JUMP = [u' ', u'.', u',', u';', u'-', u'/', u"'",
-                   u'a', u'le', u'et', u'er']
-            MONTHS = [(u'Jan', u'Janvier'), (u'Fev', u'Fevrier'),
-                      (u'Mar', u'Mars'), (u'Avr', u'Avril'), (u'Mai', u'Mai'),
-                      (u'Jun', u'Juin'), (u'Jui', u'Juillet'),
-                      (u'Aou', u'Aout'), (u'Sep', u'Septembre'),
-                      (u'Oct', u'Octobre'), (u'Nov', u'Novembre'),
-                      (u'Dec', u'Decembre')]
-            PERTAIN = [u'de']
-            WEEKDAYS = [(u'Lun', u'Lundi'),
-                        (u'Mar', u'Mardi'),
-                        (u'Mer', u'Mercredi'),
-                        (u'Jeu', u'Jeudi'),
-                        (u'Ven', u'Vendredi'),
-                        (u'Sam', u'Samedi'),
-                        (u'Dim', u'Dimanche')]
-    datea = dateparser.parse(stra, parserinfo=customparserinfo(dayfirst,
+    datea = dateparser.parse(stra, parserinfo=parserinfo(dayfirst,
                              yearfirst), fuzzy=True)
-    dateb = dateparser.parse(strb, parserinfo=customparserinfo(dayfirst,
+    dateb = dateparser.parse(strb, parserinfo=parserinfo(dayfirst,
                              yearfirst), fuzzy=True)
     diff = datea - dateb
     if granularity.lower() == 'years':
