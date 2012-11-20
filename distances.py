@@ -157,6 +157,9 @@ def soundexcode(word, language='french'):
            consonnantscode[word[i]] == consonnantscode.get(word[i + 2], ''):
             continue
         code += word[i]
+        if len(code) > 4:
+            break
+
     #Replace according to the codes
     code = code[0] + ''.join([consonnantscode[c] for c in code[1:]])
     ###First four letters, completed by zeros
