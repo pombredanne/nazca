@@ -16,10 +16,8 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from collections import defaultdict
-from copy import deepcopy
 
-from scipy import array, empty
-from scipy import where
+from scipy import empty
 
 import alignment.distances as ds
 

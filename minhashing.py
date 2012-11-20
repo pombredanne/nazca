@@ -21,7 +21,6 @@ from random import randint
 from collections import defaultdict
 
 import numpy as np
-from scipy.sparse import lil_matrix
 from scipy.optimize import bisect
 
 from alignment.normalize import iter_wordgrams
