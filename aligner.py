@@ -252,7 +252,7 @@ def conquer_and_divide_alignment(alignset, targetset, threshold, treatments=None
     for alignind, targetind in findneighbours(ralignset, rtargetset, indexes, mode,
                                               neighbours_threshold, n_clusters,
                                               kwordsgram, siglen):
-        mat, matched = subalign(alignset, targetset, alignind, targetind,
+        _, matched = subalign(alignset, targetset, alignind, targetind,
                                 threshold, treatments)
         for k, values in matched.iteritems():
             subdict = global_matched.setdefault(k, set())
@@ -277,9 +277,9 @@ def alignall(alignset, targetset, threshold, treatments=None,
 
     if not uniq:
         for alignid in matched:
-            for targetid, dist in matched[alignid]:
+            for targetid, _ in matched[alignid]:
                 yield alignset[alignid][0], targetset[targetid][0]
     else:
         for alignid in matched:
-            bestid, dist = sorted(matched[alignid], key=lambda x:x[1])[0]
+            bestid, _ = sorted(matched[alignid], key=lambda x:x[1])[0]
             yield alignset[alignid][0], targetset[bestid][0]

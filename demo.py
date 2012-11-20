@@ -57,8 +57,8 @@ def demo_0():
     treatments = {1: tr_name}
 
     print "Alignment started"
-    dmatrix, hasmatched = align(alignset, targetset, 0.4, treatments,
-                                dpath('demo0_results'))
+    align(alignset, targetset, 0.4, treatments,
+          dpath('demo0_results'))
 
     print "Done, see the resuls in %s" % dpath('demo0_results')
 
@@ -95,15 +95,15 @@ def demo_1():
     treatments = {1: tr_name, 2: tr_geo}
 
     print "Alignment started"
-    dmatrix, hasmatched = align(alignset,           # The dataset to align
-                                targetset,          # The target dataset
-                                0.4,                # The maximal distance
-                                                    #   threshold
-                                treatments,         # The list of treatments to
-                                                    #   apply.
-                                dpath('demo1_results'))
-                                                    # Filename of the output
-                                                    #   result file
+    align(alignset,           # The dataset to align
+          targetset,          # The target dataset
+          0.4,                # The maximal distance
+                              #   threshold
+          treatments,         # The list of treatments to
+                              #   apply.
+          dpath('demo1_results'))
+                              # Filename of the output
+                              #   result file
     # the ``align()`` function return two items
     # 0. the computed distance matrix
     # 1. a boolean, True if at least one alignment has been done, False
@@ -139,7 +139,7 @@ def demo_2():
                                mode='minibatch')
 
     # Let's define the treatments to apply on the location's name
-    tr_name = {'normalization': [lambda x: str(x),#Some names are casted to
+    tr_name = {'normalization': [str,         #Some names are casted to
                                                   #int/float, just correct it
                                  aln.simplify], # Simply all the names (remove
                                               #   punctuation, lower case, etc)
@@ -152,12 +152,12 @@ def demo_2():
     print "Start computation"
     for ind, (alignid, targetid) in enumerate(neighbours):
         print '%3d' % ind, len(alignid), 'x', len(targetid)
-        mat, matched = subalign(alignset,   # The dataset to align
-                                targetset,  # The target dataset
-                                alignid,
-                                targetid,
-                                0.3,
-                                treatments)
+        _, matched = subalign(alignset,   # The dataset to align
+                              targetset,  # The target dataset
+                              alignid,
+                              targetid,
+                              0.3,
+                              treatments)
         write_results(matched, alignset, targetset, dpath('demo2_results'))
     print "Done, see the results in %s" % dpath('demo2_results')
 
