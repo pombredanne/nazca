@@ -130,18 +130,17 @@ def demo_1():
 #
 #
 def demo_2():
-    targetset = parsefile(dpath('FR.txt'), indexes=[0, 1, (4, 5)])
+    targetset = parsefile(dpath('FR.txt'), indexes=[0, 1, (4, 5)],
+                          formatopt={1:lambda x:x.decode('utf-8')})
     alignset = parsefile(dpath('frenchbnf'), indexes=[0, 2, (14, 12)],
-                         nbmax=30000)
+                         formatopt={2:lambda x:x.decode('utf-8')}, nbmax=30000)
 
     print "Finding neighbours"
     neighbours = findneighbours(alignset, targetset, indexes=(2, 2),
                                mode='minibatch')
 
     # Let's define the treatments to apply on the location's name
-    tr_name = {'normalization': [str,         #Some names are casted to
-                                                  #int/float, just correct it
-                                 aln.simplify], # Simply all the names (remove
+    tr_name = {'normalization': [aln.simplify], # Simply all the names (remove
                                               #   punctuation, lower case, etc)
                'metric': ald.levenshtein,     # Use the levenshtein distance
                'weighting': 1                 # Use 1 a name-distance matrix
