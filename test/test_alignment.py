@@ -263,9 +263,15 @@ class DataIOTestCase(unittest2.TestCase):
     def test_parser(self):
         data = parsefile(path.join(TESTDIR, 'data', 'file2parse'),
                          [0, (2, 3), 4, 1], delimiter=',')
-        self.assertEqual(data, [[1, (12, 19), 'apple', 'house'],
-                                [2, (21.9, 19), 'stramberry', 'horse'],
-                                [3, (23, 2.17), 'cherry', 'flower']])
+        self.assertEqual(data, [[1, (12, 19), u'apple', u'house'],
+                                [2, (21.9, 19), u'stramberry', u'horse'],
+                                [3, (23, 2.17), u'cherry', u'flower']])
+
+        data = parsefile(path.join(TESTDIR, 'data', 'file2parse'),
+                         [0, (2, 3), 4, 1], delimiter=',', formatopt={2:str})
+        self.assertEqual(data, [[1, ('12', 19), u'apple', u'house'],
+                                [2, ('21.9', 19), u'stramberry', u'horse'],
+                                [3, ('23', 2.17), u'cherry', u'flower']])
 
     def test_autocasted(self):
         self.assertEqual(autocasted('1'), 1)
@@ -274,6 +280,7 @@ class DataIOTestCase(unittest2.TestCase):
         self.assertEqual(autocasted('1,2'), 1.2)
         self.assertEqual(autocasted('1,2X'), '1,2X')
         self.assertEqual(autocasted(u'tété'), u'tété')
+        self.assertEqual(autocasted('tété', encoding='utf-8'), u'tété')
 
 
 class AlignerTestCase(unittest2.TestCase):

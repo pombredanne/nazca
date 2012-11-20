@@ -63,7 +63,7 @@ def sparqlquery(endpoint, query, indexes=None):
     return results
 
 def parsefile(filename, indexes=None, nbmax=None, delimiter='\t',
-              encoding='utf-8', field_size_limit=None):
+              encoding='utf-8', field_size_limit=None, formatopt=None):
     """ Parse the file (read ``nbmax`` line at maximum if given). Each
         line is splitted according ``delimiter`` and only ``indexes`` are kept
 
@@ -72,12 +72,21 @@ def parsefile(filename, indexes=None, nbmax=None, delimiter='\t',
                 2, horse, 21.9, 19, stramberry
                 3, flower, 23, 2.17, cherry
 
-            data = parsefile('myfile', [0, (2, 3), 4, 1], delimiter=',')
+            >>> data = parsefile('myfile', [0, (2, 3), 4, 1], delimiter=',')
+            data = [[1, (12, 19), u'apple', u'house'],
+                    [2, (21.9, 19), u'stramberry', u'horse'],
+                    [3, (23, 2.17), u'cherry', u'flower']]
 
-            The result will be :
-            data = [[1, (12,   19), 'apple', 'house'],
-                    [2, (21.9, 19), 'stramberry', 'horse'],
-                    [3, (23,   2.17), 'cherry', 'flower']]
+            By default, all cells are "autocasted" (thanks to the
+            ``autocasted()`` function), but you can overpass it thanks to the
+            ``formatopt`` dictionnary. Each key is the index to work on, and the
+            value is the function to call. See the following example:
+
+            >>> data = parsefile('myfile', [0, (2, 3), 4, 1], delimiter=',',
+            >>>                  formatopt={2:lambda x:x.decode('utf-8')})
+            data = [[1, (u'12', 19), u'apple', u'house'],
+                    [2, (u'21.9', 19), u'stramberry', u'horse'],
+                    [3, (u'23', 2.17), u'cherry', u'flower']]
 
     """
     def formatedoutput(filename):
@@ -87,12 +96,15 @@ def parsefile(filename, indexes=None, nbmax=None, delimiter='\t',
         with open(filename, 'r') as csvfile:
             reader = csv.reader(csvfile, delimiter=delimiter)
             for row in reader:
-                yield [autocasted(cell, encoding) for cell in row]
+                yield [cell.strip() for cell in row]
 
 
     result = []
     indexes = indexes or []
+    formatopt = formatopt or {}
     for ind, row in enumerate(formatedoutput(filename)):
+        row = [formatopt.get(i, lambda x: autocasted(x, encoding))(cell)
+               for i, cell in enumerate(row)]
         data = []
         if nbmax and ind > nbmax:
             break
