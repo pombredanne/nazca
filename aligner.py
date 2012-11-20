@@ -231,7 +231,6 @@ def conquer_and_divide_alignment(alignset, targetset, threshold, treatments=None
                                  get_global_mat=True):
     """ Full conquer and divide method for alignment.
     Compute neighbours and merge the different subalignments.
-    XXX
     """
     global_matched = {}
     if get_global_mat:

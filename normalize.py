@@ -144,12 +144,16 @@ def iter_wordgrams(sentence, k):
     for r in xrange(len(words)):
         yield ' '.join(words[r:r + k])
 
-def loadlemmas(filename):
+def loadlemmas(filename, encoding='utf-8'):
     """ Return the default lemmas dictionnary
     """
-    #XXX Make a loop
-    return dict([line.decode('utf-8').strip().split('\t') for line in open(filename)
-                 if len(line.strip().split('\t'))==2])
+    lemmas = {}
+    with open(filename) as fobj:
+        for line in fobj:
+            line = line.decode(encoding).strip().split('\t')
+            if len(line) == 2:
+                lemmas[line[0]] = line[1]
+    return lemmas
 
 def lemmatized(sentence, lemmas, tokenizer=None):
     """ Return the lemmatized sentence
