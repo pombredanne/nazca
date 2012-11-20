@@ -118,10 +118,14 @@ def globalalignmentmatrix(items):
        matrices are summed with their own weighting and the result is the global
        alignment matrix, which is returned.
 
-       /!\ All `input1` and `input2` of each tuple must have the same size
-           in twos
-      XXX Write an assertion
     """
+
+    #Assert all items have the same size
+    size1, size2 = len(items[0][1]), len(items[0][2])
+    for item in items[1:]:
+        assert size1 == len(item[1])
+        assert size2 == len(item[2])
+
     globalmatrix = items[0][0]*cdist(*items[0][1:])
     for item in items[1:]:
         globalmatrix += item[0]*cdist(*item[1:])
