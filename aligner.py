@@ -157,7 +157,8 @@ def findneighbours(alignset, targetset, indexes=(1, 1), mode='kdtree',
         except:
             raise NotImplementedError('Scikit learn does not seem to be installed')
 
-def align(alignset, targetset, threshold, treatments=None, resultfile=None):
+def align(alignset, targetset, threshold, treatments=None, resultfile=None,
+          _applyNormalization=True):
     """ Try to align the items of alignset onto targetset's ones
 
         `alignset` and `targetset` are the sets to align. Each set contains
@@ -193,8 +194,12 @@ def align(alignset, targetset, threshold, treatments=None, resultfile=None):
     """
     treatments = treatments or {}
 
-    ralignset = normalize_set(alignset, treatments)
-    rtargetset = normalize_set(targetset, treatments)
+    if _applyNormalization:
+        ralignset = normalize_set(alignset, treatments)
+        rtargetset = normalize_set(targetset, treatments)
+    else:
+        ralignset = alignset
+        rtargetset = targetset
 
     items = []
     for ind, tr in treatments.iteritems():
@@ -214,11 +219,13 @@ def align(alignset, targetset, threshold, treatments=None, resultfile=None):
 
     return mat, matched
 
-def subalign(alignset, targetset, alignind, targetind, threshold, treatments=None):
+def subalign(alignset, targetset, alignind, targetind, threshold,
+             treatments=None, _applyNormalization=True):
     """ Compute a subalignment for a list of indices of the alignset and
     a list of indices for the targetset """
     mat, matched = align([alignset[i] for i in alignind],
-                         [targetset[i] for i in targetind], threshold, treatments)
+                         [targetset[i] for i in targetind], threshold,
+                         treatments, _applyNormalization=_applyNormalization)
     new_matched = {}
     for k, values in matched.iteritems():
         new_matched[alignind[k]] = [(targetind[i], d) for i, d in values]
@@ -236,14 +243,6 @@ def conquer_and_divide_alignment(alignset, targetset, threshold, treatments=None
     if get_global_mat:
         global_mat = lil_matrix((len(alignset), len(targetset)))
 
-    #XXX The treaments must be applied before the findneighbours() function is
-    #    called, otherwise it's a little bit useless. But, the treatments are
-    #    also applied by align() function. It's too much and useless.  We should
-    #    find a way to apply it once whatever is the called function (because
-    #    align() can be called lonely…)
-    #
-    #    The *temporary* solution is to call normalize_set twice, but it has to
-    #    be just a *temporary* solution !
     treatments = treatments or {}
     ralignset = normalize_set(alignset, treatments)
     rtargetset = normalize_set(targetset, treatments)
@@ -252,7 +251,7 @@ def conquer_and_divide_alignment(alignset, targetset, threshold, treatments=None
                                               neighbours_threshold, n_clusters,
                                               kwordsgram, siglen):
         _, matched = subalign(alignset, targetset, alignind, targetind,
-                                threshold, treatments)
+                                threshold, treatments, _applyNormalization=False)
         for k, values in matched.iteritems():
             subdict = global_matched.setdefault(k, set())
             for v, d in values:
