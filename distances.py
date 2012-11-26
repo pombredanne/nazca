@@ -20,7 +20,7 @@ from math import cos, sqrt, pi #Needed for geographical distance
 
 from scipy import matrix
 
-from alignment.normalize import tokenize
+from nazca.normalize import tokenize
 
 
 ### UTILITY FUNCTIONS #########################################################

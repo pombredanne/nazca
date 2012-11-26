@@ -19,7 +19,7 @@ from collections import defaultdict
 
 from scipy import empty
 
-import alignment.distances as ds
+import nazca.distances as ds
 
 METRICS = {'euclidean': ds.euclidean, 'levenshtein': ds.levenshtein,
            'soundex': ds.soundex, 'jaccard': ds.jaccard,

@@ -5,10 +5,10 @@ from os import path
 
 import urllib
 
-import alignment.distances as ald
-import alignment.normalize as aln
-from alignment.aligner import align, subalign, findneighbours, alignall
-from alignment.dataio import parsefile, sparqlquery, write_results
+import nazca.distances as ald
+import nazca.normalize as aln
+from nazca.aligner import align, subalign, findneighbours, alignall
+from nazca.dataio import parsefile, sparqlquery, write_results
 
 DEMODIR = path.dirname(__file__)
 
@@ -110,25 +110,6 @@ def demo_1():
     #    otherwise
     print "Done, see the results in %s" % dpath('demo1_results')
 
-#def parsefile(filepath, transforms):
-#    pass
-#
-#
-#parsefile('fr.txt', {0: int, 1: lambda x: x.decode('utf-8'), 14: float, 12:
-#                     float}, indexes=[0, 2, (14, 12)])
-#
-#
-#def make_index_transformer(indexes, transform_map):
-#    def xxx(row):
-#        data = [transform_map[i](row[i]) for in indexes]
-#        return data
-#    return xxx
-#
-#
-#
-#parsefile('fr.txt', line_transformer=make_index_transformer)
-#
-#
 def demo_2():
     targetset = parsefile(dpath('FR.txt'), indexes=[0, 1, (4, 5)],
                           formatopt={1:lambda x:x.decode('utf-8')})

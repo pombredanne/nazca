@@ -38,7 +38,7 @@ Let's defining ``alignset`` and ``targetset`` as simple python lists.
 Now, we have to compute the similarity between each items. For that purpose, the
 `Levenshtein distance <http://en.wikipedia.org/wiki/Levenshtein_distance>`_
 [#]_, which is well accurate to compute the distance between few words, is used.
-Such a function is provided in the ``alignment.distance`` module.
+Such a function is provided in the ``nazca.distance`` module.
 
 .. [#] Also called the *edit distance*, because the distance between two words
        is equal to the number of single-character edits required to change one
@@ -82,7 +82,7 @@ nested lists. See the following example:
 In such a case, two distance functions are used, the Levenshtein one for the
 name and the city and a temporal one for the birth date [#]_.
 
-.. [#] Provided in the ``alignment.distance`` module.
+.. [#] Provided in the ``nazca.distance`` module.
 
 
 We obtain the three following matrices:
@@ -156,10 +156,10 @@ Just before we start, we will assume the following imports have been done:
 
 .. code-block:: python
 
-    from alignment import dataio as aldio #Functions for input and output data
-    from alignment import distance as ald #Functions to compute the distances
-    from alignment import normalize as aln#Functions to normalize data
-    from alignment import aligner as ala  #Functions to align data
+    from nazca import dataio as aldio #Functions for input and output data
+    from nazca import distance as ald #Functions to compute the distances
+    from nazca import normalize as aln#Functions to normalize data
+    from nazca import aligner as ala  #Functions to align data
 
 The Goncourt prize
 ^^^^^^^^^^^^^^^^^^

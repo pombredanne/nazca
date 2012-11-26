@@ -19,9 +19,9 @@
 from scipy.spatial import KDTree
 from scipy.sparse import lil_matrix
 
-from alignment.minhashing import Minlsh
-from alignment.dataio import write_results
-import alignment.matrix as m
+from nazca.minhashing import Minlsh
+from nazca.dataio import write_results
+import nazca.matrix as m
 
 
 def normalize_set(rset, treatments):

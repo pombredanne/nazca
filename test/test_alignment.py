@@ -16,29 +16,6 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-"""cubicweb-alignment automatic tests
-
-
-uncomment code below if you want to activate automatic test for your cube:
-
-.. sourcecode:: python
-
-    from cubicweb.devtools.testlib import AutomaticWebTest
-
-    class AutomaticWebTest(AutomaticWebTest):
-        '''provides `to_test_etypes` and/or `list_startup_views` implementation
-        to limit test scope
-        '''
-
-        def to_test_etypes(self):
-            '''only test views for entities of the returned types'''
-            return set(('My', 'Cube', 'Entity', 'Types'))
-
-        def list_startup_views(self):
-            '''only test startup views of the returned identifiers'''
-            return ('some', 'startup', 'views')
-"""
-
 import unittest2
 import random
 random.seed(6) ### Make sure tests are repeatable
@@ -47,15 +24,15 @@ import numpy as np
 from os import path
 from dateutil import parser as dateparser
 
-from alignment.distances import (levenshtein, soundex, soundexcode,   \
+from nazca.distances import (levenshtein, soundex, soundexcode,   \
                                  jaccard, temporal, euclidean,        \
                                  geographical)
-from alignment.normalize import (lunormalize, loadlemmas, lemmatized, \
+from nazca.normalize import (lunormalize, loadlemmas, lemmatized, \
                                  roundstr, rgxformat, tokenize, simplify)
-import alignment.matrix as am
-from alignment.minhashing import Minlsh
-from alignment.dataio import parsefile, autocasted
-import alignment.aligner as alig
+import nazca.matrix as am
+from nazca.minhashing import Minlsh
+from nazca.dataio import parsefile, autocasted
+import nazca.aligner as alig
 
 
 TESTDIR = path.dirname(__file__)
