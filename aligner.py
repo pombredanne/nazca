@@ -88,7 +88,8 @@ def findneighbours_clustering(alignset, targetset, indexes=(1, 1), threshold=0.1
     #If an element is None (missing), use instead the identity element.
     #The identity element is defined as the 0-vector
     idelement = tuple([0 for _ in xrange(len(alignset[0][indexes[0]]))])
-    n_clusters = n_clusters or len(alignset) / 10
+    # We assume here that there are at least 2 elements in the alignset
+    n_clusters = n_clusters or (len(alignset)/10 or len(alignset)/2)
 
     if mode == 'kmeans':
         kmeans = cluster.KMeans(n_clusters=n_clusters)
