@@ -6,7 +6,7 @@ What is it for ?
 
 This python library aims to help you to *align data*. For instance, you have a
 list of cities, described by their name and their country and you would like to
-find their URI on dbpedia to have more information about, as the longitude and
+find their URI on dbpedia to have more information about them, as the longitude and
 the latitude for example. If you have two or three cities, it can be done with
 bare hands, but it could not if there are hundreds or thousands cities.
 This library provides you all the stuff we need to do it.
@@ -28,8 +28,7 @@ The alignment process is divided into three main steps:
 Simple case
 ^^^^^^^^^^^
 
-Let's defining ``alignset`` and ``targetset`` as simple python
-lists.
+Let's defining ``alignset`` and ``targetset`` as simple python lists.
 
 .. code-block:: python
 
@@ -63,8 +62,8 @@ value inferior to a given threshold are identical.
 A more complex one
 ^^^^^^^^^^^^^^^^^^
 
-The previous case was simple, because we had only one *thing* to align (the
-name), but it is frequent to have a lot of *things* to align, such as the name
+The previous case was simple, because we had only one *attribute* to align (the
+name), but it is frequent to have a lot of *attributes* to align, such as the name
 and the birth date and the birth city. The steps remains the same, except that
 three distance matrices will be computed, and *items* will be represented as
 nested lists. See the following example:
@@ -145,7 +144,7 @@ unlikely identical because of their very different birth date.
 
 
 You may have noticed that working with matrices as I did for the example is a
-little bit boring. The good news is this project makes all this job for you. You
+little bit boring. The good news is that this project makes all this job for you. You
 just have to give the sets and distance functions and that's all. An other good
 news is the project comes with the needed functions to build the sets !
 
@@ -184,10 +183,10 @@ the separators (``-`` and ``,``) by ``#``. So, the beginning of our file is :
     | 1906#Jérôme et Jean Tharaud#Dingley, l'illustre écrivain (Cahiers de la Quinzaine)
 
 When using the high-level functions of this library, each item must have at
-least two elements: an *identifier* (the name, or the URI) and the *thing* to
+least two elements: an *identifier* (the name, or the URI) and the *attribute* to
 compare. With the previous file, we will use the name (so the column number 1)
-as *identifier* and *thing* to align. This is told to python thanks to the
-following code:
+as *identifier* (we don't have an *URI* here as identifier) and *attribute* to align.
+This is told to python thanks to the following code:
 
 .. code-block:: python
 
@@ -230,13 +229,15 @@ Finally, the last thing we have to do, is to call the ``align`` function:
 
 .. code-block:: python
 
-    global_matrix, hasmathed = ala.align(alignset,
-                                         targset,
-                                         0.4,   #This is the matching threshold
-                                         treatments,
-                                         'goncourtprize_alignment')
+    global_matrix, hasmatched = ala.align(alignset,
+                                          targset,
+                                          0.4,   #This is the matching threshold
+                                          treatments,
+                                          'goncourtprize_alignment')
 
-The alignment results will be written into the `goncourtprize_alignment` file.
+The alignment results will be written into the `goncourtprize_alignment` file
+(note that this is optional, we could have work directly with the global matrix
+without writting the results).
 The `align` function returns the global alignment matrix and a boolean set to
 ``True`` if at least one matching has been done, ``False`` otherwise.
 
@@ -244,7 +245,7 @@ It may be important to apply some pre-treatment on the data to align. For
 instance, names can be written with lower or upper characters, with extra
 characters as punctuation or unwanted information in parenthesis and so on. That
 is why we provide some functions to `normalize` your data. The most useful may
-be the `simplify()` one (see the docstring for more information). So the
+be the `simplify()` function (see the docstring for more information). So the
 treatments list can be given as follow:
 
 
@@ -269,6 +270,7 @@ treatments list can be given as follow:
                      }
                  }
 
+
 Cities alignment
 ^^^^^^^^^^^^^^^^
 
@@ -276,9 +278,10 @@ The previous case with the `Goncourt prize winners` was pretty simply because
 the number of items was small, and the computation fast. But in a more real use
 case, the number of items to align may be huge (some thousands or millions…). Is
 such a case it's unthinkable to build the global alignment matrix because it
-would be to big and it would take fews days to achieve the computation. So the
-idea is to make small groups of possible similar data to compute smaller
-matrices. For this purpose, we provide some functions to group data. We have
+would be too big and it would take (at least...) fews days to achieve the computation.
+So the idea is to make small groups of possible similar data to compute smaller
+matrices (i.e. a *divide and conquer* approach).
+For this purpose, we provide some functions to group/cluster data. We have
 functions to group text and numerical data.
 
 
@@ -306,11 +309,18 @@ to align, the first column is the identifier, and the second is the name of the 
 and the last one is location of the city (longitude and latitude), gathered into
 a single tuple.
 
-Next, we define the treatments to apply. It is the same as before, but we ask
-for a non-normalized matrix (ie: the real output of the levenshtein distance).
-Finally, we call the ``alignall`` function. ``indexes`` is a tuple saying the
+In this example, we want to build a *kdtree* on the couple (latitude, longitude) to
+divide our data in few candidates. This clustering is coarse, and is only used to reduce
+the potential candidats without loosing any more refined possible matchs.
+
+So, in the next step, we define the treatments to apply.
+It is the same as before, but we ask for a non-normalized matrix
+(ie: the real output of the levenshtein distance).
+Thus, we call the ``alignall`` function. ``indexes`` is a tuple saying the
 position of the point on which the kdtree_ must be built, ``mode`` is the mode
-used to find neighbours [#]_, ``uniq`` ask to the function to return the best
+used to find neighbours [#]_.
+
+Finally, ``uniq`` ask to the function to return the best
 candidate (ie: the one having the shortest distance above the given threshold)
 
 .. [#] The available modes are ``kdtree``, ``kmeans`` and ``minibatch`` for
