@@ -1,1 +1,0 @@
-/home/schabot/local/data/lemmas_light.txt
