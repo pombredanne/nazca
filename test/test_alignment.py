@@ -304,6 +304,14 @@ class AlignerTestCase(unittest2.TestCase):
                      ['T2', 'labelt2', (5.3, 48.2)],
                      ['T3', 'labelt3', (6.25, 48.91)],
                      ]
+        try:
+            import sklearn as skl
+        except:
+            print 'Scikit learn does not seem to be installed - Skipping test'
+            return
+        if int(skl.__version__.split('-')[0].split('.')[1])<11:
+            print 'Scikit learn version is too old - Skipping test'
+            return
         neighbours = alig.findneighbours_clustering(alignset, targetset, indexes=(2, 2))
         for neighbour in neighbours:
             self.assertIn(neighbour, [[[0, 1], [0, 2]], [[2, 3], [1]]])
