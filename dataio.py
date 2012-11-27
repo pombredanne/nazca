@@ -19,6 +19,12 @@ from os.path import exists as fileexists
 
 import csv
 
+try:
+    from SPARQLWrapper import SPARQLWrapper, JSON
+    SPARQL_ENABLED = True
+except ImportError:
+    SPARQL_ENABLED = False
+
 
 def autocasted(data, encoding=None):
     """ Try to convert data into a specific type
@@ -39,7 +45,9 @@ def sparqlquery(endpoint, query, indexes=None):
     """ Run the sparql query on the given endpoint, and wrap the items in the
     indexes form. If indexes is empty, keep raw output"""
 
-    from SPARQLWrapper import SPARQLWrapper, JSON
+    if not SPARQL_ENABLED:
+        raise ImportError("You have to install SPARQLWrapper and JSON modules to"
+                          "used this function")
 
     sparql = SPARQLWrapper(endpoint)
     sparql.setQuery(query)
