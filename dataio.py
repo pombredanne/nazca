@@ -24,13 +24,13 @@ def autocasted(data, encoding=None):
     """ Try to convert data into a specific type
     in (int, float, str)
     """
-    data = data.strip()
     try:
         return int(data)
     except ValueError:
         try:
             return float(data.replace(',', '.'))
         except ValueError:
+            data = data.strip()
             if encoding:
                 return data.decode(encoding)
             return data
