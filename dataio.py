@@ -101,10 +101,15 @@ def parsefile(filename, indexes=None, nbmax=None, delimiter='\t',
         if field_size_limit:
             csv.field_size_limit(field_size_limit)
 
-        with open(filename, 'r') as csvfile:
-            reader = csv.reader(csvfile, delimiter=delimiter)
-            for row in reader:
-                yield [cell.strip() for cell in row]
+        if isinstance(filename, basestring):
+            csvfile = open(filename, 'r')
+        else:
+            csvfile = filename
+        reader = csv.reader(csvfile, delimiter=delimiter)
+        for row in reader:
+            yield [cell.strip() for cell in row]
+        csvfile.close()
+
 
 
     result = []
