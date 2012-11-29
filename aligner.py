@@ -267,11 +267,15 @@ def alignall(alignset, targetset, threshold, treatments=None,
              indexes=(1,1), mode='kdtree', neighbours_threshold=0.1,
              n_clusters=None, kwordsgram=1, siglen=200, uniq=False):
 
-    matched = conquer_and_divide_alignment(alignset, targetset,
-                                           threshold, treatments, indexes, mode,
-                                           neighbours_threshold,
-                                           n_clusters, kwordsgram,
-                                           siglen, get_global_mat=False)
+    if not mode:
+        _, matched = align(alignset, targetset, threshold, treatments,
+                           resultfile=None, _applyNormalization=True)
+    else:
+        matched = conquer_and_divide_alignment(alignset, targetset, threshold,
+                                               treatments, indexes, mode,
+                                               neighbours_threshold, n_clusters,
+                                               kwordsgram, siglen,
+                                               get_global_mat=False)
 
     if not uniq:
         for alignid in matched:
