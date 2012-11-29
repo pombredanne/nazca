@@ -18,6 +18,7 @@
 from os.path import exists as fileexists
 
 import csv
+import urllib
 
 try:
     from SPARQLWrapper import SPARQLWrapper, JSON
@@ -40,6 +41,20 @@ def autocasted(data, encoding=None):
             if encoding:
                 return data.decode(encoding)
             return data
+
+def rqlquery(host, rql, indexes=None):
+    """ Run the rql query on the given cubicweb host
+    """
+
+    if host.endswith('/'):
+        host = host[:-1]
+
+    indexes = indexes or []
+    filehandle = urllib.urlopen('%(host)s/view?'
+                                'rql=%(rql)s&vid=csvexport'
+                                % {'rql': rql, 'host': host})
+    filehandle.readline()#Skip the first line
+    return parsefile(filehandle, delimiter=';', indexes=indexes);
 
 def sparqlquery(endpoint, query, indexes=None):
     """ Run the sparql query on the given endpoint, and wrap the items in the
