@@ -101,6 +101,9 @@ def simplify(sentence, lemmas=None, remove_stopwords=True):
         2) Set the sentence to lower case
         3) Remove punctuation
     """
+    if not isinstance(sentence, basestring):
+        return sentence
+
     if lemmas:
         sentence = lemmatized(sentence, lemmas)
     sentence = sentence.lower()
