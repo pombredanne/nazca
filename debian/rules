@@ -27,8 +27,6 @@ install: build
 	dh_clean -k
 	dh_installdirs -i
 	NO_SETUPTOOLS=1 python setup.py -q install --no-compile --prefix=debian/nazca/usr/
-	# remove generated .egg-info file
-	rm -rf debian/nazca/usr/lib/python*
 
 
 # Build architecture-independent files here.
