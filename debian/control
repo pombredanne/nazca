@@ -1,4 +1,4 @@
-Source: cubicweb-alignment
+Source: nazca
 Section: web
 Priority: optional
 Maintainer: LOGILAB S.A. (Paris, FRANCE) <contact@logilab.fr>
@@ -6,13 +6,7 @@ Build-Depends: debhelper (>= 7), python (>=2.5), python-support
 Standards-Version: 3.9.3
 XS-Python-Version: >= 2.5
 
-Package: cubicweb-alignment
+Package: nazca
 Architecture: all
-Depends: cubicweb-common (>= 3.15.4), ${python:Depends}
-Description: Cube for aligning data
- CubicWeb is a semantic web application framework.
- .
- Cube for aligning data
- .
- This package will install all the components you need to run the
- cubicweb-alignment application (cube :)..
+Depends: ${python:Depends}
+Description: Python library for data alignment..
