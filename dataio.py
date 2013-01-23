@@ -42,7 +42,7 @@ def autocasted(data, encoding=None):
                 return data.decode(encoding)
             return data
 
-def rqlquery(host, rql, indexes=None):
+def rqlquery(host, rql, indexes=None, formatopt=None):
     """ Run the rql query on the given cubicweb host
     """
 
@@ -54,7 +54,8 @@ def rqlquery(host, rql, indexes=None):
                                 'rql=%(rql)s&vid=csvexport'
                                 % {'rql': rql, 'host': host})
     filehandle.readline()#Skip the first line
-    return parsefile(filehandle, delimiter=';', indexes=indexes);
+    return parsefile(filehandle, delimiter=';', indexes=indexes,
+                     formatopt=formatopt);
 
 def sparqlquery(endpoint, query, indexes=None):
     """ Run the sparql query on the given endpoint, and wrap the items in the
