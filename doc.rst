@@ -1,8 +1,9 @@
+==================
 Alignment project
 ==================
 
 What is it for ?
-----------------
+================
 
 This python library aims to help you to *align data*. For instance, you have a
 list of cities, described by their name and their country and you would like to
@@ -13,7 +14,7 @@ This library provides you all the stuff we need to do it.
 
 
 Introduction
-------------
+============
 
 The alignment process is divided into three main steps:
 
@@ -21,46 +22,47 @@ The alignment process is divided into three main steps:
    In this step, we define two sets called the ``alignset`` and the
    ``targetset``. The ``alignset`` contains our data, and the
    ``targetset`` contains the data on which we would like to make the links.
-2. Compute the similarity between the items gathered.
-   We compute a distance matrix between the two sets according a given distance.
+2. Compute the similarity between the items gathered.  We compute a distance
+   matrix between the two sets according to a given distance.
 3. Find the items having a high similarity thanks to the distance matrix.
 
 Simple case
-^^^^^^^^^^^
+-----------
 
-Let's defining ``alignset`` and ``targetset`` as simple python lists.
+1. Let's define ``alignset`` and ``targetset`` as simple python lists.
 
 .. code-block:: python
 
     alignset = ['Victor Hugo', 'Albert Camus']
     targetset = ['Albert Camus', 'Guillaume Apollinaire', 'Victor Hugo']
 
-Now, we have to compute the similarity between each items. For that purpose, the
-`Levenshtein distance <http://en.wikipedia.org/wiki/Levenshtein_distance>`_
-[#]_, which is well accurate to compute the distance between few words, is used.
-Such a function is provided in the ``nazca.distance`` module.
+2. Now, we have to compute the similarity between each items. For that purpose, the
+   `Levenshtein distance <http://en.wikipedia.org/wiki/Levenshtein_distance>`_
+   [#]_, which is well accurate to compute the distance between few words, is used.
+   Such a function is provided in the ``nazca.distance`` module.
+
+   The next step is to compute the distance matrix according to the Levenshtein
+   distance. The result is given in the following tables.
+
+
+   +--------------+--------------+-----------------------+-------------+
+   |              | Albert Camus | Guillaume Apollinaire | Victor Hugo |
+   +==============+==============+=======================+=============+
+   | Victor Hugo  | 6            | 9                     | 0           |
+   +--------------+--------------+-----------------------+-------------+
+   | Albert Camus | 0            | 8                     | 6           |
+   +--------------+--------------+-----------------------+-------------+
 
 .. [#] Also called the *edit distance*, because the distance between two words
        is equal to the number of single-character edits required to change one
        word into the other.
 
-The next step is to compute the distance matrix according to the Levenshtein
-distance. The result is given in the following tables.
 
-
-+--------------+--------------+-----------------------+-------------+
-|              | Albert Camus | Guillaume Apollinaire | Victor Hugo |
-+==============+==============+=======================+=============+
-| Victor Hugo  | 6            | 9                     | 0           |
-+--------------+--------------+-----------------------+-------------+
-| Albert Camus | 0            | 8                     | 6           |
-+--------------+--------------+-----------------------+-------------+
-
-The alignment process is ended by reading the matrix and saying items having a
-value inferior to a given threshold are identical.
+3. The alignment process is ended by reading the matrix and saying items having a
+   value inferior to a given threshold are identical.
 
 A more complex one
-^^^^^^^^^^^^^^^^^^
+------------------
 
 The previous case was simple, because we had only one *attribute* to align (the
 name), but it is frequent to have a lot of *attributes* to align, such as the name
@@ -73,50 +75,74 @@ nested lists. See the following example:
     alignset = [['Paul Dupont', '14-08-1991', 'Paris'],
                 ['Jacques Dupuis', '06-01-1999', 'Bressuire'],
                 ['Michel Edouard', '18-04-1881', 'Nantes']]
-    targets = [['Dupond Paul', '14/08/1991', 'Paris'],
-                ['Edouard Michel', '18/04/1881', 'Nantes'],
-                ['Dupuis Jacques ', '06/01/1999', 'Bressuire'],
-                ['Dupont Paul', '01-12-2012', 'Paris']]
+    targetset = [['Dupond Paul', '14/08/1991', 'Paris'],
+                 ['Edouard Michel', '18/04/1881', 'Nantes'],
+                 ['Dupuis Jacques ', '06/01/1999', 'Bressuire'],
+                 ['Dupont Paul', '01-12-2012', 'Paris']]
 
 
 In such a case, two distance functions are used, the Levenshtein one for the
 name and the city and a temporal one for the birth date [#]_.
 
-.. [#] Provided in the ``nazca.distance`` module.
+.. [#] Provided in the ``nazca.distances`` module.
 
 
-We obtain the three following matrices:
+The ``cdist`` function of ``nazca.distances`` enables us to compute those
+matrices :
 
-For the name
-    +----------------+-------------+----------------+----------------+-------------+
-    |                | Dupond Paul | Edouard Michel | Dupuis Jacques | Dupont Paul |
-    +================+=============+================+================+=============+
-    | Paul Dupont    | 1           | 6              | 5              | 0           |
-    +----------------+-------------+----------------+----------------+-------------+
-    | Jacques Dupuis | 5           | 6              | 0              | 5           |
-    +----------------+-------------+----------------+----------------+-------------+
-    | Edouard Michel | 6           | 0              | 6              | 6           |
-    +----------------+-------------+----------------+----------------+-------------+
-For the birth date
-    +------------+------------+------------+------------+------------+
-    |            | 14/08/1991 | 18/04/1881 | 06/01/1999 | 01-12-2012 |
-    +============+============+============+============+============+
-    | 14-08-1991 | 0          | 40294      | 2702       | 7780       |
-    +------------+------------+------------+------------+------------+
-    | 06-01-1999 | 2702       | 42996      | 0          | 5078       |
-    +------------+------------+------------+------------+------------+
-    | 18-04-1881 | 40294      | 0          | 42996      | 48074      |
-    +------------+------------+------------+------------+------------+
-For the city
-    +-----------+-------+--------+-----------+-------+
-    |           | Paris | Nantes | Bressuire | Paris |
-    +===========+=======+========+===========+=======+
-    | Paris     | 0     | 4      | 8         | 0     |
-    +-----------+-------+--------+-----------+-------+
-    | Bressuire | 8     | 9      | 0         | 8     |
-    +-----------+-------+--------+-----------+-------+
-    | Nantes    | 4     | 0      | 9         | 4     |
-    +-----------+-------+--------+-----------+-------+
+.. code-block:: python
+
+    >>> nazca.matrix.cdist([a[0] for a in alignset], [t[0] for t in targetset],
+    >>>                    'levenshtein', matrix_normalized=False)
+    array([[ 1.,  6.,  5.,  0.],
+           [ 5.,  6.,  0.,  5.],
+           [ 6.,  0.,  6.,  6.]], dtype=float32)
+
++----------------+-------------+----------------+----------------+-------------+
+|                | Dupond Paul | Edouard Michel | Dupuis Jacques | Dupont Paul |
++================+=============+================+================+=============+
+| Paul Dupont    | 1           | 6              | 5              | 0           |
++----------------+-------------+----------------+----------------+-------------+
+| Jacques Dupuis | 5           | 6              | 0              | 5           |
++----------------+-------------+----------------+----------------+-------------+
+| Edouard Michel | 6           | 0              | 6              | 6           |
++----------------+-------------+----------------+----------------+-------------+
+
+.. code-block:: python
+
+    >>> nazca.matrix.cdist([a[1] for a in alignset], [t[1] for t in targetset],
+    >>>                    'temporal', matrix_normalized=False)
+    array([[     0.,  40294.,   2702.,   7780.],
+           [  2702.,  42996.,      0.,   5078.],
+           [ 40294.,      0.,  42996.,  48074.]], dtype=float32)
+
++------------+------------+------------+------------+------------+
+|            | 14/08/1991 | 18/04/1881 | 06/01/1999 | 01-12-2012 |
++============+============+============+============+============+
+| 14-08-1991 | 0          | 40294      | 2702       | 7780       |
++------------+------------+------------+------------+------------+
+| 06-01-1999 | 2702       | 42996      | 0          | 5078       |
++------------+------------+------------+------------+------------+
+| 18-04-1881 | 40294      | 0          | 42996      | 48074      |
++------------+------------+------------+------------+------------+
+
+.. code-block:: python
+
+    >>> nazca.matrix.cdist([a[2] for a in alignset], [t[2] for t in targetset],
+    >>>                    'levenshtein', matrix_normalized=False)
+    array([[ 0.,  4.,  8.,  0.],
+           [ 8.,  9.,  0.,  8.],
+           [ 4.,  0.,  9.,  4.]], dtype=float32)
+
++-----------+-------+--------+-----------+-------+
+|           | Paris | Nantes | Bressuire | Paris |
++===========+=======+========+===========+=======+
+| Paris     | 0     | 4      | 8         | 0     |
++-----------+-------+--------+-----------+-------+
+| Bressuire | 8     | 9      | 0         | 8     |
++-----------+-------+--------+-----------+-------+
+| Nantes    | 4     | 0      | 9         | 4     |
++-----------+-------+--------+-----------+-------+
 
 
 The next step is gathering those three matrices into a global one, called the
@@ -150,19 +176,19 @@ news is the project comes with the needed functions to build the sets !
 
 
 Real applications
------------------
+=================
 
 Just before we start, we will assume the following imports have been done:
 
 .. code-block:: python
 
     from nazca import dataio as aldio #Functions for input and output data
-    from nazca import distance as ald #Functions to compute the distances
+    from nazca import distances as ald #Functions to compute the distances
     from nazca import normalize as aln#Functions to normalize data
     from nazca import aligner as ala  #Functions to align data
 
 The Goncourt prize
-^^^^^^^^^^^^^^^^^^
+------------------
 
 On wikipedia, we can find the `Goncourt prize winners
 <https://fr.wikipedia.org/wiki/Prix_Goncourt#Liste_des_laur.C3.A9ats>`_, and we
@@ -190,7 +216,7 @@ This is told to python thanks to the following code:
 
 .. code-block:: python
 
-    alignset = adio.parsefile('prixgoncourt', indexes=[1, 1], delimiter='#')
+    alignset = aldio.parsefile('prixgoncourt', indexes=[1, 1], delimiter='#')
 
 So, the beginning of our ``alignset`` is:
 
@@ -214,7 +240,7 @@ end-point:
           FILTER(lang(?name) = 'fr')
        }
     """
-    targetset = adio.sparqlquery('http://dbpedia.org/sparql', query)
+    targetset = aldio.sparqlquery('http://dbpedia.org/sparql', query)
 
 Both functions return nested lists as presented before. Now, we have to define
 the distance function to be used for the alignment. This is done thanks to a
@@ -223,23 +249,25 @@ the treatments to apply.
 
 .. code-block:: python
 
-    treatments = {1: {'metric': ald.levenshtein}}
+    treatments = {1: {'metric': ald.levenshtein}} #Use a levenshtein on the name
 
 Finally, the last thing we have to do, is to call the ``align`` function:
 
 .. code-block:: python
 
-    global_matrix, hasmatched = ala.align(alignset,
-                                          targset,
-                                          0.4,   #This is the matching threshold
-                                          treatments,
-                                          'goncourtprize_alignment')
+    alignments = ala.alignall(alignset, targetset,
+                           0.4, #This is the matching threshold
+                           treatments,
+                           mode=None,#We'll discuss about that later
+                           uniq=True #Get the best results only
+                          )
 
-The alignment results will be written into the `goncourtprize_alignment` file
-(note that this is optional, we could have work directly with the global matrix
-without writting the results).
-The `align` function returns the global alignment matrix and a boolean set to
-``True`` if at least one matching has been done, ``False`` otherwise.
+This function returns an iterator over the (different) carried out alignments.
+
+.. code-block:: python
+
+    for a, t in alignments:
+        print '%s has been aligned onto %s' % (a, t)
 
 It may be important to apply some pre-treatment on the data to align. For
 instance, names can be written with lower or upper characters, with extra
@@ -272,7 +300,7 @@ treatments list can be given as follow:
 
 
 Cities alignment
-^^^^^^^^^^^^^^^^
+----------------
 
 The previous case with the `Goncourt prize winners` was pretty simply because
 the number of items was small, and the computation fast. But in a more real use
@@ -289,12 +317,29 @@ This is done by the following python code:
 
 .. code-block:: python
 
-    targetset = aldio.parsefile('FR.txt', indexes=[0, 1, (4, 5)])
-    alignset = aldio.parsefile('frenchbnf', indexes=[0, 2, (14, 12)])
+    targetset = aldio.rqlquery('http://demo.cubicweb.org/geonames',
+                               'Any U, N, LONG, LAT WHERE X is Location, X name'
+                               ' N, X country C, C name "France", X longitude'
+                               ' LONG, X latitude LAT, X population > 1000, X'
+                               ' feature_class "P", X cwuri U',
+                               indexes=[0, 1, (2, 3)])
+    alignset = aldio.sparqlquery('http://dbpedia.inria.fr/sparql',
+                                 'prefix db-owl: <http://dbpedia.org/ontology/>'
+                                 'prefix db-prop: <http://fr.dbpedia.org/property/>'
+                                 'select ?ville, ?name, ?long, ?lat where {'
+                                 ' ?ville db-owl:country <http://fr.dbpedia.org/resource/France> .'
+                                 ' ?ville rdf:type db-owl:PopulatedPlace .'
+                                 ' ?ville db-owl:populationTotal ?population .'
+                                 ' ?ville foaf:name ?name .'
+                                 ' ?ville db-prop:longitude ?long .'
+                                 ' ?ville db-prop:latitude ?lat .'
+                                 ' FILTER (?population > 1000)'
+                                 '}',
+                                 indexes=[0, 1, (2, 3)])
 
 
     treatments = {1: {'normalization': [aln.simply],
-                      'metric': ald.levenshtein
+                      'metric': ald.levenshtein,
                       'matrix_normalized': False
                      }
                  }
@@ -315,13 +360,13 @@ the potential candidats without loosing any more refined possible matchs.
 
 So, in the next step, we define the treatments to apply.
 It is the same as before, but we ask for a non-normalized matrix
-(ie: the real output of the levenshtein distance).
+(i.e.: the real output of the levenshtein distance).
 Thus, we call the ``alignall`` function. ``indexes`` is a tuple saying the
 position of the point on which the kdtree_ must be built, ``mode`` is the mode
 used to find neighbours [#]_.
 
 Finally, ``uniq`` ask to the function to return the best
-candidate (ie: the one having the shortest distance above the given threshold)
+candidate (i.e.: the one having the shortest distance below the given threshold)
 
 .. [#] The available modes are ``kdtree``, ``kmeans`` and ``minibatch`` for
        numerical data and ``minhashing`` for text one.
@@ -332,3 +377,18 @@ may take some time before yielding the first tuples, because all the computation
 must be done…)
 
 .. _kdtree: http://en.wikipedia.org/wiki/K-d_tree
+
+`Try <http://demo.cubicweb.org/nazca/view?vid=nazca>`_ it online !
+==================================================================
+
+We have also made a little application of Nazca, using `CubicWeb
+<http://www.cubicweb.org/>`_. This application provides a user interface for
+Nazca, helping you to choose what you want to align. You can use sparql or rql
+queries, as in the previous example, or import your own cvs file [#]_. Once you
+have choosen what you want to align, you can click the *Next step* button to
+customize the treatments you want to apply, just as you did before in python !
+Once done, by clicking the *Next step*, you start the alignment process. Wait a
+little bit, and you can either download the results in a *csv* or *rdf* file, or
+directly see the results online choosing the *html* output.
+
+.. [#] Your csv file must be tab-separated for the moment…
