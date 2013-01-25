@@ -309,6 +309,29 @@ class AlignerTestCase(unittest2.TestCase):
         neighbours = alig.findneighbours_kdtree(alignset, targetset, indexes=(2, 2), threshold=0.3)
         self.assertEqual(neighbours, [[[0], [0, 2]], [[1], [0, 2]], [[2], [1]], [[3], [1]]])
 
+    def test_normalize_set(self):
+        treatments = {1: {'normalization': [simplify,]}}
+
+        alignlist = [['Label1', u"Un nuage flotta dans le grand ciel bleu."],
+                     ['Label2', u"Pour quelle occasion vous êtes-vous apprêtée ?"],
+                     ['Label3', u"Je les vis ensemble à plusieurs occasions."],
+                     ['Label4', u"Je n'aime pas ce genre de bandes dessinées tristes."],
+                     ['Label5', u"Ensemble et à plusieurs occasions, je les vis."],
+                    ]
+        aligntuple = [tuple(l) for l in alignlist]
+
+        normalizedlist = alig.normalize_set(alignlist, treatments)
+        normalizedtuple = alig.normalize_set(aligntuple, treatments)
+
+        self.assertListEqual(normalizedlist, normalizedtuple)
+        self.assertListEqual(normalizedlist,
+                        [['Label1', u"nuage flotta grand ciel bleu"],
+                         ['Label2', u"occasion êtes apprêtée"],
+                         ['Label3', u"vis ensemble à plusieurs occasions"],
+                         ['Label4', u"n aime genre bandes dessinées tristes"],
+                         ['Label5', u"ensemble à plusieurs occasions vis"],
+                        ])
+
     def test_findneighbours_minhashing(self):
         lemmas = loadlemmas(path.join(TESTDIR, 'data', 'french_lemmas.txt'))
         treatments = {2: {'normalization': [simplify,], 'norm_params': {'lemmas': lemmas}}}

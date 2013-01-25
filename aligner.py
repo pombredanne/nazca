@@ -31,7 +31,10 @@ import nazca.matrix as m
 
 def normalize_set(rset, treatments):
     """ Apply all the normalization functions to the given rset """
+    normalized_set = []
     for row in rset:
+        row = list(row)
+        normalized_set.append(row)
         for ind, attribut in enumerate(row):
             treat = treatments.get(ind)
             if not attribut or not treat:
@@ -44,7 +47,7 @@ def normalize_set(rset, treatments):
                                  for arg in farg if arg in treat.get('norm_params', []))
                 attribut = f(attribut, **givenargs)
             row[ind] = attribut
-    return rset
+    return normalized_set
 
 def findneighbours_kdtree(alignset, targetset, indexes=(1, 1), threshold=0.1):
     """ Find the neigbhours using kdree
