@@ -299,9 +299,10 @@ def alignall(alignset, targetset, threshold, treatments=None,
             yield alignset[alignid][0], targetset[bestid][0]
 
 def alignall_iterative(alignfile, targetfile, alignformat, targetformat,
-                       threshold, size=10000, treatments=None, indexes=(1,1),
-                       mode='kdtree', neighbours_threshold=0.1, n_clusters=None,
-                       kwordsgram=1, siglen=200, cache=None):
+                       threshold, size=10000, equality_threshold=0.01,
+                       treatments=None, indexes=(1,1), mode='kdtree',
+                       neighbours_threshold=0.1, n_clusters=None, kwordsgram=1,
+                       siglen=200, cache=None):
 
     """ This function helps you to align *huge* files.
         It takes your csv files as arguments and split them into smaller ones
@@ -315,6 +316,10 @@ def alignall_iterative(alignfile, targetfile, alignformat, targetformat,
         distance) as value. This dictionary can be regiven to this function to
         perform another alignment (with different parameters, or just to be
         sure everything has been caught)
+
+        If the distance of an alignment is below `equality_threshold`, the
+        alignment is considered as perfect, and the corresponding item is
+        removed from the alignset (to speed up the computation).
     """
 
     #Split the huge files into smaller ones
@@ -360,7 +365,7 @@ def alignall_iterative(alignfile, targetfile, alignformat, targetformat,
                     if not current_dist or current_dist > dist:
                         #If it's better, update the cache
                         cache[alignset[alignid][0]] = (targetset[bestid][0], dist)
-                        if dist <= 0.01 :
+                        if dist <= equality_threshold:
                             #If perfect, stop trying to align this one
                             doneids.add(alignset[alignid][0])
 
