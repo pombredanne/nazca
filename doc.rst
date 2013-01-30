@@ -350,13 +350,14 @@ This is done by the following python code:
 
 
 Let's explain the code. We have two files, containing a list of cities we want
-to align, the first column is the identifier, and the second is the name of the city
-and the last one is location of the city (longitude and latitude), gathered into
-a single tuple.
+to align, the first column is the identifier, and the second is the name of the
+city and the last one is the location of the city (longitude and latitude), gathered
+into a single tuple.
 
-In this example, we want to build a *kdtree* on the couple (latitude, longitude) to
-divide our data in few candidates. This clustering is coarse, and is only used to reduce
-the potential candidats without loosing any more refined possible matchs.
+In this example, we want to build a *kdtree* on the couple (latitude, longitude)
+to divide our data into a few candidates. This clustering is coarse, and is only
+used to reduce the potential candidates without loosing any more refined
+possible matches.
 
 So, in the next step, we define the treatments to apply.
 It is the same as before, but we ask for a non-normalized matrix
@@ -377,6 +378,71 @@ may take some time before yielding the first tuples, because all the computation
 must be done…)
 
 .. _kdtree: http://en.wikipedia.org/wiki/K-d_tree
+
+The `alignall_iterative` and `cache` usage
+==========================================
+
+Even when using methods such as ``kdtree`` or ``minhashing`` or ``clustering``,
+the alignment process might be long. That’s why we provide you a function,
+called `alignall_iterative` which works directly with your files. The idea
+behind this function is simple, it splits your files (the `alignfile` and the
+`targetfile`) into smallers ones and tries to align each item of each subsets.
+When processing, if an alignment is estimated almost perfect
+then the item aligned is _removed_ from the `alignset` to faster the process − so
+Nazca doesn’t retry to align it.
+
+Moreover, this function uses a cache system. When a alignment is done, it is
+stored into the cache and if in the future a *better* alignment is found, the
+cached is updated. At the end, you get only the better alignment found.
+
+.. code-block:: python
+
+    alignformat = {'indexes': [0, 3, 2],
+                   'formatopt': {0: lambda x:x.decode('utf-8'),
+                                 1: lambda x:x.decode('utf-8'),
+                                 2: lambda x:x.decode('utf-8'),
+                                },
+                  }
+
+    targetformat = {'indexes': [0, 3, 2],
+                   'formatopt': {0: lambda x:x.decode('utf-8'),
+                                 1: lambda x:x.decode('utf-8'),
+                                 2: lambda x:x.decode('utf-8'),
+                                },
+                  }
+
+    tr_name = {'normalization': [aln.simplify],
+               'metric': approxMatch,
+               'matrix_normalized': False,
+              }
+    tr_info = {'normalization': [aln.simplify],
+               'metric': approxMatch,
+               'matrix_normalized': False,
+               'weighting': 0.3,
+              }
+
+    alignments = ala.alignall_iterative('align_csvfile', 'target_csvfile',
+                                        alignformat, targetformat, 0.20,
+                                        treatments={1:tr_name,
+                                                    2:tr_info,
+                                                   },
+                                        equality_threshold=0.05,
+                                        size=25000,
+                                        mode='minhashing',
+                                        indexes=(1,1),
+                                        neighbours_threshold=0.2,
+                                       )
+
+    with open('results.csv', 'w') as fobj:
+        for aligned, (targeted, distance) in alignments.iteritems():
+            fobj.write('%s\t%s\t%s\n' % (aligned, targeted, distance))
+
+Roughly, this function expects the same arguments than the previously shown
+`alignall` function, excepting the `equality_threshold` and the `size`.
+
+ - `size` is the number items to have in each subsets
+ - `equality_threshold` is the threshold above which two items are said as
+   equal.
 
 `Try <http://demo.cubicweb.org/nazca/view?vid=nazca>`_ it online !
 ==================================================================
