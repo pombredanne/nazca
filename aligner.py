@@ -15,12 +15,17 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from os import listdir
+import os.path as osp
+from shutil import rmtree
+from tempfile import mkdtemp
+import sys
 
 from scipy.spatial import KDTree
 from scipy.sparse import lil_matrix
 
 from nazca.minhashing import Minlsh
-from nazca.dataio import write_results
+from nazca.dataio import write_results, split_file, parsefile
 import nazca.matrix as m
 
 
@@ -292,3 +297,73 @@ def alignall(alignset, targetset, threshold, treatments=None,
         for alignid in matched:
             bestid, _ = sorted(matched[alignid], key=lambda x:x[1])[0]
             yield alignset[alignid][0], targetset[bestid][0]
+
+def alignall_iterative(alignfile, targetfile, alignformat, targetformat,
+                       threshold, size=10000, treatments=None, indexes=(1,1),
+                       mode='kdtree', neighbours_threshold=0.1, n_clusters=None,
+                       kwordsgram=1, siglen=200):
+
+    """ This function helps you to align *huge* files.
+        It takes your csv files as arguments and split them into smaller ones
+        (files of `size` lines), and runs the alignement on those files.
+
+        `alignformat` and `targetformat` are keyworded arguments given to the
+        nazca.dataio.parsefile function.
+    """
+
+    #Split the huge files into smaller ones
+    aligndir = mkdtemp()
+    targetdir = mkdtemp()
+    alignfiles = split_file(alignfile, aligndir, size)
+    targetfiles = split_file(targetfile, targetdir, size)
+
+    #Compute the number of iterations that must be done to achieve the alignement
+    nb_iterations = len(alignfiles) * len(targetfiles)
+    current_it = 0
+
+    doneids = set([]) #Contains the id of perfectly aligned data
+    cache = {} #Contains the better known alignements
+
+    try:
+        for alignfile in alignfiles:
+            alignset = parsefile(osp.join(aligndir, alignfile), **alignformat)
+            for targetfile in targetfiles:
+                if doneids: #If some alignements are already perfect,
+                            #don't redo them !
+                    tmp_align = []
+                    for a in alignset:
+                        if a[0] not in doneids:
+                            tmp_align.append(a)
+                    alignset = tmp_align
+
+                targetset = parsefile(osp.join(targetdir, targetfile), **targetformat)
+                matched = conquer_and_divide_alignment(alignset, targetset,
+                                                       threshold,
+                                                       treatments=treatments,
+                                                       indexes=indexes,
+                                                       mode=mode,
+                                                       neighbours_threshold=neighbours_threshold,
+                                                       n_clusters=n_clusters,
+                                                       kwordsgram=kwordsgram,
+                                                       siglen=siglen,
+                                                       get_global_mat=False)
+                for alignid in matched:
+                    bestid, dist = sorted(matched[alignid], key=lambda x:x[1])[0]
+                    #Get the better known distance
+                    _, current_dist = cache.get(alignset[alignid][0], (None, None))
+                    if not current_dist or current_dist > dist:
+                        #If it's better, update the cache
+                        cache[alignset[alignid][0]] = (targetset[bestid][0], dist)
+                        if dist <= 0.01 :
+                            #If perfect, stop trying to align this one
+                            doneids.add(alignset[alignid][0])
+
+                current_it += 1
+                sys.stdout.write('\r%0.2f%%' % (current_it * 100. /
+                                                nb_iterations))
+                sys.stdout.flush()
+    finally:
+        rmtree(aligndir)
+        rmtree(targetdir)
+
+    return cache

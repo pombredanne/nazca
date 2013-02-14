@@ -445,6 +445,29 @@ class AlignerTestCase(unittest2.TestCase):
         self.assertEqual(predict_matched, all_matched)
         self.assertEqual(predict_uniq_matched, uniq_matched)
 
+    def test_alignall_iterative(self):
+        matched = set([('V2', 'T3'), ('V4', 'T2'), ('V1', 'T1')])
+        treatments = {2: {'metric': 'geographical', 'matrix_normalized': False,
+                          'metric_params': {'units': 'km', 'in_radians': False}}}
+
+        _format={'indexes': [0, 1, (2, 3)]}
+        alignements = alig.alignall_iterative(path.join(TESTDIR, 'data',
+                                                        'alignfile.csv'),
+                                              path.join(TESTDIR, 'data',
+                                                        'targetfile.csv'),
+                                              _format, _format, threshold=30,
+                                              size=2, #very small files ;)
+                                              treatments=treatments,
+                                              indexes=(2,2),
+                                              neighbours_threshold=0.3)
+
+        predict_matched = set([(a, t) for (a, (t, _)) in
+                               alignements.iteritems()])
+        self.assertEqual(predict_matched, matched)
+
+
+
+
 
 
 if __name__ == '__main__':
