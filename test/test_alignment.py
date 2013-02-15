@@ -17,11 +17,15 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import unittest2
+import sys, os
 import random
 random.seed(6) ### Make sure tests are repeatable
 import numpy as np
+import shutil
+from contextlib import contextmanager
 
 from os import path
+from tempfile import mkdtemp
 from dateutil import parser as dateparser
 
 from nazca.distances import (levenshtein, soundex, soundexcode,   \
@@ -31,11 +35,22 @@ from nazca.normalize import (lunormalize, loadlemmas, lemmatized, \
                                  roundstr, rgxformat, tokenize, simplify)
 import nazca.matrix as am
 from nazca.minhashing import Minlsh
-from nazca.dataio import parsefile, autocasted
+from nazca.dataio import parsefile, autocasted, split_file
 import nazca.aligner as alig
 
 
 TESTDIR = path.dirname(__file__)
+
+@contextmanager
+def tempdir():
+    try:
+        temp = mkdtemp()
+        yield temp
+    finally:
+        try:
+            shutil.rmtree(temp)
+        except:
+            pass
 
 class DistancesTest(unittest2.TestCase):
     def test_levenshtein(self):
@@ -259,6 +274,25 @@ class DataIOTestCase(unittest2.TestCase):
         self.assertEqual(autocasted(u'tété'), u'tété')
         self.assertEqual(autocasted('tété', encoding='utf-8'), u'tété')
 
+    def test_split_file(self):
+        NBLINES = 190
+        with tempdir() as outputdir:
+            file2split = path.join(TESTDIR, 'data', 'file2split')
+            files = split_file(file2split, outputdir, nblines=NBLINES)
+
+            alllines = []
+            nbfiles = len(files)
+            for num, localpath in enumerate(sorted(files)):
+                fullpath = path.join(outputdir, localpath)
+                with open(fullpath) as fobj:
+                    lines = fobj.readlines()
+                # All files, except the last one, must be NBLINES-length.
+                if num < nbfiles - 1:
+                    self.assertEqual(len(lines), NBLINES)
+                alllines.extend(lines)
+
+            with open(file2split) as fobj:
+                self.assertEqual(fobj.readlines(), alllines)
 
 class AlignerTestCase(unittest2.TestCase):
 

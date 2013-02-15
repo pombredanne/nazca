@@ -16,6 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from os.path import exists as fileexists
+from os import path as osp
 
 import csv
 import urllib
@@ -172,3 +173,35 @@ def write_results(matched, alignset, targetset, resultfile):
                                               else targetid,
                      dist
                      ))
+
+
+def split_file(filename, outputdir, nblines=60000):
+    """ Split `filename` into smaller files of ``nblines`` lines. Files are
+        written into `outputdir`.
+
+        Return the list of files
+    """
+    NEW = object()
+
+    def readlines(fobj, nblines):
+        """ yield all lines of the file, and
+        at split-file boundaries, yield a NEW marker
+        """
+        for index, line in enumerate(fobj):
+            if index and index % nblines == 0:
+                yield NEW
+            yield line
+
+    count = 0
+    with open(filename, 'rb') as fobj:
+        outfile = open(osp.join(outputdir, '%s' % count), 'wb')
+        for line in readlines(fobj, nblines):
+            if line is NEW:
+                outfile.close()
+                count += 1
+                outfile = open(osp.join(outputdir, '%s' % count), 'wb')
+                continue
+            outfile.write(line)
+        outfile.close()
+        count += 1
+    return map(str, xrange(count))
