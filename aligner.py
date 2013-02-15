@@ -332,21 +332,16 @@ def alignall_iterative(alignfile, targetfile, alignformat, targetformat,
     nb_iterations = len(alignfiles) * len(targetfiles)
     current_it = 0
 
-    doneids = set([]) #Contains the id of perfectly aligned data
-    cache = cache or {} #Contains the better known alignments
+    cache = cache or {} #Contains the better known alignements
+    #Contains the id of perfectly aligned data
+    doneids = set(_id for _id, (_, dist) in cache.iteritems()
+                          if dist < equality_threshold)
 
     try:
         for alignfile in alignfiles:
-            alignset = parsefile(osp.join(aligndir, alignfile), **alignformat)
+            alignset = [a for a in parsefile(osp.join(aligndir, alignfile), **alignformat)
+                        if a[0] not in doneids]
             for targetfile in targetfiles:
-                if doneids: #If some alignements are already perfect,
-                            #don't redo them !
-                    tmp_align = []
-                    for a in alignset:
-                        if a[0] not in doneids:
-                            tmp_align.append(a)
-                    alignset = tmp_align
-
                 targetset = parsefile(osp.join(targetdir, targetfile), **targetformat)
                 matched = conquer_and_divide_alignment(alignset, targetset,
                                                        threshold,
@@ -373,6 +368,17 @@ def alignall_iterative(alignfile, targetfile, alignformat, targetformat,
                 sys.stdout.write('\r%0.2f%%' % (current_it * 100. /
                                                 nb_iterations))
                 sys.stdout.flush()
+                if doneids:
+                    alignset = [a for a in alignset if a[0] not in doneids]
+                if not alignset: #All items have been aligned
+                    #TODO Increment current_it.
+                    #The progress of the alignment process is computed with
+                    #`current_it`. If all items of `alignset` are aligned, we
+                    #stop the alignment process for this `alignset`. If
+                    #`current_it` isn’t incremented, the progress shown will be
+                    #false.
+                    break
+
     finally:
         rmtree(aligndir)
         rmtree(targetdir)
