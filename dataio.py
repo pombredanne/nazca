@@ -77,11 +77,11 @@ def sparqlquery(endpoint, query, indexes=None):
         if not indexes:
             data = [autocasted(raw[label]['value']) for label in labels]
         else:
-            for ind in indexes:
+            for il, ind in enumerate(indexes):
                 if isinstance(ind, tuple):
                     data.append(tuple([autocasted(raw[labels[i]]['value']) for i in ind]))
                 else:
-                    data.append(autocasted(raw[labels[ind]]['value']))
+                    data.append(autocasted(raw[labels[il]]['value']))
         results.append(data)
     return results
 

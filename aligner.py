@@ -46,9 +46,16 @@ def findneighbours_kdtree(alignset, targetset, indexes=(1, 1), threshold=0.1):
     """
     #If an element is None (missing), use instead the identity element.
     #The identity element is defined as the 0-vector
-    idelement = tuple([0 for _ in xrange(len(alignset[0][indexes[0]]))])
-    aligntree  = KDTree([elt[indexes[0]] or idelement for elt in alignset])
-    targettree = KDTree([elt[indexes[1]] or idelement for elt in targetset])
+    firstelement = alignset[0][indexes[0]]
+    idsize = len(firstelement) if isinstance(firstelement, (tuple, list)) else 1
+    idelement = (0,) * idsize
+    # KDTree is expecting a two-dimensional array
+    if idsize == 1:
+        aligntree  = KDTree([(elt[indexes[0]],) or idelement for elt in alignset])
+        targettree = KDTree([(elt[indexes[1]],) or idelement for elt in targetset])
+    else:
+        aligntree  = KDTree([elt[indexes[0]] or idelement for elt in alignset])
+        targettree = KDTree([elt[indexes[1]] or idelement for elt in targetset])
     extraneighbours = aligntree.query_ball_tree(targettree, threshold)
     neighbours = []
     for ind in xrange(len(alignset)):
