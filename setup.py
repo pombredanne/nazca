@@ -17,7 +17,7 @@
 from distutils.core import setup
 
 setup(name='nazca',
-      version='0.1.0',
+      version='0.2.0',
       description='Python library for data alignment',
       author='LOGILAB S.A. (Paris, FRANCE)',
       author_email=' <contact@logilab.fr>',

@@ -23,7 +23,7 @@ import sys
 distname = 'nazca'
 modname = 'nazca'
 
-numversion = (0, 1, 0)
+numversion = (0, 2, 0)
 version = '.'.join([str(num) for num in numversion])
 
 license = 'LGPL' # 2.1 or later

@@ -1,3 +1,9 @@
+nazca (0.2.0-1) unstable; urgency=low
+
+  * Bug fixes, add split files utility, update doc.
+
+ -- Vincent Michel <vincent.michel@logilab.fr>  Thu, 04 Apr 2013 18:21:05 +0200
+
 nazca (0.1.0-1) unstable; urgency=low
 
   * initial release
