@@ -19,9 +19,9 @@ Introduction
 The alignment process is divided into three main steps:
 
 1. Gather and format the data we want to align.
-   In this step, we define two sets called the ``alignset`` and the
-   ``targetset``. The ``alignset`` contains our data, and the
-   ``targetset`` contains the data on which we would like to make the links.
+   In this step, we define two sets called the `alignset` and the
+   `targetset`. The `alignset` contains our data, and the
+   `targetset` contains the data on which we would like to make the links.
 2. Compute the similarity between the items gathered.  We compute a distance
    matrix between the two sets according to a given distance.
 3. Find the items having a high similarity thanks to the distance matrix.
@@ -29,9 +29,9 @@ The alignment process is divided into three main steps:
 Simple case
 -----------
 
-1. Let's define ``alignset`` and ``targetset`` as simple python lists.
+1. Let's define `alignset` and `targetset` as simple python lists.
 
-.. code-block:: python
+.. sourcecode:: python
 
     alignset = ['Victor Hugo', 'Albert Camus']
     targetset = ['Albert Camus', 'Guillaume Apollinaire', 'Victor Hugo']
@@ -39,7 +39,7 @@ Simple case
 2. Now, we have to compute the similarity between each items. For that purpose, the
    `Levenshtein distance <http://en.wikipedia.org/wiki/Levenshtein_distance>`_
    [#]_, which is well accurate to compute the distance between few words, is used.
-   Such a function is provided in the ``nazca.distance`` module.
+   Such a function is provided in the `nazca.distance` module.
 
    The next step is to compute the distance matrix according to the Levenshtein
    distance. The result is given in the following tables.
@@ -70,7 +70,7 @@ and the birth date and the birth city. The steps remains the same, except that
 three distance matrices will be computed, and *items* will be represented as
 nested lists. See the following example:
 
-.. code-block:: python
+.. sourcecode:: python
 
     alignset = [['Paul Dupont', '14-08-1991', 'Paris'],
                 ['Jacques Dupuis', '06-01-1999', 'Bressuire'],
@@ -84,13 +84,13 @@ nested lists. See the following example:
 In such a case, two distance functions are used, the Levenshtein one for the
 name and the city and a temporal one for the birth date [#]_.
 
-.. [#] Provided in the ``nazca.distances`` module.
+.. [#] Provided in the `nazca.distances` module.
 
 
-The ``cdist`` function of ``nazca.distances`` enables us to compute those
+The :func:`cdist` function of `nazca.distances` enables us to compute those
 matrices :
 
-.. code-block:: python
+.. sourcecode:: python
 
     >>> nazca.matrix.cdist([a[0] for a in alignset], [t[0] for t in targetset],
     >>>                    'levenshtein', matrix_normalized=False)
@@ -108,7 +108,7 @@ matrices :
 | Edouard Michel | 6           | 0              | 6              | 6           |
 +----------------+-------------+----------------+----------------+-------------+
 
-.. code-block:: python
+.. sourcecode:: python
 
     >>> nazca.matrix.cdist([a[1] for a in alignset], [t[1] for t in targetset],
     >>>                    'temporal', matrix_normalized=False)
@@ -126,7 +126,7 @@ matrices :
 | 18-04-1881 | 40294      | 0          | 42996      | 48074      |
 +------------+------------+------------+------------+------------+
 
-.. code-block:: python
+.. sourcecode:: python
 
     >>> nazca.matrix.cdist([a[2] for a in alignset], [t[2] for t in targetset],
     >>>                    'levenshtein', matrix_normalized=False)
@@ -160,12 +160,12 @@ The next step is gathering those three matrices into a global one, called the
 
 Allowing some misspelling mistakes (for example *Dupont* and *Dupond* are very
 close), the matching threshold can be set to 1 or 2. Thus we can see that the
-item 0 in our ``alignset`` is the same that the item 0 in the ``targetset``, the
-1 in the ``alignset`` and the 2 of the ``targetset`` too : the links can be
+item 0 in our `alignset` is the same that the item 0 in the `targetset`, the
+1 in the `alignset` and the 2 of the `targetset` too : the links can be
 done !
 
-It's important to notice that even if the item 0 of the ``alignset`` and the 3
-of the ``targetset`` have the same name and the same birthplace they are
+It's important to notice that even if the item 0 of the `alignset` and the 3
+of the `targetset` have the same name and the same birthplace they are
 unlikely identical because of their very different birth date.
 
 
@@ -180,7 +180,7 @@ Real applications
 
 Just before we start, we will assume the following imports have been done:
 
-.. code-block:: python
+.. sourcecode:: python
 
     from nazca import dataio as aldio #Functions for input and output data
     from nazca import distances as ald #Functions to compute the distances
@@ -199,7 +199,7 @@ would like to establish a link between the winners and their URI on dbpedia
        dbpedia
 
 We simply copy/paste the winners list of wikipedia into a file and replace all
-the separators (``-`` and ``,``) by ``#``. So, the beginning of our file is :
+the separators (`-` and `,`) by `#`. So, the beginning of our file is :
 
 ..
 
@@ -214,13 +214,13 @@ compare. With the previous file, we will use the name (so the column number 1)
 as *identifier* (we don't have an *URI* here as identifier) and *attribute* to align.
 This is told to python thanks to the following code:
 
-.. code-block:: python
+.. sourcecode:: python
 
     alignset = aldio.parsefile('prixgoncourt', indexes=[1, 1], delimiter='#')
 
-So, the beginning of our ``alignset`` is:
+So, the beginning of our `alignset` is:
 
-.. code-block:: python
+.. sourcecode:: python
 
     >>> alignset[:3]
     [[u'John-Antoine Nau', u'John-Antoine Nau'],
@@ -228,10 +228,10 @@ So, the beginning of our ``alignset`` is:
      [u'Claude Farrère', u'Claude Farrère']]
 
 
-Now, let's build the ``targetset`` thanks to a *sparql query* and the dbpedia
+Now, let's build the `targetset` thanks to a *sparql query* and the dbpedia
 end-point:
 
-.. code-block:: python
+.. sourcecode:: python
 
    query = """
         SELECT ?writer, ?name WHERE {
@@ -247,13 +247,13 @@ the distance function to be used for the alignment. This is done thanks to a
 python dictionary where the keys are the columns to work on, and the values are
 the treatments to apply.
 
-.. code-block:: python
+.. sourcecode:: python
 
     treatments = {1: {'metric': ald.levenshtein}} #Use a levenshtein on the name
 
-Finally, the last thing we have to do, is to call the ``align`` function:
+Finally, the last thing we have to do, is to call the :func:`alignall` function:
 
-.. code-block:: python
+.. sourcecode:: python
 
     alignments = ala.alignall(alignset, targetset,
                            0.4, #This is the matching threshold
@@ -264,7 +264,7 @@ Finally, the last thing we have to do, is to call the ``align`` function:
 
 This function returns an iterator over the (different) carried out alignments.
 
-.. code-block:: python
+.. sourcecode:: python
 
     for a, t in alignments:
         print '%s has been aligned onto %s' % (a, t)
@@ -272,15 +272,15 @@ This function returns an iterator over the (different) carried out alignments.
 It may be important to apply some pre-treatment on the data to align. For
 instance, names can be written with lower or upper characters, with extra
 characters as punctuation or unwanted information in parenthesis and so on. That
-is why we provide some functions to `normalize` your data. The most useful may
-be the `simplify()` function (see the docstring for more information). So the
+is why we provide some functions to ``normalize`` your data. The most useful may
+be the :func:`simplify` function (see the docstring for more information). So the
 treatments list can be given as follow:
 
 
-.. code-block:: python
+.. sourcecode:: python
 
     def remove_after(string, sub):
-        """ Remove the text after ``sub`` in ``string``
+        """ Remove the text after `sub` in `string`
             >>> remove_after('I like cats and dogs', 'and')
             'I like cats'
             >>> remove_after('I like cats and dogs', '(')
@@ -302,7 +302,7 @@ treatments list can be given as follow:
 Cities alignment
 ----------------
 
-The previous case with the `Goncourt prize winners` was pretty simply because
+The previous case with the ``Goncourt prize winners`` was pretty simply because
 the number of items was small, and the computation fast. But in a more real use
 case, the number of items to align may be huge (some thousands or millions…). Is
 such a case it's unthinkable to build the global alignment matrix because it
@@ -315,7 +315,7 @@ functions to group text and numerical data.
 
 This is done by the following python code:
 
-.. code-block:: python
+.. sourcecode:: python
 
     targetset = aldio.rqlquery('http://demo.cubicweb.org/geonames',
                                'Any U, N, LONG, LAT WHERE X is Location, X name'
@@ -362,29 +362,29 @@ possible matches.
 So, in the next step, we define the treatments to apply.
 It is the same as before, but we ask for a non-normalized matrix
 (i.e.: the real output of the levenshtein distance).
-Thus, we call the ``alignall`` function. ``indexes`` is a tuple saying the
-position of the point on which the kdtree_ must be built, ``mode`` is the mode
+Thus, we call the :func:`alignall` function. `indexes` is a tuple saying the
+position of the point on which the kdtree_ must be built, `mode` is the mode
 used to find neighbours [#]_.
 
-Finally, ``uniq`` ask to the function to return the best
+Finally, `uniq` ask to the function to return the best
 candidate (i.e.: the one having the shortest distance below the given threshold)
 
-.. [#] The available modes are ``kdtree``, ``kmeans`` and ``minibatch`` for
-       numerical data and ``minhashing`` for text one.
+.. [#] The available modes are `kdtree`, `kmeans` and `minibatch` for
+       numerical data and `minhashing` for text one.
 
 The function output a generator yielding tuples where the first element is the
-identifier of the ``alignset`` item and the second is the ``targetset`` one (It
+identifier of the `alignset` item and the second is the `targetset` one (It
 may take some time before yielding the first tuples, because all the computation
 must be done…)
 
 .. _kdtree: http://en.wikipedia.org/wiki/K-d_tree
 
-The `alignall_iterative` and `cache` usage
+The :func:`alignall_iterative` and `cache` usage
 ==========================================
 
-Even when using methods such as ``kdtree`` or ``minhashing`` or ``clustering``,
+Even when using methods such as `kdtree` or `minhashing` or `clustering`,
 the alignment process might be long. That’s why we provide you a function,
-called `alignall_iterative` which works directly with your files. The idea
+called :func:`alignall_iterative` which works directly with your files. The idea
 behind this function is simple, it splits your files (the `alignfile` and the
 `targetfile`) into smallers ones and tries to align each item of each subsets.
 When processing, if an alignment is estimated almost perfect
@@ -395,7 +395,15 @@ Moreover, this function uses a cache system. When a alignment is done, it is
 stored into the cache and if in the future a *better* alignment is found, the
 cached is updated. At the end, you get only the better alignment found.
 
-.. code-block:: python
+.. sourcecode:: python
+
+    from difflib import SequenceMatcher
+
+    from nazca import normalize as aln#Functions to normalize data
+    from nazca import aligner as ala  #Functions to align data
+
+    def approxMatch(x, y):
+        return 1.0 - SequenceMatcher(None, x, y).ratio()
 
     alignformat = {'indexes': [0, 3, 2],
                    'formatopt': {0: lambda x:x.decode('utf-8'),
@@ -404,10 +412,10 @@ cached is updated. At the end, you get only the better alignment found.
                                 },
                   }
 
-    targetformat = {'indexes': [0, 3, 2],
+    targetformat = {'indexes': [0, 1, 3],
                    'formatopt': {0: lambda x:x.decode('utf-8'),
                                  1: lambda x:x.decode('utf-8'),
-                                 2: lambda x:x.decode('utf-8'),
+                                 3: lambda x:x.decode('utf-8'),
                                 },
                   }
 
@@ -438,7 +446,7 @@ cached is updated. At the end, you get only the better alignment found.
             fobj.write('%s\t%s\t%s\n' % (aligned, targeted, distance))
 
 Roughly, this function expects the same arguments than the previously shown
-`alignall` function, excepting the `equality_threshold` and the `size`.
+:func:`alignall` function, excepting the `equality_threshold` and the `size`.
 
  - `size` is the number items to have in each subsets
  - `equality_threshold` is the threshold above which two items are said as
