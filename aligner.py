@@ -178,10 +178,10 @@ def align(alignset, targetset, threshold, treatments=None, resultfile=None,
         the attributs to align. (Note that the order is important !) Both must
         have the same number of columns.
 
-        `treatments` is a dictionnary of dictionnaries.
-        Each key is the indice of the row, and each value is a dictionnary
+        `treatments` is a dictionary of dictionaries.
+        Each key is the indice of the row, and each value is a dictionary
         that contains the treatments to do on the different attributs.
-        Each dictionnary is built as the following:
+        Each dictionary is built as the following:
 
             treatment = {'normalization': [f1, f2, f3],
                          'norm_params': {'arg1': arg01, 'arg2': arg02},
@@ -301,14 +301,20 @@ def alignall(alignset, targetset, threshold, treatments=None,
 def alignall_iterative(alignfile, targetfile, alignformat, targetformat,
                        threshold, size=10000, treatments=None, indexes=(1,1),
                        mode='kdtree', neighbours_threshold=0.1, n_clusters=None,
-                       kwordsgram=1, siglen=200):
+                       kwordsgram=1, siglen=200, cache=None):
 
     """ This function helps you to align *huge* files.
         It takes your csv files as arguments and split them into smaller ones
-        (files of `size` lines), and runs the alignement on those files.
+        (files of `size` lines), and runs the alignment on those files.
 
         `alignformat` and `targetformat` are keyworded arguments given to the
         nazca.dataio.parsefile function.
+
+        This function returns its own cache. The cache is quite simply a
+        dictionary having align items' id as keys and tuples (target item's id,
+        distance) as value. This dictionary can be regiven to this function to
+        perform another alignment (with different parameters, or just to be
+        sure everything has been caught)
     """
 
     #Split the huge files into smaller ones
@@ -322,7 +328,7 @@ def alignall_iterative(alignfile, targetfile, alignformat, targetformat,
     current_it = 0
 
     doneids = set([]) #Contains the id of perfectly aligned data
-    cache = {} #Contains the better known alignements
+    cache = cache or {} #Contains the better known alignments
 
     try:
         for alignfile in alignfiles:
