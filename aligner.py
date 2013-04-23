@@ -360,7 +360,7 @@ def alignall_iterative(alignfile, targetfile, alignformat, targetformat,
                     bestid, dist = sorted(matched[alignid], key=lambda x:x[1])[0]
                     #Get the better known distance
                     _, current_dist = cache.get(alignset[alignid][0], (None, None))
-                    if not current_dist or current_dist > dist:
+                    if current_dist is None or current_dist > dist:
                         #If it's better, update the cache
                         cache[alignset[alignid][0]] = (targetset[bestid][0], dist)
                         if dist <= equality_threshold:
