@@ -22,5 +22,6 @@ setup(name='nazca',
       author='LOGILAB S.A. (Paris, FRANCE)',
       author_email=' <contact@logilab.fr>',
       url='https://www.logilab.org/project/nazca',
-      packages=[],
+      package_dir={'nazca': '.'},
+      packages=['nazca'],
      )
