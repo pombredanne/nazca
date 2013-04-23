@@ -1,3 +1,9 @@
+nazca (0.2.0-1.1) unstable; urgency=low
+
+  * Fix python packaging and bad distance choice in align_iterative
+
+ -- Vincent michel <vmic@crater1.logilab.fr>  Tue, 23 Apr 2013 17:02:40 +0200
+
 nazca (0.2.0-1) unstable; urgency=low
 
   * Bug fixes, add split files utility, update doc.
