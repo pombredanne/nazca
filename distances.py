@@ -15,7 +15,11 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from dateutil import parser as dateparser
+try:
+    from dateutil import parser as dateparser
+    DATEUTIL_ENABLED = True
+except ImportError:
+    DATEUTIL_ENABLED = False
 from math import cos, sqrt, pi #Needed for geographical distance
 
 from scipy import matrix
@@ -189,56 +193,57 @@ def jaccard(stra, strb, tokenizer=None):
     return 1.0 - 1.0*len(seta.intersection(setb))/len(seta.union(setb))
 
 
-### TEMPORAL DISTANCES ########################################################
-class FrenchParserInfo(dateparser.parserinfo):
-    """ Inherit of the dateutil.parser.parserinfo and translate the english
-        dependant variables into french.
-    """
+if DATEUTIL_ENABLED:
+    ### TEMPORAL DISTANCES ####################################################
+    class FrenchParserInfo(dateparser.parserinfo):
+        """ Inherit of the dateutil.parser.parserinfo and translate the english
+            dependant variables into french.
+        """
 
-    HMS = [(u'h', u'heure', u'heures'),
-           (u'm', u'minute', u'minutes'),
-                (u's', u'seconde', u'seconde'),]
-    JUMP = [u' ', u'.', u',', u';', u'-', u'/', u"'",
-           u'a', u'le', u'et', u'er']
-    MONTHS = [(u'Jan', u'Janvier'), (u'Fev', u'Fevrier'),
-              (u'Mar', u'Mars'), (u'Avr', u'Avril'), (u'Mai', u'Mai'),
-              (u'Jun', u'Juin'), (u'Jui', u'Juillet'),
-              (u'Aou', u'Aout'), (u'Sep', u'Septembre'),
-              (u'Oct', u'Octobre'), (u'Nov', u'Novembre'),
-              (u'Dec', u'Decembre')]
-    PERTAIN = [u'de']
-    WEEKDAYS = [(u'Lun', u'Lundi'),
-                (u'Mar', u'Mardi'),
-                (u'Mer', u'Mercredi'),
-                (u'Jeu', u'Jeudi'),
-                (u'Ven', u'Vendredi'),
-                (u'Sam', u'Samedi'),
-                (u'Dim', u'Dimanche')]
+        HMS = [(u'h', u'heure', u'heures'),
+               (u'm', u'minute', u'minutes'),
+                    (u's', u'seconde', u'seconde'),]
+        JUMP = [u' ', u'.', u',', u';', u'-', u'/', u"'",
+               u'a', u'le', u'et', u'er']
+        MONTHS = [(u'Jan', u'Janvier'), (u'Fev', u'Fevrier'),
+                  (u'Mar', u'Mars'), (u'Avr', u'Avril'), (u'Mai', u'Mai'),
+                  (u'Jun', u'Juin'), (u'Jui', u'Juillet'),
+                  (u'Aou', u'Aout'), (u'Sep', u'Septembre'),
+                  (u'Oct', u'Octobre'), (u'Nov', u'Novembre'),
+                  (u'Dec', u'Decembre')]
+        PERTAIN = [u'de']
+        WEEKDAYS = [(u'Lun', u'Lundi'),
+                    (u'Mar', u'Mardi'),
+                    (u'Mer', u'Mercredi'),
+                    (u'Jeu', u'Jeudi'),
+                    (u'Ven', u'Vendredi'),
+                    (u'Sam', u'Samedi'),
+                    (u'Dim', u'Dimanche')]
 
-def temporal(stra, strb, granularity=u'days', parserinfo=FrenchParserInfo,
-             dayfirst=True, yearfirst=False):
-    """ Return the distance between two strings (read as dates).
+    def temporal(stra, strb, granularity=u'days', parserinfo=FrenchParserInfo,
+                 dayfirst=True, yearfirst=False):
+        """ Return the distance between two strings (read as dates).
 
-        ``granularity`` can be either ``days`` or ``months`` or ``years``
-        (be careful to the plural form !)
-        ``language`` can be either french or english
+            ``granularity`` can be either ``days`` or ``months`` or ``years``
+            (be careful to the plural form !)
+            ``language`` can be either french or english
 
-        ``dayfirst`` and ``yearfirst`` are used in case of ambiguity, for
-        instance 09/09/09, by default it assumes it's day/month/year
+            ``dayfirst`` and ``yearfirst`` are used in case of ambiguity, for
+            instance 09/09/09, by default it assumes it's day/month/year
 
-        Neither stra nor strb can have accent. Clean it before.
-    """
+            Neither stra nor strb can have accent. Clean it before.
+        """
 
-    datea = dateparser.parse(stra, parserinfo=parserinfo(dayfirst,
-                             yearfirst), fuzzy=True)
-    dateb = dateparser.parse(strb, parserinfo=parserinfo(dayfirst,
-                             yearfirst), fuzzy=True)
-    diff = datea - dateb
-    if granularity.lower() == 'years':
-        return abs(diff.days/365.25)
-    if granularity.lower() == 'months':
-        return abs(diff.days/30.5)
-    return abs(diff.days)
+        datea = dateparser.parse(stra, parserinfo=parserinfo(dayfirst,
+                                 yearfirst), fuzzy=True)
+        dateb = dateparser.parse(strb, parserinfo=parserinfo(dayfirst,
+                                 yearfirst), fuzzy=True)
+        diff = datea - dateb
+        if granularity.lower() == 'years':
+            return abs(diff.days/365.25)
+        if granularity.lower() == 'months':
+            return abs(diff.days/30.5)
+        return abs(diff.days)
 
 
 ### GEOGRAPHICAL DISTANCES ####################################################
