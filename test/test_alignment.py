@@ -29,8 +29,7 @@ from tempfile import mkdtemp
 from dateutil import parser as dateparser
 
 from nazca.distances import (levenshtein, soundex, soundexcode,   \
-                                 jaccard, temporal, euclidean,        \
-                                 geographical)
+                             jaccard, euclidean, geographical)
 from nazca.normalize import (lunormalize, loadlemmas, lemmatized, \
                                  roundstr, rgxformat, tokenize, simplify)
 import nazca.matrix as am
@@ -107,7 +106,10 @@ class DistancesTest(unittest2.TestCase):
     def test_temporal(self):
         #Test the distance between two dates. The distance can be given in
         #``days``, ``months`` or ``years``
-
+        try:
+            from nazca.distances import temporal
+        except ImportError:
+            return
         self.assertEqual(temporal('14 aout 1991', '14/08/1991'), 0)
         self.assertEqual(temporal('14 aout 1991', '08/14/1991'), 0)
         self.assertEqual(temporal('14 aout 1991', '08/15/1992'), 367)

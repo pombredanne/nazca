@@ -22,8 +22,13 @@ from scipy import empty
 import nazca.distances as ds
 
 METRICS = {'euclidean': ds.euclidean, 'levenshtein': ds.levenshtein,
-           'soundex': ds.soundex, 'jaccard': ds.jaccard,
-           'temporal': ds.temporal, 'geographical': ds.geographical}
+           'soundex': ds.soundex, 'jaccard': ds.jaccard, 'geographical': ds.geographical}
+
+try:
+    from nazca.distances import temporal
+    METRICS['temporal'] = temporal
+except ImportError:
+    pass
 
 
 def pdist(X, metric='euclidean', matrix_normalized=True, metric_params=None):
