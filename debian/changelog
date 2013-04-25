@@ -1,3 +1,9 @@
+nazca (0.2.0-3) unstable; urgency=low
+
+  * Make temporal optional depending on dateutil import.
+
+ -- Vincent michel <Vincent.Michel@logilab.fr>  Thu, 25 Apr 2013 16:09:03 +0200
+
 nazca (0.2.0-2) unstable; urgency=low
 
   * Make dateutil optional.
