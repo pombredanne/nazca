@@ -87,7 +87,7 @@ class NerdySourceLocalRql(AbstractNerdySource):
     def query_word(self, word):
         """ Query a word for a Named Entities Recognition process
         """
-        return [r[0] for r in self.session.execute(self.query, word=word)]
+        return [r[0] for r in self.session.execute(self.query, dict(word=word))]
 
 
 class NerdySourceAppidRql(AbstractNerdySource):
@@ -345,6 +345,7 @@ class NerdyProcess(object):
                 continue # this token overlaps with a previous match
             word = token.word
             # Applies preprocessors
+            # XXX Preprocessors may be sources dependant
             for preprocessor in self.preprocessors:
                 token = preprocessor(token)
                 if not token:
@@ -361,6 +362,7 @@ class NerdyProcess(object):
                         break
                 if recognized and self.unique:
                     break
+        # XXX Postprocess/filters may be sources dependant
         return self.postprocess(named_entities)
 
     def postprocess(self, named_entities):
