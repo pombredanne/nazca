@@ -77,7 +77,22 @@ class FilterTest(unittest2.TestCase):
                            Token(word='toto', start=21, end=25,
                                  sentence=Sentence(indice=1, start=16, end=26)))])
 
-
+    def test_rules_filter(self):
+        """ Test rules filter """
+        text = 'Hello toto tutu. And toto.'
+        source = core.NerdySourceLexical({'toto tutu': 'http://example.com/toto_tutu',
+                                          'toto': 'http://example.com/toto'})
+        rules = {'http://example.com/toto': 'http://example.com/tata'}
+        _filter = core.NerdyReplacementRulesFilter(rules)
+        nerdy = core.NerdyProcess((source,), filters=(_filter,))
+        named_entities = nerdy.process_text(text)
+        self.assertEqual(named_entities,
+                         [('http://example.com/toto_tutu', None,
+                           Token(word='toto tutu', start=6, end=15,
+                                 sentence=Sentence(indice=0, start=0, end=16))),
+                          ('http://example.com/tata', None,
+                           Token(word='toto', start=21, end=25,
+                                 sentence=Sentence(indice=1, start=16, end=26)))])
 
 if __name__ == '__main__':
     unittest2.main()

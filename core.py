@@ -274,10 +274,11 @@ class NerdyRDFTypeFilter(object):
 class NerdyDisambiguationWordParts(object):
     """ Disambiguate named entities based on the words parts.
     E.g.:
+          'toto tutu': 'http://example.com/toto_tutu',
+          'toto': 'http://example.com/toto'
 
-    Found "Toto tata" and "toto" in the same text.
-    Replace "Toto tata" and "toto".
-
+          Then if 'toto' is found in the text, replace the URI 'http://example.com/toto'
+          by 'http://example.com/toto_tutu'
     """
     def __call__(self, named_entities):
         # Create parts dictionnary
@@ -292,6 +293,20 @@ class NerdyDisambiguationWordParts(object):
             if token.word in parts:
                 # Change URI
                 uri = parts[token.word]
+            filtered_named_entities.append((uri, peid, token))
+        return filtered_named_entities
+
+
+class NerdyReplacementRulesFilter(object):
+    """ Allow to define replacement rules for Named Entities
+    """
+    def __init__(self,rules):
+        self.rules = rules
+
+    def __call__(self, named_entities):
+        filtered_named_entities = []
+        for uri, peid, token in named_entities:
+            uri = self.rules.get(uri, uri)
             filtered_named_entities.append((uri, peid, token))
         return filtered_named_entities
 
