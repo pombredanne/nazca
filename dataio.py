@@ -3,6 +3,7 @@
 """
 import json
 import urllib
+import lxml.etree as ET
 
 
 ###############################################################################
@@ -86,7 +87,11 @@ class AbstractNerdyPrettyPrint(object):
         while indice < len(text):
             if indice in tindices:
                 uri, t = tindices[indice]
-                newtext += self.pprint_entity(uri, text[t.start:t.end])
+                words = text[t.start:t.end]
+                fragment = self.pprint_entity(uri, words)
+                if not self.is_valid(newtext+fragment+text[t.end:]):
+                    fragment = words
+                newtext += fragment
                 indice = t.end
             else:
                 newtext += text[indice]
@@ -96,6 +101,11 @@ class AbstractNerdyPrettyPrint(object):
     def pprint_entity(self, uri, word):
         """ Pretty print an entity """
         raise NotImplementedError
+
+    def is_valid(self, newtext):
+        """Override to check the validity of the prettified content at each
+        enrichement step"""
+        return True
 
 
 class NerdyHTMLPrettyPrint(AbstractNerdyPrettyPrint):
@@ -107,4 +117,23 @@ class NerdyHTMLPrettyPrint(AbstractNerdyPrettyPrint):
         return u'<a href="%s">%s</a>' % (uri, word)
 
 
+class NerdyValidXHTMLPrettyPrint(NerdyHTMLPrettyPrint):
 
+    XHTML_DOC_TEMPLATE = '''\
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+<title>nerdy</title>
+</head>
+<body><div>%s</div></body>
+</html>'''
+
+    def is_valid(self, html):
+        try:
+            ET.fromstring(self.XHTML_DOC_TEMPLATE % html.encode('utf-8'),
+                          parser=ET.XMLParser(dtd_validation=True))
+        except ET.XMLSyntaxError:
+            return False
+        return True

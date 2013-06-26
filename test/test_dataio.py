@@ -42,7 +42,7 @@ class DataioTest(unittest2.TestCase):
                                        'http://www.cubicweb.org')
         self.assertEqual(results, [[u'http://www.cubicweb.org/1310453']])
 
-    def test_prerryprint(self):
+    def test_prettyprint(self):
         text = 'Hello everyone, this is   me speaking. And me.'
         source = core.NerdySourceLexical({'everyone': 'http://example.com/everyone',
                                           'me': 'http://example.com/me'})
@@ -53,6 +53,19 @@ class DataioTest(unittest2.TestCase):
                                 u'this is   <a href="http://example.com/me">me</a> speaking. '
                                 u'And <a href="http://example.com/me">me</a>.'))
 
+class NerdyValidXHTMLPrettyPrintTest(unittest2.TestCase):
+
+    def test_valid(self):
+        self.assertTrue(dataio.NerdyValidXHTMLPrettyPrint().is_valid(
+            '<p>coucou</p>'))
+
+    def test_valid_unicode(self):
+        self.assertTrue(dataio.NerdyValidXHTMLPrettyPrint().is_valid(
+            u'<p>hé</p>'))
+
+    def test_invalid(self):
+        self.assertFalse(dataio.NerdyValidXHTMLPrettyPrint().is_valid(
+            '<p><div>coucou</div></p>'))
 
 
 if __name__ == '__main__':
