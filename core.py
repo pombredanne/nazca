@@ -271,6 +271,31 @@ class NerdyRDFTypeFilter(object):
         return filtered_named_entities
 
 
+class NerdyDisambiguationWordParts(object):
+    """ Disambiguate named entities based on the words parts.
+    E.g.:
+
+    Found "Toto tata" and "toto" in the same text.
+    Replace "Toto tata" and "toto".
+
+    """
+    def __call__(self, named_entities):
+        # Create parts dictionnary
+        parts = {}
+        for uri, peid, token in named_entities:
+            if ' ' in token.word:
+                for part in token.word.split(' '):
+                    parts[part.lower()] = uri
+        # Replace named entities
+        filtered_named_entities = []
+        for uri, peid, token in named_entities:
+            if token.word in parts:
+                # Change URI
+                uri = parts[token.word]
+            filtered_named_entities.append((uri, peid, token))
+        return filtered_named_entities
+
+
 ###############################################################################
 ### NER PROCESS ###############################################################
 ###############################################################################
