@@ -261,9 +261,9 @@ class NerdyRDFTypeFilter(object):
                 if seen_uris[uri]:
                     filtered_named_entities.append((uri, p, t))
             else:
-                results = sparql_query(query, self.endpoint)
+                results = sparql_query(self.query % {'uri': uri}, self.endpoint)
                 types = set([r['type']['value'] for r in results])
-                if not len(types.intersection(ACCEPTABLE_TYPES)):
+                if not len(types.intersection(self.accepted_types)):
                     seen_uris[uri] = False
                 else:
                     seen_uris[uri] = True
