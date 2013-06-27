@@ -201,6 +201,24 @@ class CoreTest(unittest2.TestCase):
                                            Token(word='Toto', start=6, end=10,
                                                  sentence=Sentence(indice=0, start=0, end=34)))])
 
+    def test_nerdy_process_chained_word(self):
+        """ Test nerdy process """
+        text = 'Hello everyone me, this is   me speaking. And me.'
+        source = core.NerdySourceLexical({'everyone': 'http://example.com/everyone',
+                                          'everyone me': 'http://example.com/everyone_me',
+                                          'me': 'http://example.com/me'})
+        nerdy = core.NerdyProcess((source,))
+        named_entities = nerdy.process_text(text)
+        self.assertEqual(named_entities,
+                         [('http://example.com/everyone_me', None,
+                           Token(word='everyone me', start=6, end=17,
+                                 sentence=Sentence(indice=0, start=0, end=41))),
+                          ('http://example.com/me', None,
+                           Token(word='me', start=29, end=31,
+                                 sentence=Sentence(indice=0, start=0, end=41))),
+                          ('http://example.com/me', None,
+                           Token(word='me', start=46, end=48, sentence=Sentence(indice=1, start=41, end=49)))])
+
 
 if __name__ == '__main__':
     unittest2.main()

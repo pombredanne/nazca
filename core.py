@@ -356,6 +356,7 @@ class NerdyProcess(object):
                 for uri in process.recognize_token(token):
                     named_entities.append((uri, process.name, token))
                     recognized = True
+                    last_stop = token.end
                     if self.unique:
                         break
                 if recognized and self.unique:
