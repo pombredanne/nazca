@@ -80,7 +80,7 @@ class AbstractNerdyPrettyPrint(object):
     """ Pretty print the output of a Nerdy process
     """
 
-    def pprint_text(self, text, named_entities):
+    def pprint_text(self, text, named_entities, **kwargs):
         newtext = u''
         indice = 0
         tindices = dict([(t.start, (uri, t)) for uri, p, t in named_entities])
@@ -88,7 +88,7 @@ class AbstractNerdyPrettyPrint(object):
             if indice in tindices:
                 uri, t = tindices[indice]
                 words = text[t.start:t.end]
-                fragment = self.pprint_entity(uri, words)
+                fragment = self.pprint_entity(uri, words, **kwargs)
                 if not self.is_valid(newtext+fragment+text[t.end:]):
                     fragment = words
                 newtext += fragment
@@ -98,7 +98,7 @@ class AbstractNerdyPrettyPrint(object):
                 indice += 1
         return newtext
 
-    def pprint_entity(self, uri, word):
+    def pprint_entity(self, uri, word, **kwargs):
         """ Pretty print an entity """
         raise NotImplementedError
 
@@ -112,7 +112,7 @@ class NerdyHTMLPrettyPrint(AbstractNerdyPrettyPrint):
     """ Pretty print the output of a Nerdy process
     """
 
-    def pprint_entity(self, uri, word):
+    def pprint_entity(self, uri, word, **kwargs):
         """ Pretty print an entity """
         return u'<a href="%s">%s</a>' % (uri, word)
 
