@@ -114,7 +114,8 @@ class NerdyHTMLPrettyPrint(AbstractNerdyPrettyPrint):
 
     def pprint_entity(self, uri, word, **kwargs):
         """ Pretty print an entity """
-        return u'<a href="%s">%s</a>' % (uri, word)
+        klass = ' class="%s"' % kwargs['html_class'] if 'html_class' in kwargs else ''
+        return u'<a href="%s"%s>%s</a>' % (uri, klass, word)
 
 
 class NerdyValidXHTMLPrettyPrint(NerdyHTMLPrettyPrint):
