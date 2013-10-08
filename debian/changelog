@@ -1,3 +1,9 @@
+nazca (0.3.0-1) unstable; urgency=low
+
+  * Refactor the API, add standard blocking technics
+
+ -- Vincent michel <Vincent.Michel@logilab.fr>  Tue, 08 Oct 2013 15:35:18 +0200
+
 nazca (0.2.0-3) unstable; urgency=low
 
   * Make temporal optional depending on dateutil import.
