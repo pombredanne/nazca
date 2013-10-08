@@ -24,6 +24,7 @@ random.seed(6) ### Make sure tests are repeatable / Minhashing
 from nazca.distances import (levenshtein, soundex, soundexcode,   \
                              jaccard, euclidean, geographical)
 from nazca.blocking import (KeyBlocking, SortedNeighborhoodBlocking,
+                            NGramBlocking,
                             SoundexBlocking, KmeansBlocking,
                             MinHashingBlocking, KdTreeBlocking)
 from nazca.normalize import SimplifyNormalizer, loadlemmas
@@ -94,6 +95,17 @@ class KeyBlockingTest(unittest2.TestCase):
         self.assertEqual(len(pairs), 8)
         for pair in SOUNDEX_PAIRS:
             self.assertIn(pair, pairs)
+
+
+class NGramBlockingTest(unittest2.TestCase):
+
+    def test_keyblocking_blocks(self):
+        blocking = NGramBlocking(ref_attr_index=1, target_attr_index=1)
+        blocking.fit(SOUNDEX_REFSET, SOUNDEX_TARGETSET)
+        blocks = list(blocking.iter_blocks())
+        self.assertIn((['a3'], ['b1', 'b2']), blocks)
+        self.assertIn((['a5'], ['b4']), blocks)
+        self.assertIn((['a1', 'a4'], ['b3']), blocks)
 
 
 class SortedNeighborhoodBlockingTest(unittest2.TestCase):

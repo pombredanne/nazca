@@ -167,6 +167,66 @@ class SoundexBlocking(KeyBlocking):
 
 
 ###############################################################################
+### BIGRAM BLOCKING ###########################################################
+###############################################################################
+class NGramBlocking(BaseBlocking):
+    """ This blocking technique is based on a a n-gram key.
+    """
+
+    def __init__(self, ref_attr_index, target_attr_index, ngram_size=2, depth=2):
+        super(NGramBlocking, self).__init__(ref_attr_index, target_attr_index)
+        self.ngram_size = ngram_size
+        self.depth = depth
+        self.reference_index = {}
+        self.target_index = {}
+
+    def _fit_dataset(self, dataset, cur_index, attr_index):
+        """ Fit a dataset
+        """
+        for r in dataset:
+            cur_dict = cur_index
+            text = r[attr_index]
+            for i in range(self.depth):
+                ngram = text[i*self.ngram_size:(i+1)*self.ngram_size]
+                if i < self.depth - 1:
+                    cur_dict = cur_dict.setdefault(ngram, {})
+            cur_dict.setdefault(ngram, []).append(r[0])
+
+    def _fit(self, refset, targetset):
+        """ Fit the two sets (reference set and target set)
+        """
+        self._fit_dataset(refset, self.reference_index, self.ref_attr_index)
+        self._fit_dataset(targetset, self.target_index, self.target_attr_index)
+
+    def _iter_dict(self, ref_cur_dict, target_cur_dict):
+        """ Iterative function used to create blocks from dicts
+        """
+        for key, sub_dict in ref_cur_dict.iteritems():
+            if key in target_cur_dict:
+                if isinstance(sub_dict, dict):
+                    # There is another dict layer
+                    for block1, block2 in self._iter_dict(sub_dict, target_cur_dict[key]):
+                        yield block1, block2
+                else:
+                    # This is a list
+                    yield sub_dict, target_cur_dict[key]
+
+    def _iter_blocks(self):
+        """ Iterator over the different possible blocks.
+
+        Returns
+        -------
+
+        (block1, block2): The blocks are always (reference_block, target_block)
+                          and containts the indexes of the record in the
+                          corresponding dataset.
+        """
+        for block1, block2 in self._iter_dict(self.reference_index, self.target_index):
+            if block1 and block2:
+                yield block1, block2
+
+
+###############################################################################
 ### SORTKEY BLOCKING ##########################################################
 ###############################################################################
 class SortedNeighborhoodBlocking(BaseBlocking):
