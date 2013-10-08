@@ -51,7 +51,7 @@ class AlignerTestCase(unittest2.TestCase):
             for v, distance in values:
                 self.assertIn((k,v), true_matched)
 
-    def test_neighbours_align(self):
+    def test_blocking_align(self):
         refset = [['V1', 'label1', (6.14194444444, 48.67)],
                   ['V2', 'label2', (6.2, 49)],
                   ['V3', 'label3', (5.1, 48)],
@@ -70,14 +70,14 @@ class AlignerTestCase(unittest2.TestCase):
                                       threshold=0.3)
         blocking.fit(refset, targetset)
         predict_matched = set()
-        for alignind, targetind in blocking.iter_blocks():
+        for alignind, targetind in blocking.iter_indice_blocks():
             mat, matched = aligner._get_match(refset, targetset, alignind, targetind)
             for k, values in matched.iteritems():
                 for v, distance in values:
                     predict_matched.add((k, v))
         self.assertEqual(true_matched, predict_matched)
 
-    def test_divide_and_conquer_align(self):
+    def test_blocking_align_2(self):
         refset = [['V1', 'label1', (6.14194444444, 48.67)],
                   ['V2', 'label2', (6.2, 49)],
                   ['V3', 'label3', (5.1, 48)],
@@ -101,7 +101,7 @@ class AlignerTestCase(unittest2.TestCase):
                 predict_matched.add((k, v))
         self.assertEqual(true_matched, predict_matched)
 
-    def test_alignall(self):
+    def test_unique_align(self):
         refset = [['V1', 'label1', (6.14194444444, 48.67)],
                     ['V2', 'label2', (6.2, 49)],
                     ['V3', 'label3', (5.1, 48)],
@@ -111,8 +111,9 @@ class AlignerTestCase(unittest2.TestCase):
                      ['T2', 'labelt2', (5.3, 48.2)],
                      ['T3', 'labelt3', (6.25, 48.91)],
                      ]
-        all_matched = [('V1','T1'), ('V1', 'T3'), ('V2','T3'), ('V4','T2')]
-        uniq_matched = [('V2', 'T3'), ('V4', 'T2'), ('V1', 'T1')]
+        all_matched = [(('V1', 0), ('T3', 2)), (('V1', 0), ('T1', 0)),
+                       (('V2', 1), ('T3', 2)), (('V4', 3), ('T2', 1))]
+        uniq_matched = [(('V1', 0), ('T1', 0)), (('V2', 1), ('T3', 2)), (('V4', 3), ('T2', 1))]
         processings = (GeographicalProcessing(2, 2, units='km'),)
         aligner = alig.BaseAligner(threshold=30, processings=processings)
         aligner.register_blocking(blo.KdTreeBlocking(ref_attr_index=2,
@@ -127,6 +128,22 @@ class AlignerTestCase(unittest2.TestCase):
         for m in uniq_matched:
             self.assertIn(m, unimatched)
 
+    def test_align_from_file(self):
+        uniq_matched = [(('V1', 0), ('T1', 0)), (('V2', 1), ('T3', 2)), (('V4', 3), ('T2', 1))]
+        processings = (GeographicalProcessing(2, 2, units='km'),)
+        aligner = alig.BaseAligner(threshold=30, processings=processings)
+        aligner.register_blocking(blo.KdTreeBlocking(ref_attr_index=2,
+                                                     target_attr_index=2,
+                                                     threshold=0.3))
+        matched = list(aligner.get_aligned_pairs_from_files(path.join(TESTDIR, 'data',
+                                                                      'alignfile.csv'),
+                                                            path.join(TESTDIR, 'data',
+                                                                      'targetfile.csv'),
+                                                            ref_indexes=[0, 1, (2, 3)],
+                                                            target_indexes=[0, 1, (2, 3)],))
+        self.assertEqual(len(matched), len(uniq_matched))
+        for m in uniq_matched:
+            self.assertIn(m, matched)
 
 if __name__ == '__main__':
     unittest2.main()

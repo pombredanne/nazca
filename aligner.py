@@ -20,18 +20,22 @@ from collections import defaultdict
 from scipy import zeros
 from scipy.sparse import lil_matrix
 
+from nazca.dataio import parsefile
+
 
 ###############################################################################
 ### BASE ALIGNER OBJECT #######################################################
 ###############################################################################
 class BaseAligner(object):
 
-    def __init__(self, threshold, processings):
+    def __init__(self, threshold, processings, verbose=False):
         self.threshold = threshold
         self.processings = processings
+        self.verbose = verbose
         self.ref_normalizer = None
         self.target_normalizer = None
         self.blocking = None
+        self.nb_comparisons = 0
 
     def register_ref_normalizer(self, normalizer):
         """ Register normalizers to be applied
@@ -111,38 +115,120 @@ class BaseAligner(object):
         for refblock, targetblock in self.blocking.iter_blocks():
             ref_index = [r[0] for r in refblock]
             target_index = [r[0] for r in targetblock]
-            print ref_index, target_index
+            self.nb_comparisons += len(ref_index)*len(target_index)
+            if self.verbose:
+                print 'Blocking: %s reference ids, %s target ids' % (len(ref_index),
+                                                                     len(target_index))
+                print 'Reference records :'
+                for ind in ref_index:
+                    print '\t--->', refset[ind]
+                print 'Target records :'
+                for ind in target_index:
+                    print '\t--->', targetset[ind]
             _, matched = self._get_match(refset, targetset, ref_index, target_index)
+            if self.verbose:
+                print 'Matched: %s / Total comparisons %s' % (len(matched), self.nb_comparisons)
             for k, values in matched.iteritems():
                 subdict = global_matched.setdefault(k, set())
                 for v, d in values:
                     subdict.add((v, d))
-                    # XXX avoid issue in sparse matrix
                     if get_matrix:
+                        # XXX avoid issue in sparse matrix
                         global_mat[k, v] = d or 10**(-10)
         return global_mat, global_matched
+
+    def _iter_aligned_pairs(self, refset, targetset, global_mat, global_matched, unique=True):
+        """ Return the aligned pairs
+        """
+        if unique:
+            for refid in global_matched:
+                bestid, _ = sorted(global_matched[refid], key=lambda x:x[1])[0]
+                ref_record = refset[refid]
+                target_record = targetset[bestid]
+                if self.verbose:
+                    print '\t\t', ref_record, ' <--> ', target_record
+                yield (ref_record[0], refid), (target_record[0], bestid)
+        else:
+            for refid in global_matched:
+                for targetid, _ in global_matched[refid]:
+                    ref_record = refset[refid]
+                    target_record = targetset[targetid]
+                    if self.verbose:
+                        print '\t\t', ref_record, ' <--> ', target_record
+                    yield (ref_record[0], refid), (target_record[0], targetid)
+        print 'Total comparisons : ', self.nb_comparisons
 
     def get_aligned_pairs(self, refset, targetset, unique=True):
         """ Get the pairs of aligned elements
         """
-        global_mat, global_matched = self.align(refset, targetset, False)
-        if unique:
-            for refid in global_matched:
-                bestid, _ = sorted(global_matched[refid], key=lambda x:x[1])[0]
-                yield refset[refid][0], targetset[bestid][0]
-        else:
-            for refid in global_matched:
-                for targetid, _ in global_matched[refid]:
-                    yield refset[refid][0], targetset[targetid][0]
+        global_mat, global_matched = self.align(refset, targetset, get_matrix=False)
+        for pair in self._iter_aligned_pairs(refset, targetset, global_mat, global_matched, unique):
+            yield pair
+
+    def align_from_files(self, reffile, targetfile,
+                         ref_indexes=None, target_indexes=None,
+                         ref_encoding=None, target_encoding=None,
+                         ref_separator='\t', target_separator='\t',
+                         get_matrix=True):
+        """ Align data from files
+
+        Parameters
+        ----------
+
+        reffile: name of the reference file
+
+        targetfile: name of the target file
+
+        ref_encoding: if given (e.g. 'utf-8' or 'latin-1'), it will
+                      be used to read the files.
+
+        target_encoding: if given (e.g. 'utf-8' or 'latin-1'), it will
+                         be used to read the files.
+
+        ref_separator: separator of the reference file
+
+        target_separator: separator of the target file
+        """
+        refset = parsefile(reffile, indexes=ref_indexes,
+                           encoding=ref_encoding, delimiter=ref_separator)
+        targetset = parsefile(targetfile, indexes=target_indexes,
+                              encoding=target_encoding, delimiter=target_separator)
+        return self.align(refset, targetset, get_matrix=get_matrix)
+
+    def get_aligned_pairs_from_files(self, reffile, targetfile,
+                         ref_indexes=None, target_indexes=None,
+                         ref_encoding=None, target_encoding=None,
+                         ref_separator='\t', target_separator='\t',
+                         unique=True):
+        """ Get the pairs of aligned elements
+        """
+        refset = parsefile(reffile, indexes=ref_indexes,
+                           encoding=ref_encoding, delimiter=ref_separator)
+        targetset = parsefile(targetfile, indexes=target_indexes,
+                              encoding=target_encoding, delimiter=target_separator)
+        global_mat, global_matched = self.align(refset, targetset, get_matrix=False)
+        for pair in self._iter_aligned_pairs(refset, targetset, global_mat, global_matched, unique):
+            yield pair
 
 
-## ###############################################################################
-## ### ITERATIVE ALIGNER OBJECT ##################################################
-## ###############################################################################
-## class MultiPassAligner(object):
-##     """ This aligner may be used to perform multi pass of alignements.
-##     Records linked in a previous pass will not be consider in the nex pass.
-##     """
+###############################################################################
+### ITERATIVE ALIGNER OBJECT ##################################################
+###############################################################################
+class IterativePassAligner(object):
+    """ This aligner may be used to perform multi pass of alignements.
 
-##     def __init__(self, threshold, treatments):
- 
+        It takes your csv files as arguments and split them into smaller ones
+        (files of `size` lines), and runs the alignment on those files.
+
+        If the distance of an alignment is below `equality_threshold`, the
+        alignment is considered as perfect, and the corresponding item is
+        removed from the alignset (to speed up the computation).
+    """
+
+    def __init__(self, threshold, treatments, equality_threshold):
+        self.threshold = threshold
+        self.treatments = treatments
+        self.equality_threshold = equality_threshold
+        self.ref_normalizer = None
+        self.target_normalizer = None
+        self.blocking = None
