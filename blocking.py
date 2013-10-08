@@ -63,6 +63,19 @@ class BaseBlocking(object):
         self.targetids = None
         self.is_fitted = False
 
+    def _fit(self, refset, targetset):
+        raise NotImplementedError
+
+    def _iter_blocks(self):
+        """ Internal iteration function over blocks
+        """
+        raise NotImplementedError
+
+    def _cleanup(self):
+        """ Internal cleanup blocking for further use (e.g. in pipeline)
+        """
+        raise NotImplementedError
+
     def fit(self, refset, targetset):
         """ Fit the blocking technique on the reference and target datasets
 
@@ -77,9 +90,6 @@ class BaseBlocking(object):
         self.refids = [(i, r[0]) for i, r in enumerate(refset)]
         self.targetids = [(i, r[0]) for i, r in enumerate(targetset)]
         self.is_fitted = True
-
-    def _fit(self, refset, targetset):
-        raise NotImplementedError
 
     def iter_blocks(self):
         """ Iterator over the different possible blocks.
@@ -121,12 +131,6 @@ class BaseBlocking(object):
         assert self.is_fitted
         for block1, block2 in self._iter_blocks():
             yield [r[1] for r in block1], [r[1] for r in block2]
-
-
-    def _iter_blocks(self):
-        """ Internal iteration function over blocks
-        """
-        raise NotImplementedError
 
     def iter_pairs(self):
         """ Iterator over the different possible pairs.
@@ -173,6 +177,12 @@ class BaseBlocking(object):
             for val1 in block1:
                 for val2 in block2:
                     yield val1, val2
+
+    def cleanup(self):
+        """ Cleanup blocking for further use (e.g. in pipeline)
+        """
+        self.is_fitted = True
+        self._cleanup()
 
 
 ###############################################################################
@@ -222,6 +232,12 @@ class KeyBlocking(BaseBlocking):
             block2 = self.target_index.get(key)
             if block1 and block2:
                 yield (block1, block2)
+
+    def _cleanup(self):
+        """ Cleanup blocking for further use (e.g. in pipeline)
+        """
+        self.reference_index = {}
+        self.target_index = {}
 
 
 class SoundexBlocking(KeyBlocking):
@@ -290,6 +306,12 @@ class NGramBlocking(BaseBlocking):
             if block1 and block2:
                 yield block1, block2
 
+    def _cleanup(self):
+        """ Cleanup blocking for further use (e.g. in pipeline)
+        """
+        self.reference_index = {}
+        self.target_index = {}
+
 
 ###############################################################################
 ### SORTKEY BLOCKING ##########################################################
@@ -329,6 +351,11 @@ class SortedNeighborhoodBlocking(BaseBlocking):
                       if d == 1]
             if block1 and block2:
                 yield (block1, block2)
+
+    def _cleanup(self):
+        """ Cleanup blocking for further use (e.g. in pipeline)
+        """
+        self.sorted_dataset = None
 
 
 ###############################################################################
@@ -379,6 +406,12 @@ class KmeansBlocking(BaseBlocking):
         for block1, block2 in neighbours:
             if len(block1) and len(block2):
                 yield block1, block2
+
+    def _cleanup(self):
+        """ Cleanup blocking for further use (e.g. in pipeline)
+        """
+        self.kmeans = None
+        self.predicted = None
 
 
 ###############################################################################
@@ -431,6 +464,13 @@ class KdTreeBlocking(BaseBlocking):
             if len(block1) and len(block2):
                 yield block1, block2
 
+    def _cleanup(self):
+        """ Cleanup blocking for further use (e.g. in pipeline)
+        """
+        self.reftree = None
+        self.targettree = None
+        self.nb_elements = None
+
 
 ###############################################################################
 ### MINHASHING BLOCKINGS ######################################################
@@ -480,4 +520,65 @@ class MinHashingBlocking(BaseBlocking):
                 neighbours.pop()
         for block1, block2 in neighbours:
             if len(block1) and len(block2):
+                yield block1, block2
+
+    def _cleanup(self):
+        """ Cleanup blocking for further use (e.g. in pipeline)
+        """
+        self.minhasher = Minlsh()
+        self.nb_elements = None
+
+
+###############################################################################
+### BLOCKING PIPELINE #########################################################
+###############################################################################
+class PipelineBlocking(BaseBlocking):
+    """ Pipeline multiple blocking techniques
+    """
+
+    def __init__(self, blockings):
+        """ Build the blocking object
+
+        Parameters
+        ----------
+
+        blockings: ordered list of blocking objects
+        """
+        self.blockings = blockings
+        self.stored_blocks = []
+
+    def _fit(self, refset, targetset):
+        """ Internal fit of the pipeline """
+        self._recursive_fit(refset, targetset, range(len(refset)), range(len(targetset)), 0)
+
+    def _recursive_fit(self, refset, targetset, ref_index, target_index, ind):
+        """ Recursive fit of the blockings.
+        Blocks are stored in the stored_blocks attribute.
+        """
+        if ind < len(self.blockings) - 1:
+            # There are other blockings after this one
+            blocking = self.blockings[ind]
+            blocking.cleanup()
+            blocking.fit([refset[i] for i in ref_index],
+                         [targetset[i] for i in target_index])
+            for block1, block2 in blocking.iter_indice_blocks():
+                ind_block1 = [ref_index[i] for i in block1]
+                ind_block2 = [target_index[i] for i in block2]
+                self._recursive_fit(refset, targetset, ind_block1, ind_block2, ind+1)
+        else:
+            # This is the final blocking
+            blocking = self.blockings[ind]
+            blocking.cleanup()
+            blocking.fit([refset[i] for i in ref_index],
+                         [targetset[i] for i in target_index])
+            for block1, block2 in blocking.iter_blocks():
+                ind_block1 = [(ref_index[i], _id) for i, _id in block1]
+                ind_block2 = [(target_index[i], _id) for i, _id in block2]
+                self.stored_blocks.append((ind_block1, ind_block2))
+
+    def _iter_blocks(self):
+        """ Internal iteration function over blocks
+        """
+        for block1, block2 in self.stored_blocks:
+            if block1 and block2:
                 yield block1, block2

@@ -24,7 +24,7 @@ random.seed(6) ### Make sure tests are repeatable / Minhashing
 from nazca.distances import (levenshtein, soundex, soundexcode,   \
                              jaccard, euclidean, geographical)
 from nazca.blocking import (KeyBlocking, SortedNeighborhoodBlocking,
-                            NGramBlocking,
+                            NGramBlocking, PipelineBlocking,
                             SoundexBlocking, KmeansBlocking,
                             MinHashingBlocking, KdTreeBlocking)
 from nazca.normalize import SimplifyNormalizer, loadlemmas
@@ -166,7 +166,7 @@ class KeyBlockingTest(unittest2.TestCase):
 
 class NGramBlockingTest(unittest2.TestCase):
 
-    def test_keyblocking_blocks(self):
+    def test_ngram_blocks(self):
         blocking = NGramBlocking(ref_attr_index=1, target_attr_index=1)
         blocking.fit(SOUNDEX_REFSET, SOUNDEX_TARGETSET)
         blocks = list(blocking.iter_id_blocks())
@@ -175,7 +175,7 @@ class NGramBlockingTest(unittest2.TestCase):
         self.assertIn((['a5'], ['b4']), blocks)
         self.assertIn((['a1', 'a4'], ['b3']), blocks)
 
-    def test_keyblocking_blocks_depth(self):
+    def test_ngram_blocks_depth(self):
         blocking = NGramBlocking(ref_attr_index=1, target_attr_index=1, depth=1)
         blocking.fit(SOUNDEX_REFSET, SOUNDEX_TARGETSET)
         blocks = list(blocking.iter_id_blocks())
@@ -185,6 +185,19 @@ class NGramBlockingTest(unittest2.TestCase):
         self.assertIn((['a6'], ['b5']), blocks)
         self.assertIn((['a7'], ['b6']), blocks)
         self.assertIn((['a1', 'a4'], ['b3']), blocks)
+
+    def test_ngram_blocks_2(self):
+        refset = [['3', 'ccdd', 'aabb'],
+                  ['4', 'ccdd', 'bbaa']]
+        targetset = [['c', 'ccdd', 'aabb'],
+                     ['d', 'ccdd', 'bbaa']]
+        true_pairs = [('3', 'c'), ('4', 'd')]
+        blocking = NGramBlocking(ref_attr_index=2, target_attr_index=2,
+                                   ngram_size=2, depth=1)
+        blocking.fit(refset, targetset)
+        pairs = list(blocking.iter_id_pairs())
+        self.assertEqual(len(pairs), len(true_pairs))
+
 
 class SortedNeighborhoodBlockingTest(unittest2.TestCase):
 
@@ -289,6 +302,54 @@ class KdTreeBlockingTest(unittest2.TestCase):
                           (['V2'], ['T1', 'T3']),
                           (['V3'], ['T2']),
                           (['V4'], ['T2'])], blocks)
+
+
+class PipelineBlockingTest(unittest2.TestCase):
+
+    def test_pipeline_blocking(self):
+        refset = [['1', 'aabb', 'ccdd'],
+                  ['2', 'aabb', 'ddcc'],
+                  ['3', 'ccdd', 'aabb'],
+                  ['4', 'ccdd', 'bbaa']]
+        targetset = [['a', 'aabb', 'ccdd'],
+                     ['b', 'aabb', 'ddcc'],
+                     ['c', 'ccdd', 'aabb'],
+                     ['d', 'ccdd', 'bbaa']]
+        true_pairs = [((0, '1'), (0, 'a')), ((1, '2'), (1, 'b')), ((2, '3'), (2, 'c')), ((3, '4'), (3, 'd'))]
+        blocking_1 = NGramBlocking(ref_attr_index=1, target_attr_index=1,
+                                   ngram_size=2, depth=1)
+        blocking_2 = NGramBlocking(ref_attr_index=2, target_attr_index=2,
+                                   ngram_size=2, depth=1)
+        blocking = PipelineBlocking((blocking_1, blocking_2))
+        blocking.fit(refset, targetset)
+        pairs = list(blocking.iter_pairs())
+        self.assertEqual(len(pairs), len(true_pairs))
+        for pair in true_pairs:
+            self.assertIn(pair, pairs)
+
+    def test_pipeline_id_blocking(self):
+        refset = [['1', 'aabb', 'ccdd'],
+                  ['2', 'aabb', 'ddcc'],
+                  ['3', 'ccdd', 'aabb'],
+                  ['4', 'ccdd', 'bbaa']]
+        targetset = [['a', 'aabb', 'ccdd'],
+                     ['b', 'aabb', 'ddcc'],
+                     ['c', 'ccdd', 'aabb'],
+                     ['d', 'ccdd', 'bbaa']]
+        true_pairs = [('1', 'a'), ('2', 'b'), ('3', 'c'), ('4', 'd')]
+        blocking_1 = NGramBlocking(ref_attr_index=1, target_attr_index=1,
+                                   ngram_size=2, depth=1)
+        blocking_2 = NGramBlocking(ref_attr_index=2, target_attr_index=2,
+                                   ngram_size=2, depth=1)
+        blocking = PipelineBlocking((blocking_1, blocking_2))
+        blocking.fit(refset, targetset)
+        pairs = list(blocking.iter_id_pairs())
+        self.assertEqual(len(pairs), len(true_pairs))
+        for pair in true_pairs:
+            self.assertIn(pair, pairs)
+
+
+
 
 
 if __name__ == '__main__':
