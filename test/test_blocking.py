@@ -24,6 +24,7 @@ random.seed(6) ### Make sure tests are repeatable / Minhashing
 from nazca.distances import (levenshtein, soundex, soundexcode,   \
                              jaccard, euclidean, geographical)
 from nazca.blocking import (KeyBlocking, SortedNeighborhoodBlocking,
+                            MergeBlocking,
                             NGramBlocking, PipelineBlocking,
                             SoundexBlocking, KmeansBlocking,
                             MinHashingBlocking, KdTreeBlocking)
@@ -222,6 +223,46 @@ class SortedNeighborhoodBlockingTest(unittest2.TestCase):
         blocks = list(blocking.iter_id_blocks())
         true_blocks = [(['a1'], ['b3']), (['a2'], ['b6']), (['a5'], ['b4']), (['a3'], ['b7', 'b1']),
                        (['a6'], ['b2', 'b5']), (['a4'], ['b5'])]
+        self.assertEqual(len(blocks), len(true_blocks))
+        for block in true_blocks:
+            self.assertIn(block, blocks)
+
+
+class MergeBlockingTest(unittest2.TestCase):
+
+
+    def test_merge_blocks(self):
+        blocking = MergeBlocking(ref_attr_index=1, target_attr_index=None,
+                                 score_func=lambda x:x[2])
+        refset = [('http://fr.wikipedia.org/wiki/Paris_%28Texas%29', 'Paris', 25898),
+                  ('http://fr.wikipedia.org/wiki/Paris', 'Paris', 12223100),
+                  ('http://fr.wikipedia.org/wiki/Saint-Malo', 'Saint-Malo', 46342)]
+        targetset = [('Paris (Texas)', 25000),
+                     ('Paris (France)', 12000000)]
+        true_blocks = [(['http://fr.wikipedia.org/wiki/Paris',
+                         'http://fr.wikipedia.org/wiki/Saint-Malo'],
+                        ['Paris (Texas)', 'Paris (France)'])]
+        blocking.fit(refset, targetset)
+        blocks = list(blocking.iter_id_blocks())
+        self.assertEqual(len(blocks), len(true_blocks))
+        self.assertEqual(len(blocks), len(true_blocks))
+        for block in true_blocks:
+            self.assertIn(block, blocks)
+
+    def test_merge_blocks_targetset(self):
+        blocking = MergeBlocking(ref_attr_index=None, target_attr_index=2,
+                                 score_func=lambda x:x[1])
+        refset = [('Paris (Texas)', 25000),
+                  ('Paris (France)', 12000000)]
+        targetset = [('http://fr.wikipedia.org/wiki/Paris_%28Texas%29', 25898, 'Paris'),
+                     ('http://fr.wikipedia.org/wiki/Paris', 12223100, 'Paris'),
+                     ('http://fr.wikipedia.org/wiki/Saint-Malo', 46342, 'Saint-Malo')]
+        true_blocks = [(['Paris (Texas)', 'Paris (France)'],
+                        ['http://fr.wikipedia.org/wiki/Paris',
+                         'http://fr.wikipedia.org/wiki/Saint-Malo'])]
+        blocking.fit(refset, targetset)
+        blocks = list(blocking.iter_id_blocks())
+        self.assertEqual(len(blocks), len(true_blocks))
         self.assertEqual(len(blocks), len(true_blocks))
         for block in true_blocks:
             self.assertIn(block, blocks)

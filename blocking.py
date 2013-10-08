@@ -364,6 +364,77 @@ class SortedNeighborhoodBlocking(BaseBlocking):
 
 
 ###############################################################################
+### MERGE BLOCKING ############################################################
+###############################################################################
+class MergeBlocking(BaseBlocking):
+    """ This blocking technique keep only one appearance of one given values,
+    and removes all the other records having this value.
+    The merge is based on a score function
+
+    E.g.
+      ('http://fr.wikipedia.org/wiki/Paris_%28Texas%29', 'Paris', 25898)
+      ('http://fr.wikipedia.org/wiki/Paris', 'Paris', 12223100)
+
+    could be (with a score function based on the population (third value):
+
+      ('http://fr.wikipedia.org/wiki/Paris', 'Paris', 12223100)
+
+    !!! WARNING !!! This is only done on ONE set (the one with a non null attr index)
+    """
+
+    def __init__(self, ref_attr_index, target_attr_index, score_func):
+        super(MergeBlocking, self).__init__(ref_attr_index, target_attr_index)
+        self.score_func = score_func
+        self.merged_dataset = None
+        self.other_dataset = None
+        if ref_attr_index is None and target_attr_index is None:
+            raise ValueError('At least one of ref_attr_index or target_attr_index '
+                             'should not be None')
+
+    def _fit(self, refset, targetset):
+        """ Fit a dataset in an index using the callback
+        """
+        if self.ref_attr_index is not None:
+            # Merge refset
+            self.merged_dataset = self._merge_dataset(refset, self.ref_attr_index)
+            self.other_dataset = [(ind, r[0]) for ind, r in enumerate(targetset)]
+        else:
+            # Merge targetset
+            self.merged_dataset = self._merge_dataset(targetset, self.target_attr_index)
+            self.other_dataset = [(ind, r[0]) for ind, r in enumerate(refset)]
+
+    def _merge_dataset(self, dataset, attr_index):
+        """ Merge a dataset
+        """
+        merged_dataset_dict = {}
+        for ind, record in enumerate(dataset):
+            score = self.score_func(record)
+            if record[attr_index] not in merged_dataset_dict:
+                # Create new entry
+                merged_dataset_dict[record[attr_index]] = (ind, record, score)
+            elif (record[attr_index] in merged_dataset_dict
+                  and merged_dataset_dict[record[attr_index]][2] < score):
+                # Change current score
+                merged_dataset_dict[record[attr_index]] = (ind, record, score)
+        return [(ind, r[0]) for ind, r, score in merged_dataset_dict.itervalues()]
+
+    def _iter_blocks(self):
+        """ Iterator over the different possible blocks.
+        """
+        if self.ref_attr_index is not None:
+            yield self.merged_dataset, self.other_dataset
+        else:
+            # self.target_attr_index is not None
+            yield self.other_dataset, self.merged_dataset
+
+    def _cleanup(self):
+        """ Cleanup blocking for further use (e.g. in pipeline)
+        """
+        self.merged_dataset = None
+        self.other_dataset = None
+
+
+###############################################################################
 ### CLUSTERING-BASED BLOCKINGS ################################################
 ###############################################################################
 class KmeansBlocking(BaseBlocking):
