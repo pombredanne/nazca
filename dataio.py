@@ -28,6 +28,9 @@ except ImportError:
     SPARQL_ENABLED = False
 
 
+###############################################################################
+### UTILITY FUNCTIONS #########################################################
+###############################################################################
 def autocasted(data, encoding=None):
     """ Try to convert data into a specific type
     in (int, float, str)
@@ -43,6 +46,10 @@ def autocasted(data, encoding=None):
                 return data.decode(encoding)
             return data
 
+
+###############################################################################
+### RQL FUNCTIONS #############################################################
+###############################################################################
 def rqlquery(host, rql, indexes=None, formatopt=None):
     """ Run the rql query on the given cubicweb host
     """
@@ -58,6 +65,10 @@ def rqlquery(host, rql, indexes=None, formatopt=None):
     return parsefile(filehandle, delimiter=';', indexes=indexes,
                      formatopt=formatopt);
 
+
+###############################################################################
+### SPARQL FUNCTIONS ##########################################################
+###############################################################################
 def sparqlquery(endpoint, query, indexes=None):
     """ Run the sparql query on the given endpoint, and wrap the items in the
     indexes form. If indexes is empty, keep raw output"""
@@ -87,6 +98,10 @@ def sparqlquery(endpoint, query, indexes=None):
         results.append(data)
     return results
 
+
+###############################################################################
+### FILE FUNCTIONS ############################################################
+###############################################################################
 def parsefile(filename, indexes=None, nbmax=None, delimiter='\t',
               encoding='utf-8', field_size_limit=None, formatopt=None):
     """ Parse the file (read ``nbmax`` line at maximum if given). Each
@@ -173,7 +188,6 @@ def write_results(matched, alignset, targetset, resultfile):
                                               else targetid,
                      dist
                      ))
-
 
 def split_file(filename, outputdir, nblines=60000):
     """ Split `filename` into smaller files of ``nblines`` lines. Files are

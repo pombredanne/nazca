@@ -15,19 +15,21 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from functools import partial
+from math import cos, sqrt, pi #Needed for geographical distance
 try:
     from dateutil import parser as dateparser
     DATEUTIL_ENABLED = True
 except ImportError:
     DATEUTIL_ENABLED = False
-from math import cos, sqrt, pi #Needed for geographical distance
-
-from scipy import matrix
+from scipy import matrix, empty
 
 from nazca.normalize import tokenize
 
 
+###############################################################################
 ### UTILITY FUNCTIONS #########################################################
+###############################################################################
 def _handlespaces(stra, strb, distance, tokenizer=None, **kwargs):
     """ Compute the matrix of distances between all tokens of stra and strb
         (with function ``distance``). Extra args are given to the distance
@@ -68,7 +70,9 @@ def _handlespaces(stra, strb, distance, tokenizer=None, **kwargs):
     return max(minlist)
 
 
+###############################################################################
 ### NUMERICAL DISTANCES #######################################################
+###############################################################################
 def euclidean(a, b):
     """ Simple euclidian distance
     """
@@ -79,7 +83,9 @@ def euclidean(a, b):
         return abs(float(a) - float(b))
 
 
+###############################################################################
 ### STRING DISTANCES ##########################################################
+###############################################################################
 def levenshtein(stra, strb, tokenizer=None):
     """ Compute the Levenshtein distance between stra and strb.
 
@@ -187,14 +193,23 @@ def jaccard(stra, strb, tokenizer=None):
         J(A, B) = (A \cap B)/(A \cup B)
         d(A, B) = 1 - J(A, B)
     """
-
     seta = set(tokenize(stra, tokenizer))
     setb = set(tokenize(strb, tokenizer))
+    return generic_jaccard(seta, setb)
+
+def generic_jaccard(seta, setb):
+    """ Return the jaccard distance between two sets A and B.
+
+        J(A, B) = (A \cap B)/(A \cup B)
+        d(A, B) = 1 - J(A, B)
+    """
     return 1.0 - 1.0*len(seta.intersection(setb))/len(seta.union(setb))
 
 
+###############################################################################
+### TEMPORAL DISTANCES ########################################################
+###############################################################################
 if DATEUTIL_ENABLED:
-    ### TEMPORAL DISTANCES ####################################################
     class FrenchParserInfo(dateparser.parserinfo):
         """ Inherit of the dateutil.parser.parserinfo and translate the english
             dependant variables into french.
@@ -246,7 +261,9 @@ if DATEUTIL_ENABLED:
         return abs(diff.days)
 
 
+###############################################################################
 ### GEOGRAPHICAL DISTANCES ####################################################
+###############################################################################
 def geographical(pointa, pointb, in_radians=False, planet_radius=6371009,
                  units='m'):
     """ Return the geographical distance between two points.
@@ -274,3 +291,146 @@ def geographical(pointa, pointb, in_radians=False, planet_radius=6371009,
 
     coef = 1. if units == 'm' else 0.001
     return coef*planet_radius*sqrt(difflat**2 + (cos(meanlat)*difflong)**2)
+
+
+###############################################################################
+### BASE PROCESSING ############################################################
+###############################################################################
+class BaseProcessing(object):
+    """ A processing object used to provide an abstraction over the different
+    distance functions, and help building Nazca process. """
+
+    def __init__(self, ref_attr_index=None, target_attr_index=None,
+                 distance_callback=euclidean, weight=1, matrix_normalized=False):
+        """ Initiate the BaseProcessing
+
+        Parameters
+        ----------
+
+        ref_attr_index: index of the attribute of interest in a record
+                        for the reference dataset
+                        (i.e. attribute to be used for key computation)
+
+        target_attr_index: index of the attribute of interest in a record
+                           for the target dataset
+                           (i.e. attribute to be used for key computation)
+
+        distance_callback: distance callback. Default is euclidean distance.
+
+        weight: weight of the processing in a global distance matrix
+
+        matrix_normalized: Boolean. If matrix_normalized is True,
+                           the distance between two points is changed to
+                           a value between 0 (equal) and 1 (totaly different).
+                           To avoid useless computation and scale
+                           problems the following “normalization” is done:
+                                d = 1 - 1/(1 + d(x, y))
+
+        """
+        self.ref_attr_index = ref_attr_index
+        self.target_attr_index = target_attr_index
+        self.distance_callback = distance_callback
+        self.weight = weight
+        self.matrix_normalized = matrix_normalized
+
+    def distance(self, reference_record, target_record):
+        """ Compute the distance between two records
+
+        Parameters
+        ----------
+        reference_record: a record (tuple/list of values) of the reference dataset.
+
+        target_record: a record (tuple/list of values) of the target dataset.
+
+        """
+        refrecord = (reference_record[self.ref_attr_index] if self.ref_attr_index
+                     else reference_record)
+        targetrecord = (target_record[self.target_attr_index] if self.target_attr_index
+                        else target_record)
+        return self.distance_callback(refrecord, targetrecord)
+
+    def cdist(self, refset, targetset, ref_indexes=None, target_indexes=None):
+        """ Compute the metric matrix, given two datasets and a metric
+
+        Parameters
+        ----------
+        refset: a dataset (list of records)
+
+        targetset: a dataset (list of records)
+
+        Returns
+        -------
+
+        A distance matrix, of shape (len(refset), len(targetset))
+        with the distance of each element in it.
+        """
+        ref_indexes = ref_indexes or xrange(len(refset))
+        target_indexes = target_indexes or xrange(len(targetset))
+        distmatrix = empty((len(ref_indexes), len(target_indexes)), dtype='float32')
+        size = distmatrix.shape
+        for i, iref in enumerate(ref_indexes):
+            for j, jref in enumerate(target_indexes):
+                d = 1
+                if refset[iref] and targetset[jref]:
+                    d = self.distance(refset[iref], targetset[jref])
+                    if self.matrix_normalized:
+                        d = 1 - (1.0/(1.0 + d))
+                distmatrix[i, j] = d
+        return distmatrix
+
+    def pdist(self, dataset):
+        """ Compute the upper triangular matrix in a way similar
+        to scipy.spatial.metric
+
+        Parameters
+        ----------
+        dataset: a dataset (list of records)
+
+        Returns
+        -------
+
+        The values of the upper triangular distance matrix
+        (of shape (len(dataset), len(dataset)) with the distance of each element in it.
+        The values are sorted as row 1, row2, ...
+        """
+        values = []
+        for i in xrange(len(dataset)):
+            for j in xrange(i+1, len(dataset)):
+                d = 1
+                if dataset[i] and dataset[j]:
+                    d = self.distance(dataset[i], dataset[j])
+                    if self.matrix_normalized:
+                        d = 1 - (1.0/(1.0 + d))
+                values.append(d)
+        return values
+
+
+###############################################################################
+### CONCRETE PROCESSINGS #######################################################
+###############################################################################
+class LevenshteinProcessing(BaseProcessing):
+    """ A processing based on the levenshtein distance.
+    """
+
+    def __init__(self, ref_attr_index=None, target_attr_index=None,
+                 tokenizer=None, weight=1, matrix_normalized=False):
+        distance_callback = partial(levenshtein,
+                                    tokenizer=tokenizer)
+        super(LevenshteinProcessing, self).__init__(ref_attr_index,
+                                                   target_attr_index,
+                                                   distance_callback,
+                                                   weight,matrix_normalized)
+
+
+class GeographicalProcessing(BaseProcessing):
+    """ A processing based on the geographical distance.
+    """
+
+    def __init__(self, ref_attr_index=None, target_attr_index=None,
+                 in_radians=False, planet_radius=6371009, units='m', weight=1, matrix_normalized=False):
+        distance_callback = partial(geographical, in_radians=in_radians,
+                                    planet_radius=planet_radius, units=units)
+        super(GeographicalProcessing, self).__init__(ref_attr_index,
+                                                    target_attr_index,
+                                                    distance_callback,
+                                                    weight,matrix_normalized)

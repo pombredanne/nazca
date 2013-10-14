@@ -54,10 +54,10 @@ def demo_0():
                'metric': ald.levenshtein
               }
 
-    treatments = {1: tr_name}
+    processings = {1: tr_name}
 
     print "Alignment started"
-    align(alignset, targetset, 0.4, treatments,
+    align(alignset, targetset, 0.4, processings,
           dpath('demo0_results'))
 
     print "Done, see the resuls in %s" % dpath('demo0_results')
@@ -77,7 +77,7 @@ def demo_1():
                          indexes=[0, 2, (14, 12)], nbmax=1000)
 
 
-    # Let's define the treatments to apply on the location's name
+    # Let's define the processings to apply on the location's name
     tr_name = {'normalization': [aln.simplify], # Simply all the names (remove
                                               #   punctuation, lower case, etc)
                'metric': ald.levenshtein,       # Use the levenshtein distance
@@ -92,14 +92,14 @@ def demo_1():
               'weighting': 1
              }
 
-    treatments = {1: tr_name, 2: tr_geo}
+    processings = {1: tr_name, 2: tr_geo}
 
     print "Alignment started"
     align(alignset,           # The dataset to align
           targetset,          # The target dataset
           0.4,                # The maximal distance
                               #   threshold
-          treatments,         # The list of treatments to
+          processings,         # The list of processings to
                               #   apply.
           dpath('demo1_results'))
                               # Filename of the output
@@ -120,7 +120,7 @@ def demo_2():
     neighbours = findneighbours(alignset, targetset, indexes=(2, 2),
                                mode='minibatch')
 
-    # Let's define the treatments to apply on the location's name
+    # Let's define the processings to apply on the location's name
     tr_name = {'normalization': [aln.simplify], # Simply all the names (remove
                                               #   punctuation, lower case, etc)
                'metric': ald.levenshtein,     # Use the levenshtein distance
@@ -128,7 +128,7 @@ def demo_2():
                                               #   weighting coefficient
               }
 
-    treatments = {1: tr_name}
+    processings = {1: tr_name}
     print "Start computation"
     for ind, (alignid, targetid) in enumerate(neighbours):
         print '%3d' % ind, len(alignid), 'x', len(targetid)
@@ -137,7 +137,7 @@ def demo_2():
                               alignid,
                               targetid,
                               0.3,
-                              treatments)
+                              processings)
         write_results(matched, alignset, targetset, dpath('demo2_results'))
     print "Done, see the results in %s" % dpath('demo2_results')
 
@@ -153,7 +153,7 @@ def demo_3():
               }
 
     print "Alignment started"
-    results = alignall(alignset, targetset, 0.75, treatments={1: tr_name},
+    results = alignall(alignset, targetset, 0.75, processings={1: tr_name},
                        indexes=(1,1), mode='minhashing', kwordsgram=1, siglen=200,
                        uniq=True)
     dicresults = dict([(a, b) for (a, b) in results])

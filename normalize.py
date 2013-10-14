@@ -19,9 +19,10 @@ import re
 from string import punctuation
 from warnings import warn
 from unicodedata import normalize as _uninormalize
+from functools import partial
 
 
-STOPWORDS = set([u'alors', u'au', u'aux', u'aucuns', u'aussi', u'autre', u'avant',
+FRENCH_STOPWORDS = set([u'alors', u'au', u'aux', u'aucuns', u'aussi', u'autre', u'avant',
 u'avec', u'avoir', u'bon', u'car', u'ce', u'cela', u'ces', u'ceux', u'chaque',
 u'ci', u'comme', u'comment', u'dans', u'de', u'des', u'du', u'dedans', u'dehors',
 u'depuis', u'deux', u'devrait', u'doit', u'donc', u'dos', u'droite', u'début',
@@ -57,6 +58,9 @@ MANUAL_UNICODE_MAP = {
     }
 
 
+###############################################################################
+### NORMALIZE FUNCTIONS #######################################################
+###############################################################################
 def unormalize(ustring, ignorenonascii=None, substitute=None):
     """replace diacritical characters with their corresponding ascii characters
 
@@ -82,7 +86,10 @@ def unormalize(ustring, ignorenonascii=None, substitute=None):
         try:
             replacement = MANUAL_UNICODE_MAP[letter]
         except KeyError:
-            replacement = _uninormalize('NFKD', letter)[0]
+            if isinstance(letter, unicode):
+                replacement = _uninormalize('NFKD', letter)[0]
+            else:
+                replacement = letter
             if ord(replacement) >= 2 ** 7:
                 if substitute is None:
                     raise ValueError("can't deal with non-ascii based characters")
@@ -94,7 +101,7 @@ def lunormalize(sentence, ignorenonascii=None, substitute=None):
     """ Normalize a sentence (ie remove accents, set to lower, etc) """
     return unormalize(sentence, ignorenonascii, substitute).lower()
 
-def simplify(sentence, lemmas=None, remove_stopwords=True):
+def simplify(sentence, lemmas=None, remove_stopwords=True, stopwords=FRENCH_STOPWORDS):
     """ Simply the given sentence
         0) If remove_stopwords, then remove the stop words
         1) If lemmas are given, the sentence is lemmatized
@@ -112,7 +119,7 @@ def simplify(sentence, lemmas=None, remove_stopwords=True):
     if not remove_stopwords:
         return cleansent
     else:
-        return ' '.join([w for w in cleansent.split(' ') if w not in STOPWORDS])
+        return ' '.join([w for w in cleansent.split(' ') if w not in stopwords])
 
 def tokenize(sentence, tokenizer=None, regexp=re.compile(r"[^\s]+")):
     """ Tokenize a sentence.
@@ -204,3 +211,180 @@ def rgxformat(string, regexp, output):
 
     match = re.match(regexp, string)
     return output % match.groupdict()
+
+
+###############################################################################
+### NORMALIZER OBJECTS ########################################################
+###############################################################################
+class BaseNormalizer(object):
+    """ A normalizer object used to provide an abstraction over the different
+    normalization functions, and help building Nazca process. """
+
+    def __init__(self, callback, attr_index=None):
+        """ Initiate the BaseNormalizer
+
+        Parameters
+        ----------
+        callback: normalization callback
+
+        attr_index: index of the attribute of interest in a record
+                    (i.e. attribute to be normalized).
+                    By default, 'attr_index' is None and the whole
+                    record is passed to the callback.
+                    If given, only the attr_index value of the record
+                    is passed to the the callback.
+                    Could be a list or an int
+        """
+        self.callback = callback
+        if attr_index:
+            self.attr_index = attr_index if isinstance(attr_index, (tuple, list)) else (attr_index,)
+        else:
+            self.attr_index = attr_index
+
+    def normalize(self, record):
+        """ Normalize a record
+
+        Parameters
+        ----------
+        record: a record (tuple/list of values).
+
+        Returns
+        -------
+
+        record: the normalized record.
+        """
+        if not self.attr_index:
+            return self.callback(record)
+        else:
+            for attr_ind in self.attr_index:
+                record = list(r if ind != attr_ind else self.callback(r)
+                               for ind, r in enumerate(record))
+            return record
+
+    def normalize_dataset(self, dataset, inplace=False):
+        """ Normalize a dataset
+
+        Parameters
+        ----------
+        dataset: a list of record (tuple/list of values).
+
+        inplace: Boolean. If True, normalize the dataset in place.
+
+        Returns
+        -------
+
+        record: the normalized dataset.
+        """
+        if not inplace:
+            dataset = [self.normalize(record) for record in dataset]
+        else:
+            # Change dataset in place
+            for ind, record in enumerate(dataset):
+                dataset[ind] = self.normalize(record)
+        return dataset
+
+
+class UnicodeNormalizer(BaseNormalizer):
+    """ Normalizer that unormalize the unicode
+    (i.e. replace accentuating characters by ASCII ones)
+    """
+    def __init__(self, attr_index=None, ignorenonascii=None, substitute=None):
+        callback = partial(lunormalize, ignorenonascii=ignorenonascii, substitute=substitute)
+        super(UnicodeNormalizer, self).__init__(callback, attr_index=attr_index)
+
+
+class SimplifyNormalizer(BaseNormalizer):
+    """ Normalizer that simplify a string
+        0) If remove_stopwords, then remove the stop words
+        1) If lemmas are given, the sentence is lemmatized
+        2) Set the sentence to lower case
+        3) Remove punctuation
+    """
+    def __init__(self, attr_index=None, lemmas=None, remove_stopwords=True):
+        callback = partial(simplify, lemmas=lemmas, remove_stopwords=remove_stopwords)
+        super(SimplifyNormalizer, self).__init__(callback, attr_index=attr_index)
+
+
+class TokenizerNormalizer(BaseNormalizer):
+    """ Normalizer that tokenize a string
+        Use ``tokenizer`` if given, else try to use the nltk WordPunctTokenizer,
+        in case of failure, it just split on spaces.
+        Anyway, tokenizer must have a ``tokenize()`` method
+    """
+    def __init__(self, attr_index=None, tokenizer=None, regexp=re.compile(r"[^\s]+")):
+        callback = partial(tokenize, tokenizer=tokenizer, regexp=regexp)
+        super(TokenizerNormalizer, self).__init__(callback, attr_index=attr_index)
+
+
+class LemmatizerNormalizer(BaseNormalizer):
+    """ Normalizer that lemmatize a string
+    """
+    def __init__(self, lemmas, attr_index=None, tokenizer=None):
+        callback = partial(lemmatized, lemmas=lemmas, tokenizer=tokenizer)
+        super(LemmatizerNormalizer, self).__init__(callback, attr_index=attr_index)
+
+
+class RoundNormalizer(BaseNormalizer):
+    """Normalizer that round a string
+    Return an unicode string of ``number`` rounded to a given precision
+    in decimal digits (default 0 digits)
+
+    If ``number`` is not a float, this method casts it to a float. (An
+    exception may be raised if it's not possible)
+    """
+    def __init__(self, attr_index=None, ndigits=0):
+        callback = partial(roundstr, ndigits=ndigits)
+        super(RoundNormalizer, self).__init__(callback, attr_index=attr_index)
+
+
+class RegexpNormalizer(BaseNormalizer):
+    """Normalizer that normalize a string based on a regexp
+
+     Apply the regexp to the ``string`` and return a formatted string
+    according to ``output``
+
+    eg :
+        format(u'[Victor Hugo - 26 fev 1802 / 22 mai 1885]',
+               r'\[(?P<firstname>\w+) (?p<lastname>\w+) - '
+               r'(?P<birthdate>.*?) / (?<deathdate>.*?)\]',
+               u'%(lastname)s, %(firstname)s (%(birthdate)s -'
+               u'%(deathdate)s)')
+
+     would return u'Hugo, Victor (26 fev 1802 - 22 mai 1885)'
+    """
+    def __init__(self, regexp, output, attr_index=None):
+        callback = partial(rgxformat, regexp=regexp, output=output)
+        super(RegexpNormalizer, self).__init__(callback, attr_index=attr_index)
+
+
+###############################################################################
+### NORMALIZER PIPELINE #######################################################
+###############################################################################
+class NormalizerPipeline(BaseNormalizer):
+    """ Pipeline of Normalizers
+    """
+
+    def __init__(self, normalizers):
+        """ Initiate the NormalizerPipeline
+
+        Parameters
+        ----------
+        normalizers: list (ordered) of Normalizer
+        """
+        self.normalizers = normalizers
+
+    def normalize(self, record):
+        """ Normalize a record
+
+        Parameters
+        ----------
+        record: a record (tuple/list of values).
+
+        Returns
+        -------
+
+        record: the normalized record.
+        """
+        for normalizer in self.normalizers:
+            record = normalizer.normalize(record)
+        return record
