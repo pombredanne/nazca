@@ -536,7 +536,7 @@ class PipelineBlocking(BaseBlocking):
     """ Pipeline multiple blocking techniques
     """
 
-    def __init__(self, blockings):
+    def __init__(self, blockings, collect_stats=False):
         """ Build the blocking object
 
         Parameters
@@ -546,6 +546,8 @@ class PipelineBlocking(BaseBlocking):
         """
         self.blockings = blockings
         self.stored_blocks = []
+        self.collect_stats = collect_stats
+        self.stats = {}
 
     def _fit(self, refset, targetset):
         """ Internal fit of the pipeline """
@@ -564,6 +566,8 @@ class PipelineBlocking(BaseBlocking):
             for block1, block2 in blocking.iter_indice_blocks():
                 ind_block1 = [ref_index[i] for i in block1]
                 ind_block2 = [target_index[i] for i in block2]
+                if self.collect_stats:
+                    self.stats.setdefault(ind, []).append((len(block1), len(block2)))
                 self._recursive_fit(refset, targetset, ind_block1, ind_block2, ind+1)
         else:
             # This is the final blocking
@@ -574,6 +578,8 @@ class PipelineBlocking(BaseBlocking):
             for block1, block2 in blocking.iter_blocks():
                 ind_block1 = [(ref_index[i], _id) for i, _id in block1]
                 ind_block2 = [(target_index[i], _id) for i, _id in block2]
+                if self.collect_stats:
+                    self.stats.setdefault(ind, []).append((len(block1), len(block2)))
                 self.stored_blocks.append((ind_block1, ind_block2))
 
     def _iter_blocks(self):

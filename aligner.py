@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-
+import time
 from collections import defaultdict
 
 from scipy import zeros
@@ -36,6 +36,10 @@ class BaseAligner(object):
         self.target_normalizer = None
         self.blocking = None
         self.nb_comparisons = 0
+        self.nb_blocks = 0
+        self.refset_size = None
+        self.targetset_size = None
+        self.time = None
 
     def register_ref_normalizer(self, normalizer):
         """ Register normalizers to be applied
@@ -103,8 +107,11 @@ class BaseAligner(object):
         """ Perform the alignment on the referenceset
         and the targetset
         """
+        start_time = time.time()
         refset = self.apply_normalization(refset, self.ref_normalizer)
         targetset = self.apply_normalization(targetset, self.target_normalizer)
+        self.refset_size = len(refset)
+        self.targetset_size = len(targetset)
         # If no blocking
         if not self.blocking:
             return self._get_match(refset, targetset)
@@ -113,21 +120,11 @@ class BaseAligner(object):
         global_mat = lil_matrix((len(refset), len(targetset)))
         self.blocking.fit(refset, targetset)
         for refblock, targetblock in self.blocking.iter_blocks():
+            self.nb_blocks += 1
             ref_index = [r[0] for r in refblock]
             target_index = [r[0] for r in targetblock]
             self.nb_comparisons += len(ref_index)*len(target_index)
-            if self.verbose:
-                print 'Blocking: %s reference ids, %s target ids' % (len(ref_index),
-                                                                     len(target_index))
-                print 'Reference records :'
-                for ind in ref_index:
-                    print '\t--->', refset[ind]
-                print 'Target records :'
-                for ind in target_index:
-                    print '\t--->', targetset[ind]
             _, matched = self._get_match(refset, targetset, ref_index, target_index)
-            if self.verbose:
-                print 'Matched: %s / Total comparisons %s' % (len(matched), self.nb_comparisons)
             for k, values in matched.iteritems():
                 subdict = global_matched.setdefault(k, set())
                 for v, d in values:
@@ -135,6 +132,7 @@ class BaseAligner(object):
                     if get_matrix:
                         # XXX avoid issue in sparse matrix
                         global_mat[k, v] = d or 10**(-10)
+        self.time = time.time() - start_time
         return global_mat, global_matched
 
     def _iter_aligned_pairs(self, refset, targetset, global_mat, global_matched, unique=True):
@@ -145,18 +143,21 @@ class BaseAligner(object):
                 bestid, _ = sorted(global_matched[refid], key=lambda x:x[1])[0]
                 ref_record = refset[refid]
                 target_record = targetset[bestid]
-                if self.verbose:
-                    print '\t\t', ref_record, ' <--> ', target_record
                 yield (ref_record[0], refid), (target_record[0], bestid)
         else:
             for refid in global_matched:
                 for targetid, _ in global_matched[refid]:
                     ref_record = refset[refid]
                     target_record = targetset[targetid]
-                    if self.verbose:
-                        print '\t\t', ref_record, ' <--> ', target_record
                     yield (ref_record[0], refid), (target_record[0], targetid)
-        print 'Total comparisons : ', self.nb_comparisons
+        if self.verbose:
+            print 'Computation time : ', self.time
+            print 'Size reference set : ', self.refset_size
+            print 'Size target set : ', self.targetset_size
+            print 'Done comparisons : ', self.nb_comparisons
+            print 'Maximum comparisons : ', self.refset_size * self.targetset_size
+            print 'Number of blocks : ', self.nb_blocks
+            print 'Blocking reduction : ', self.nb_comparisons/(self.refset_size * self.targetset_size)
 
     def get_aligned_pairs(self, refset, targetset, unique=True):
         """ Get the pairs of aligned elements
