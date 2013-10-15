@@ -120,13 +120,15 @@ class AlignerTestCase(unittest2.TestCase):
                                                      target_attr_index=2,
                                                      threshold=0.3))
         unimatched = list(aligner.get_aligned_pairs(refset, targetset, unique=True))
+        unimatched_wo_distance = [r[:2] for r in unimatched]
         matched = list(aligner.get_aligned_pairs(refset, targetset, unique=False))
+        matched_wo_distance = [r[:2] for r in matched]
         self.assertEqual(len(matched), len(all_matched))
         for m in all_matched:
-            self.assertIn(m, matched)
+            self.assertIn(m, matched_wo_distance)
         self.assertEqual(len(unimatched), len(uniq_matched))
         for m in uniq_matched:
-            self.assertIn(m, unimatched)
+            self.assertIn(m, unimatched_wo_distance)
 
     def test_align_from_file(self):
         uniq_matched = [(('V1', 0), ('T1', 0)), (('V2', 1), ('T3', 2)), (('V4', 3), ('T2', 1))]
@@ -141,9 +143,10 @@ class AlignerTestCase(unittest2.TestCase):
                                                                       'targetfile.csv'),
                                                             ref_indexes=[0, 1, (2, 3)],
                                                             target_indexes=[0, 1, (2, 3)],))
+        matched_wo_distance = [r[:2] for r in matched]
         self.assertEqual(len(matched), len(uniq_matched))
         for m in uniq_matched:
-            self.assertIn(m, matched)
+            self.assertIn(m, matched_wo_distance)
 
 
 class PipelineAlignerTestCase(unittest2.TestCase):
@@ -168,9 +171,10 @@ class PipelineAlignerTestCase(unittest2.TestCase):
         uniq_matched = [(('V1', 0), ('T1', 0)), (('V2', 1), ('T3', 2)),
                         (('V4', 3), ('T2', 1)), (('V3', 2), ('T4', 3))]
         matched = list(pipeline.get_aligned_pairs(refset, targetset, unique=True))
+        matched_wo_distance = [r[:2] for r in matched]
         self.assertEqual(len(matched), len(uniq_matched))
         for m in uniq_matched:
-            self.assertIn(m, matched)
+            self.assertIn(m, matched_wo_distance)
 
 
 

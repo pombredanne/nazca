@@ -35,13 +35,15 @@ def iter_aligned_pairs(refset, targetset, global_mat, global_matched, unique=Tru
             bestid, _ = sorted(global_matched[refid], key=lambda x:x[1])[0]
             ref_record = refset[refid]
             target_record = targetset[bestid]
-            yield (ref_record[0], refid), (target_record[0], bestid)
+            distance = global_mat[refid, bestid] if global_mat is not None else None
+            yield (ref_record[0], refid), (target_record[0], bestid), distance
     else:
         for refid in global_matched:
             for targetid, _ in global_matched[refid]:
                 ref_record = refset[refid]
                 target_record = targetset[targetid]
-                yield (ref_record[0], refid), (target_record[0], targetid)
+                distance = global_mat[refid, targetid] if global_mat is not None else None
+                yield (ref_record[0], refid), (target_record[0], targetid), distance
 
 
 ###############################################################################
