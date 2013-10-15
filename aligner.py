@@ -48,10 +48,11 @@ def iter_aligned_pairs(refset, targetset, global_mat, global_matched, unique=Tru
 ###############################################################################
 class BaseAligner(object):
 
-    def __init__(self, threshold, processings, verbose=False):
+    def __init__(self, threshold, processings, normalize_matrix=False, verbose=False):
         self.threshold = threshold
         self.processings = processings
         self.verbose = verbose
+        self.normalize_matrix = normalize_matrix
         self.ref_normalizer = None
         self.target_normalizer = None
         self.blocking = None
@@ -99,8 +100,8 @@ class BaseAligner(object):
         values being a list of couple (indice from Y, distance)
         """
         match = defaultdict(list)
-        # if normalized:
-        #     distmatrix /= distmatrix.max()
+        if self.normalize_matrix:
+            distmatrix /= distmatrix.max()
         ind = (distmatrix <= self.threshold).nonzero()
         indrow = ind[0].tolist()
         indcol = ind[1].tolist()
