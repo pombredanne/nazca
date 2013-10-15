@@ -99,7 +99,10 @@ class AlignerFunctionsTestCase(unittest2.TestCase):
                      ['T2', 'labelt2', (5.3, 48.2)],
                      ['T3', 'labelt3', (6.25, 48.91)],
                      ]
-        true_matched = set([(0,0), (0, 2), (1,2), (3,1)])
+        true_matched = set([((0, 'V1'), (0, 'T1')),
+                           ((1, 'V2'), (2, 'T3')),
+                           ((0, 'V1'), (2, 'T3')),
+                           ((3, 'V4'), (1, 'T2'))])
         neighbours = findneighbours_kdtree(alignset, targetset, indexes=(2, 2), threshold=0.3)
         processings = {2: {'metric': 'geographical', 'matrix_normalized':False,
                           'metric_params': {'units': 'km', 'in_radians': False}}}
@@ -112,7 +115,10 @@ class AlignerFunctionsTestCase(unittest2.TestCase):
         self.assertEqual(true_matched, predict_matched)
 
     def test_divide_and_conquer_align(self):
-        true_matched = set([(0,0), (0, 2), (1,2), (3,1)])
+        true_matched = set([((0, 'V1'), (0, 'T1')),
+                            ((1, 'V2'), (2, 'T3')),
+                            ((0, 'V1'), (2, 'T3')),
+                            ((3, 'V4'), (1, 'T2'))])
         alignset = [['V1', 'label1', (6.14194444444, 48.67)],
                     ['V2', 'label2', (6.2, 49)],
                     ['V3', 'label3', (5.1, 48)],
@@ -203,7 +209,10 @@ class NeigbhoursFunctionsTest(unittest2.TestCase):
                      ['T3', 'labelt3', (6.25, 48.91)],
                      ]
         neighbours = findneighbours_kdtree(alignset, targetset, indexes=(2, 2), threshold=0.3)
-        self.assertEqual([([0], [0, 2]), ([1], [0, 2]), ([2], [1]), ([3], [1])], neighbours)
+        self.assertEqual([([(0, 'V1')], [(0, 'T1'), (2, 'T3')]),
+                          ([(1, 'V2')], [(0, 'T1'), (2, 'T3')]),
+                          ([(2, 'V3')], [(1, 'T2')]),
+                          ([(3, 'V4')], [(1, 'T2')])], neighbours)
 
     def test_findneighbours_minhashing(self):
         lemmas = loadlemmas(path.join(TESTDIR, 'data', 'french_lemmas.txt'))
@@ -221,7 +230,9 @@ class NeigbhoursFunctionsTest(unittest2.TestCase):
         alignset = normalize_set(alignset, processings)
         targetset = normalize_set(targetset, processings)
         neighbours = findneighbours_minhashing(alignset, targetset, indexes=(2, 2), threshold=0.4)
-        for align in (([2, 4], [1]), ([0], [0]), ([3], [2])):
+        true_set = [([(0, 'V1')], [(0, 'T1')]), ([(3, 'V4')], [(2, 'T3')]),
+                    ([(2, 'V3'), (4, 'V5')], [(1, 'T2')])]
+        for align in true_set:
             self.assertIn(align, neighbours)
 
     def test_findneighbours_clustering(self):

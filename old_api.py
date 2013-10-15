@@ -144,7 +144,8 @@ def align(alignset, targetset, threshold, processings=None, resultfile=None,
     # Build aligner
     processings = [extract_treatment_from_treatment(t, ind) for ind, t in processings.iteritems()]
     aligner = BaseAligner(threshold, processings)
-    aligner.register_normalizers(normalizers)
+    aligner.register_ref_normalizer(normalizers)
+    aligner.register_target_normalizer(normalizers)
     # Align
     return aligner.align(alignset, targetset)
 
@@ -156,8 +157,8 @@ def subalign(alignset, targetset, alignind, targetind, threshold,
                                      'release.'
                                      ' You should rather use the BaseAligner '
                                      'object of the aligner module'))
-    mat, matched = align([alignset[i] for i in alignind],
-                         [targetset[i] for i in targetind], threshold,
+    mat, matched = align([alignset[i[0]] for i in alignind],
+                         [targetset[i[0]] for i in targetind], threshold,
                          processings, _applyNormalization=_applyNormalization)
     new_matched = {}
     for k, values in matched.iteritems():
@@ -194,7 +195,7 @@ def conquer_and_divide_alignment(alignset, targetset, threshold, processings=Non
                 subdict.add((v, d))
                 # XXX avoid issue in sparse matrix
                 if get_global_mat:
-                    global_mat[k, v] = d or 10**(-10)
+                    global_mat[k[0], v[0]] = d or 10**(-10)
     if get_global_mat:
         return global_mat, global_matched
     return global_matched
@@ -219,11 +220,11 @@ def alignall(alignset, targetset, threshold, processings=None,
     if not uniq:
         for alignid in matched:
             for targetid, _ in matched[alignid]:
-                yield alignset[alignid][0], targetset[targetid][0]
+                yield alignset[alignid[0]][0], targetset[targetid[0]][0]
     else:
         for alignid in matched:
             bestid, _ = sorted(matched[alignid], key=lambda x:x[1])[0]
-            yield alignset[alignid][0], targetset[bestid][0]
+            yield alignset[alignid[0]][0], targetset[bestid[0]][0]
 
 def alignall_iterative(alignfile, targetfile, alignformat, targetformat,
                        threshold, size=10000, equality_threshold=0.01,
@@ -285,10 +286,10 @@ def alignall_iterative(alignfile, targetfile, alignformat, targetformat,
                 for alignid in matched:
                     bestid, dist = sorted(matched[alignid], key=lambda x:x[1])[0]
                     #Get the better known distance
-                    _, current_dist = cache.get(alignset[alignid][0], (None, None))
+                    _, current_dist = cache.get(alignset[alignid[0]][0], (None, None))
                     if current_dist is None or current_dist > dist:
                         #If it's better, update the cache
-                        cache[alignset[alignid][0]] = (targetset[bestid][0], dist)
+                        cache[alignset[alignid[0]][0]] = (targetset[bestid[0]][0], dist)
                         if dist <= equality_threshold:
                             #If perfect, stop trying to align this one
                             doneids.add(alignset[alignid][0])
