@@ -22,7 +22,7 @@ from contextlib import contextmanager
 from os import path
 from tempfile import mkdtemp
 
-from nazca.dataio import parsefile, autocasted, split_file
+from nazca.dataio import sparqlquery, parsefile, autocast, split_file
 
 
 TESTDIR = path.dirname(__file__)
@@ -53,14 +53,14 @@ class DataIOTestCase(unittest2.TestCase):
                           [2, ('21.9', 19), u'stramberry', u'horse'],
                           [3, ('23', 2.17), u'cherry', u'flower']], data)
 
-    def test_autocasted(self):
-        self.assertEqual(autocasted('1'), 1)
-        self.assertEqual(autocasted('1.'), 1.)
-        self.assertEqual(autocasted('1,'), 1.)
-        self.assertEqual(autocasted('1,2'), 1.2)
-        self.assertEqual(autocasted('1,2X'), '1,2X')
-        self.assertEqual(autocasted(u'tété'), u'tété')
-        self.assertEqual(autocasted('tété', encoding='utf-8'), u'tété')
+    def test_autocast(self):
+        self.assertEqual(autocast('1'), 1)
+        self.assertEqual(autocast('1.'), 1.)
+        self.assertEqual(autocast('1,'), 1.)
+        self.assertEqual(autocast('1,2'), 1.2)
+        self.assertEqual(autocast('1,2X'), '1,2X')
+        self.assertEqual(autocast(u'tété'), u'tété')
+        self.assertEqual(autocast('tété', encoding='utf-8'), u'tété')
 
     def test_split_file(self):
         NBLINES = 190
@@ -81,6 +81,38 @@ class DataIOTestCase(unittest2.TestCase):
 
             with open(file2split) as fobj:
                 self.assertEqual(alllines, fobj.readlines())
+
+    def test_sparql_autocast(self):
+        alignset = sparqlquery('http://dbpedia.inria.fr/sparql',
+                                 'prefix db-owl: <http://dbpedia.org/ontology/>'
+                                 'prefix db-prop: <http://fr.dbpedia.org/property/>'
+                                 'select ?ville, ?name, ?long, ?lat where {'
+                                 ' ?ville db-owl:country <http://fr.dbpedia.org/resource/France> .'
+                                 ' ?ville rdf:type db-owl:PopulatedPlace .'
+                                 ' ?ville db-owl:populationTotal ?population .'
+                                 ' ?ville foaf:name ?name .'
+                                 ' ?ville db-prop:longitude ?long .'
+                                 ' ?ville db-prop:latitude ?lat .'
+                                 ' FILTER (?population > 1000)'
+                                 '} LIMIT 100', indexes=[0, 1, (2, 3)])
+        self.assertEqual(len(alignset), 100)
+        self.assertTrue(isinstance(alignset[0][2][0], float))
+
+    def test_sparql_no_autocast(self):
+        alignset = sparqlquery('http://dbpedia.inria.fr/sparql',
+                                 'prefix db-owl: <http://dbpedia.org/ontology/>'
+                                 'prefix db-prop: <http://fr.dbpedia.org/property/>'
+                                 'select ?ville, ?name, ?long, ?lat where {'
+                                 ' ?ville db-owl:country <http://fr.dbpedia.org/resource/France> .'
+                                 ' ?ville rdf:type db-owl:PopulatedPlace .'
+                                 ' ?ville db-owl:populationTotal ?population .'
+                                 ' ?ville foaf:name ?name .'
+                                 ' ?ville db-prop:longitude ?long .'
+                                 ' ?ville db-prop:latitude ?lat .'
+                                 ' FILTER (?population > 1000)'
+                                 '} LIMIT 100', indexes=[0, 1, (2, 3)], autocaste_data=False)
+        self.assertEqual(len(alignset), 100)
+        self.assertFalse(isinstance(alignset[0][2][0], float))
 
 
 if __name__ == '__main__':
