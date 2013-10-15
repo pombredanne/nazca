@@ -358,6 +358,34 @@ class RegexpNormalizer(BaseNormalizer):
 
 
 ###############################################################################
+### JOIN NORMALIZER ###########################################################
+###############################################################################
+class JoinNormalizer(BaseNormalizer):
+    """Normalizer that join multiple fields in only one.
+    This new field will be put at the end of the new record.
+    """
+    def __init__(self, attr_indexes, join_car=', '):
+        self.attr_indexes = attr_indexes
+        self.join_car = join_car
+
+    def normalize(self, record):
+        """ Normalize a record
+
+        Parameters
+        ----------
+        record: a record (tuple/list of values).
+
+        Returns
+        -------
+
+        record: the normalized record.
+        """
+        _record = [r for ind, r in enumerate(record) if ind not in self.attr_indexes]
+        _record.append(self.join_car.join([r for ind, r in enumerate(record) if ind in self.attr_indexes]))
+        return _record
+
+
+###############################################################################
 ### NORMALIZER PIPELINE #######################################################
 ###############################################################################
 class NormalizerPipeline(BaseNormalizer):

@@ -19,7 +19,7 @@
 import unittest2
 from os import path
 
-from nazca.normalize import (BaseNormalizer, UnicodeNormalizer,
+from nazca.normalize import (BaseNormalizer, UnicodeNormalizer, JoinNormalizer,
                              SimplifyNormalizer, TokenizerNormalizer,
                              LemmatizerNormalizer, RoundNormalizer,
                              RegexpNormalizer, NormalizerPipeline,
@@ -169,6 +169,11 @@ class NormalizerObjectTestCase(unittest2.TestCase):
         normalizer = RegexpNormalizer(r'http://perdu.com/(?P<id>\d+).*', u'%(id)s', attr_index=1)
         self.assertEqual(['a1', u'42'],
                          normalizer.normalize(['a1', u'http://perdu.com/42/supertop/cool']))
+
+    def test_join(self):
+        normalizer = JoinNormalizer((1,2))
+        self.assertEqual(normalizer.normalize((1, 'ab', 'cd', 'e', 5)), [1, 'e', 5, 'ab, cd'])
+
 
 
 class NormalizerPipelineTestCase(unittest2.TestCase):

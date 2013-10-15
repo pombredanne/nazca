@@ -22,25 +22,30 @@ from scipy.sparse import lil_matrix
 
 
 ###############################################################################
-### ALIGNER OBJECTS ###########################################################
+### BASE ALIGNER OBJECT #######################################################
 ###############################################################################
 class BaseAligner(object):
 
     def __init__(self, threshold, processings):
         self.threshold = threshold
         self.processings = processings
-        self.normalizers = None
+        self.ref_normalizer = None
+        self.target_normalizer = None
         self.blocking = None
 
-    def register_normalizers(self, normalizers):
+    def register_ref_normalizer(self, normalizer):
         """ Register normalizers to be applied
         before alignment """
-        self.normalizers = normalizers
+        self.ref_normalizer = normalizer
 
-    def apply_normalization(self, dataset):
-        if self.normalizers:
-            norm_pipeline = NormalizerPipeline(self.normalizers)
-            return norm_pipeline.normalize_dataset(dataset)
+    def register_target_normalizer(self, normalizer):
+        """ Register normalizers to be applied
+        before alignment """
+        self.target_normalizer = normalizer
+
+    def apply_normalization(self, dataset, normalizer):
+        if normalizer:
+            return normalizer.normalize_dataset(dataset)
         return dataset
 
     def register_blocking(self, blocking):
@@ -94,8 +99,8 @@ class BaseAligner(object):
         """ Perform the alignment on the referenceset
         and the targetset
         """
-        refset = self.apply_normalization(refset)
-        targetset = self.apply_normalization(targetset)
+        refset = self.apply_normalization(refset, self.ref_normalizer)
+        targetset = self.apply_normalization(targetset, self.target_normalizer)
         # If no blocking
         if not self.blocking:
             return self._get_match(refset, targetset)
@@ -104,7 +109,10 @@ class BaseAligner(object):
         global_mat = lil_matrix((len(refset), len(targetset)))
         self.blocking.fit(refset, targetset)
         for refblock, targetblock in self.blocking.iter_blocks():
-            _, matched = self._get_match(refset, targetset, refblock, targetblock)
+            ref_index = [r[0] for r in refblock]
+            target_index = [r[0] for r in targetblock]
+            print ref_index, target_index
+            _, matched = self._get_match(refset, targetset, ref_index, target_index)
             for k, values in matched.iteritems():
                 subdict = global_matched.setdefault(k, set())
                 for v, d in values:
@@ -126,3 +134,15 @@ class BaseAligner(object):
             for refid in global_matched:
                 for targetid, _ in global_matched[refid]:
                     yield refset[refid][0], targetset[targetid][0]
+
+
+## ###############################################################################
+## ### ITERATIVE ALIGNER OBJECT ##################################################
+## ###############################################################################
+## class MultiPassAligner(object):
+##     """ This aligner may be used to perform multi pass of alignements.
+##     Records linked in a previous pass will not be consider in the nex pass.
+##     """
+
+##     def __init__(self, threshold, treatments):
+ 

@@ -59,6 +59,8 @@ class BaseBlocking(object):
         """
         self.ref_attr_index = ref_attr_index
         self.target_attr_index = target_attr_index
+        self.refids = None
+        self.targetids = None
         self.is_fitted = False
 
     def fit(self, refset, targetset):
@@ -71,6 +73,9 @@ class BaseBlocking(object):
         targetset: a dataset (list of records)
         """
         self._fit(refset, targetset)
+        # Keep ids for blocks building
+        self.refids = [(i, r[0]) for i, r in enumerate(refset)]
+        self.targetids = [(i, r[0]) for i, r in enumerate(targetset)]
         self.is_fitted = True
 
     def _fit(self, refset, targetset):
@@ -83,11 +88,40 @@ class BaseBlocking(object):
         -------
 
         (block1, block2): The blocks are always (reference_block, target_block)
-                          and containts the indexes of the record in the
+                          and contains the pair (index, id) of the record in the
                           corresponding dataset.
         """
         assert self.is_fitted
         return self._iter_blocks()
+
+    def iter_indice_blocks(self):
+        """ Iterator over the different possible blocks.
+
+        Returns
+        -------
+
+        (block1, block2): The blocks are always (reference_block, target_block)
+                          and contains the indexes of the record in the
+                          corresponding dataset.
+        """
+        assert self.is_fitted
+        for block1, block2 in self._iter_blocks():
+            yield [r[0] for r in block1], [r[0] for r in block2]
+
+    def iter_id_blocks(self):
+        """ Iterator over the different possible blocks.
+
+        Returns
+        -------
+
+        (block1, block2): The blocks are always (reference_block, target_block)
+                          and contains the ids of the record in the
+                          corresponding dataset.
+        """
+        assert self.is_fitted
+        for block1, block2 in self._iter_blocks():
+            yield [r[1] for r in block1], [r[1] for r in block2]
+
 
     def _iter_blocks(self):
         """ Internal iteration function over blocks
@@ -100,14 +134,45 @@ class BaseBlocking(object):
         Returns
         -------
 
-        (pair1, pari2): The pairs are always (id_reference, id_target)
+        (pair1, pari2): The pairs are always ((ind_reference, id_reference),
+                                              (ind_target, id_target))
                         and are the ids of the record in the corresponding dataset.
         """
         assert self.is_fitted
         for block1, block2 in self.iter_blocks():
-            for refid in block1:
-                for targetid in block2:
-                    yield refid, targetid
+            for val1 in block1:
+                for val2 in block2:
+                    yield val1, val2
+
+    def iter_indice_pairs(self):
+        """ Iterator over the different possible pairs.
+
+        Returns
+        -------
+
+        (pair1, pari2): The pairs are always (ind_reference, ind_target)
+                        and are the ids of the record in the corresponding dataset.
+        """
+        assert self.is_fitted
+        for block1, block2 in self.iter_indice_blocks():
+            for val1 in block1:
+                for val2 in block2:
+                    yield val1, val2
+
+    def iter_id_pairs(self):
+        """ Iterator over the different possible pairs.
+
+        Returns
+        -------
+
+        (pair1, pari2): The pairs are always (id_reference, id_target)
+                        and are the ids of the record in the corresponding dataset.
+        """
+        assert self.is_fitted
+        for block1, block2 in self.iter_id_blocks():
+            for val1 in block1:
+                for val2 in block2:
+                    yield val1, val2
 
 
 ###############################################################################
@@ -136,12 +201,12 @@ class KeyBlocking(BaseBlocking):
     def _fit(self, refset, targetset):
         """ Fit a dataset in an index using the callback
         """
-        for rec in refset:
+        for ind, rec in enumerate(refset):
             key = self.callback(rec[self.ref_attr_index])
-            self.reference_index.setdefault(key, []).append(rec[0])
-        for rec in targetset:
+            self.reference_index.setdefault(key, []).append((ind, rec[0]))
+        for ind, rec in enumerate(targetset):
             key = self.callback(rec[self.target_attr_index])
-            self.target_index.setdefault(key, []).append(rec[0])
+            self.target_index.setdefault(key, []).append((ind, rec[0]))
 
     def _iter_blocks(self):
         """ Iterator over the different possible blocks.
@@ -183,14 +248,14 @@ class NGramBlocking(BaseBlocking):
     def _fit_dataset(self, dataset, cur_index, attr_index):
         """ Fit a dataset
         """
-        for r in dataset:
+        for ind, r in enumerate(dataset):
             cur_dict = cur_index
             text = r[attr_index]
             for i in range(self.depth):
                 ngram = text[i*self.ngram_size:(i+1)*self.ngram_size]
                 if i < self.depth - 1:
                     cur_dict = cur_dict.setdefault(ngram, {})
-            cur_dict.setdefault(ngram, []).append(r[0])
+            cur_dict.setdefault(ngram, []).append((ind, r[0]))
 
     def _fit(self, refset, targetset):
         """ Fit the two sets (reference set and target set)
@@ -243,8 +308,10 @@ class SortedNeighborhoodBlocking(BaseBlocking):
     def _fit(self, refset, targetset):
         """ Fit a dataset in an index using the callback
         """
-        self.sorted_dataset = [(r[0], r[self.ref_attr_index], 0) for r in refset]
-        self.sorted_dataset.extend([(r[0], r[self.target_attr_index], 1) for r in targetset])
+        self.sorted_dataset = [((ind, r[0]), r[self.ref_attr_index], 0)
+                               for ind, r in enumerate(refset)]
+        self.sorted_dataset.extend([((ind, r[0]), r[self.target_attr_index], 1)
+                                    for ind, r in enumerate(targetset)])
         self.sorted_dataset.sort(key=lambda x: self.key_func(x[1]))
 
     def _iter_blocks(self):
@@ -305,10 +372,10 @@ class KmeansBlocking(BaseBlocking):
                           corresponding dataset.
         """
         neighbours = [[[], []] for _ in xrange(self.kmeans.n_clusters)]
-        for ind, i in enumerate(self.predicted):
-            neighbours[i][1].append(ind)
-        for ind, i in enumerate(self.kmeans.labels_):
-            neighbours[i][0].append(ind)
+        for ind, li in enumerate(self.predicted):
+            neighbours[li][1].append(self.targetids[ind])
+        for ind, li in enumerate(self.kmeans.labels_):
+            neighbours[li][0].append(self.refids[ind])
         for block1, block2 in neighbours:
             if len(block1) and len(block2):
                 yield block1, block2
@@ -357,7 +424,9 @@ class KdTreeBlocking(BaseBlocking):
         for ind in xrange(self.nb_elements):
             if not extraneighbours[ind]:
                 continue
-            neighbours.append([[ind], extraneighbours[ind]])
+            _ref = [self.refids[ind],]
+            _target = [self.targetids[v] for v in extraneighbours[ind]]
+            neighbours.append((_ref, _target))
         for block1, block2 in neighbours:
             if len(block1) and len(block2):
                 yield block1, block2
@@ -404,9 +473,9 @@ class MinHashingBlocking(BaseBlocking):
             neighbours.append([[], []])
             for i in data:
                 if i >= self.nb_elements:
-                    neighbours[-1][1].append(i - self.nb_elements)
+                    neighbours[-1][1].append(self.targetids[i - self.nb_elements])
                 else:
-                    neighbours[-1][0].append(i)
+                    neighbours[-1][0].append(self.refids[i])
             if len(neighbours[-1][0]) == 0 or len(neighbours[-1][1]) == 0:
                 neighbours.pop()
         for block1, block2 in neighbours:

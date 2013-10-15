@@ -56,13 +56,80 @@ SOUNDEX_PAIRS = (('a3', 'b1'),
                  ('a7', 'b6'),)
 
 
+class BaseBlockingTest(unittest2.TestCase):
+
+    def test_baseblocking_blocks(self):
+        blocking = KeyBlocking(ref_attr_index=1, target_attr_index=1,
+                               callback=partial(soundexcode, language='english'))
+        blocking.fit(SOUNDEX_REFSET, SOUNDEX_TARGETSET)
+        blocks = list(blocking.iter_blocks())
+        self.assertEqual(len(blocks), 3)
+        self.assertIn(([(0, 'a1'), (6, 'a7')], [(2, 'b3'), (5, 'b6')]), blocks)
+        self.assertIn(([(1, 'a2'), (4, 'a5')], [(3, 'b4')]), blocks)
+        self.assertIn(([(2, 'a3')], [(0, 'b1'), (1, 'b2')]), blocks)
+
+    def test_baseblocking_id_blocks(self):
+        blocking = KeyBlocking(ref_attr_index=1, target_attr_index=1,
+                               callback=partial(soundexcode, language='english'))
+        blocking.fit(SOUNDEX_REFSET, SOUNDEX_TARGETSET)
+        blocks = list(blocking.iter_id_blocks())
+        self.assertEqual(len(blocks), 3)
+        self.assertIn((['a1', 'a7'], ['b3', 'b6']), blocks)
+        self.assertIn((['a2', 'a5'], ['b4']), blocks)
+        self.assertIn((['a3'], ['b1', 'b2']), blocks)
+
+    def test_baseblocking_indice_blocks(self):
+        blocking = KeyBlocking(ref_attr_index=1, target_attr_index=1,
+                               callback=partial(soundexcode, language='english'))
+        blocking.fit(SOUNDEX_REFSET, SOUNDEX_TARGETSET)
+        blocks = list(blocking.iter_indice_blocks())
+        self.assertEqual(len(blocks), 3)
+        self.assertIn(([0, 6], [2, 5]), blocks)
+        self.assertIn(([1, 4], [3]), blocks)
+        self.assertIn(([2], [0, 1]), blocks)
+
+    def test_baseblocking_pairs(self):
+        blocking = KeyBlocking(ref_attr_index=1, target_attr_index=1,
+                               callback=partial(soundexcode, language='english'))
+        blocking.fit(SOUNDEX_REFSET, SOUNDEX_TARGETSET)
+        pairs = list(blocking.iter_pairs())
+        ref_ind = dict((r[0], ind) for ind, r in enumerate(SOUNDEX_REFSET))
+        target_ind = dict((r[0], ind) for ind, r in enumerate(SOUNDEX_TARGETSET))
+        true_pairs = [((ref_ind[r[0]], r[0]), (target_ind[r[1]], r[1])) for r in SOUNDEX_PAIRS]
+        self.assertEqual(len(pairs), len(true_pairs))
+        for pair in true_pairs:
+            self.assertIn(pair, pairs)
+
+    def test_baseblocking_id_pairs(self):
+        blocking = KeyBlocking(ref_attr_index=1, target_attr_index=1,
+                               callback=partial(soundexcode, language='english'))
+        blocking.fit(SOUNDEX_REFSET, SOUNDEX_TARGETSET)
+        pairs = list(blocking.iter_id_pairs())
+        true_pairs = SOUNDEX_PAIRS
+        self.assertEqual(len(pairs), len(true_pairs))
+        for pair in true_pairs:
+            self.assertIn(pair, pairs)
+
+    def test_baseblocking_indice_pairs(self):
+        blocking = KeyBlocking(ref_attr_index=1, target_attr_index=1,
+                               callback=partial(soundexcode, language='english'))
+        blocking.fit(SOUNDEX_REFSET, SOUNDEX_TARGETSET)
+        pairs = list(blocking.iter_indice_pairs())
+        ref_ind = dict((r[0], ind) for ind, r in enumerate(SOUNDEX_REFSET))
+        target_ind = dict((r[0], ind) for ind, r in enumerate(SOUNDEX_TARGETSET))
+        true_pairs = [(ref_ind[r[0]], target_ind[r[1]]) for r in SOUNDEX_PAIRS]
+        self.assertEqual(len(pairs), len(true_pairs))
+        for pair in true_pairs:
+            self.assertIn(pair, pairs)
+
+
 class KeyBlockingTest(unittest2.TestCase):
 
     def test_keyblocking_blocks(self):
         blocking = KeyBlocking(ref_attr_index=1, target_attr_index=1,
                                callback=partial(soundexcode, language='english'))
         blocking.fit(SOUNDEX_REFSET, SOUNDEX_TARGETSET)
-        blocks = list(blocking.iter_blocks())
+        blocks = list(blocking.iter_id_blocks())
         self.assertEqual(len(blocks), 3)
         self.assertIn((['a1', 'a7'], ['b3', 'b6']), blocks)
         self.assertIn((['a2', 'a5'], ['b4']), blocks)
@@ -72,7 +139,7 @@ class KeyBlockingTest(unittest2.TestCase):
         blocking = KeyBlocking(ref_attr_index=1, target_attr_index=1,
                                callback=partial(soundexcode, language='english'))
         blocking.fit(SOUNDEX_REFSET, SOUNDEX_TARGETSET)
-        pairs = list(blocking.iter_pairs())
+        pairs = list(blocking.iter_id_pairs())
         self.assertEqual(len(pairs), 8)
         for pair in SOUNDEX_PAIRS:
             self.assertIn(pair, pairs)
@@ -81,7 +148,7 @@ class KeyBlockingTest(unittest2.TestCase):
         blocking = SoundexBlocking(ref_attr_index=1, target_attr_index=1,
                                    language='english')
         blocking.fit(SOUNDEX_REFSET, SOUNDEX_TARGETSET)
-        blocks = list(blocking.iter_blocks())
+        blocks = list(blocking.iter_id_blocks())
         self.assertEqual(len(blocks), 3)
         self.assertIn((['a1', 'a7'], ['b3', 'b6']), blocks)
         self.assertIn((['a2', 'a5'], ['b4']), blocks)
@@ -91,7 +158,7 @@ class KeyBlockingTest(unittest2.TestCase):
         blocking = SoundexBlocking(ref_attr_index=1, target_attr_index=1,
                                    language='english')
         blocking.fit(SOUNDEX_REFSET, SOUNDEX_TARGETSET)
-        pairs = list(blocking.iter_pairs())
+        pairs = list(blocking.iter_id_pairs())
         self.assertEqual(len(pairs), 8)
         for pair in SOUNDEX_PAIRS:
             self.assertIn(pair, pairs)
@@ -102,11 +169,22 @@ class NGramBlockingTest(unittest2.TestCase):
     def test_keyblocking_blocks(self):
         blocking = NGramBlocking(ref_attr_index=1, target_attr_index=1)
         blocking.fit(SOUNDEX_REFSET, SOUNDEX_TARGETSET)
-        blocks = list(blocking.iter_blocks())
+        blocks = list(blocking.iter_id_blocks())
+        self.assertEqual(len(blocks), 3)
         self.assertIn((['a3'], ['b1', 'b2']), blocks)
         self.assertIn((['a5'], ['b4']), blocks)
         self.assertIn((['a1', 'a4'], ['b3']), blocks)
 
+    def test_keyblocking_blocks_depth(self):
+        blocking = NGramBlocking(ref_attr_index=1, target_attr_index=1, depth=1)
+        blocking.fit(SOUNDEX_REFSET, SOUNDEX_TARGETSET)
+        blocks = list(blocking.iter_id_blocks())
+        self.assertEqual(len(blocks), 5)
+        self.assertIn((['a3'], ['b1', 'b2']), blocks)
+        self.assertIn((['a5'], ['b4']), blocks)
+        self.assertIn((['a6'], ['b5']), blocks)
+        self.assertIn((['a7'], ['b6']), blocks)
+        self.assertIn((['a1', 'a4'], ['b3']), blocks)
 
 class SortedNeighborhoodBlockingTest(unittest2.TestCase):
 
@@ -114,7 +192,7 @@ class SortedNeighborhoodBlockingTest(unittest2.TestCase):
         blocking = SortedNeighborhoodBlocking(ref_attr_index=1, target_attr_index=1,
                                               window_width=1)
         blocking.fit(SOUNDEX_REFSET, SOUNDEX_TARGETSET)
-        blocks = list(blocking.iter_blocks())
+        blocks = list(blocking.iter_id_blocks())
         true_blocks = [(['a6'], ['b7', 'b5']), (['a3'], ['b5', 'b1']),
                        (['a2'], ['b2']), (['a5'], ['b4']), (['a7'], ['b4', 'b6']),
                        (['a1'], ['b6', 'b3']), (['a4'], ['b3'])]
@@ -128,7 +206,7 @@ class SortedNeighborhoodBlockingTest(unittest2.TestCase):
         blocking = SortedNeighborhoodBlocking(ref_attr_index=1, target_attr_index=1,
                                               key_func=lambda x:x[::-1], window_width=1)
         blocking.fit(SOUNDEX_REFSET, SOUNDEX_TARGETSET)
-        blocks = list(blocking.iter_blocks())
+        blocks = list(blocking.iter_id_blocks())
         true_blocks = [(['a1'], ['b3']), (['a2'], ['b6']), (['a5'], ['b4']), (['a3'], ['b7', 'b1']),
                        (['a6'], ['b2', 'b5']), (['a4'], ['b5'])]
         self.assertEqual(len(blocks), len(true_blocks))
@@ -157,12 +235,12 @@ class KmeansBlockingTest(unittest2.TestCase):
         blocking = KmeansBlocking(ref_attr_index=2, target_attr_index=2)
         blocking.fit(refset, targetset)
         # Blocks
-        blocks = list(blocking.iter_blocks())
+        blocks = list(blocking.iter_indice_blocks())
         self.assertEqual(len(blocks), 2)
         self.assertIn(([0, 1], [0, 2]), blocks)
         self.assertIn(([2, 3], [1]), blocks)
         # Pairs
-        pairs = list(blocking.iter_pairs())
+        pairs = list(blocking.iter_indice_pairs())
         self.assertEqual(len(pairs), 6)
         for pair in ((0, 0), (0, 2), (1, 0), (1, 2), (2, 1), (3, 1)):
             self.assertIn(pair, pairs)
@@ -187,14 +265,14 @@ class MinHashingBlockingTest(unittest2.TestCase):
         targetset = normalizer.normalize_dataset(targetset)
         blocking = MinHashingBlocking(threshold=0.4, ref_attr_index=2, target_attr_index=2)
         blocking.fit(refset, targetset)
-        blocks = list(blocking.iter_blocks())
+        blocks = list(blocking.iter_indice_blocks())
         for align in (([2, 4], [1]), ([0], [0]), ([3], [2])):
             self.assertIn(align, blocks)
 
 
 class KdTreeBlockingTest(unittest2.TestCase):
 
-    def test_minhashing(self):
+    def test_kdtree(self):
         refset = [['V1', 'label1', (6.14194444444, 48.67)],
                   ['V2', 'label2', (6.2, 49)],
                   ['V3', 'label3', (5.1, 48)],
@@ -206,8 +284,11 @@ class KdTreeBlockingTest(unittest2.TestCase):
                      ]
         blocking = KdTreeBlocking(threshold=0.3, ref_attr_index=2, target_attr_index=2)
         blocking.fit(refset, targetset)
-        blocks = list(blocking.iter_blocks())
-        self.assertEqual([([0], [0, 2]), ([1], [0, 2]), ([2], [1]), ([3], [1])], blocks)
+        blocks = list(blocking.iter_id_blocks())
+        self.assertEqual([(['V1'], ['T1', 'T3']),
+                          (['V2'], ['T1', 'T3']),
+                          (['V3'], ['T2']),
+                          (['V4'], ['T2'])], blocks)
 
 
 if __name__ == '__main__':
