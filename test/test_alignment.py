@@ -148,32 +148,6 @@ class AlignerTestCase(unittest2.TestCase):
 
 class PipelineAlignerTestCase(unittest2.TestCase):
 
-    def test_pipeline_align(self):
-        refset = [['V1', 'aaa', (6.14194444444, 48.67)],
-                  ['V2', 'bbb', (6.2, 49)],
-                  ['V3', 'ccc', (5.1, 48)],
-                  ['V4', 'ddd', (5.2, 48.1)],
-                  ]
-        targetset = [['T1', 'zzz', (6.17, 48.7)],
-                     ['T2', 'eec', (5.3, 48.2)],
-                     ['T3', 'fff', (6.25, 48.91)],
-                     ['T4', 'ccd', (0, 0)],
-                     ]
-        # Creation of the aligner object
-        processings = (GeographicalProcessing(2, 2, units='km'),)
-        aligner_1 = alig.BaseAligner(threshold=30, processings=processings)
-        processings = (LevenshteinProcessing(1, 1),)
-        aligner_2 = alig.BaseAligner(threshold=1, processings=processings)
-        pipeline = alig.PipelineAligner((aligner_1, aligner_2))
-        global_mat, global_matched = pipeline.align(refset, targetset)
-        true_global_matched =  {0: set([(2, 29.124842), (0, 4.5532517)]),
-                                1: set([(2, 11.396689)]), 2: set([(3, 1.0)]),
-                                3: set([(1, 15.69241)])}
-        self.assertEqual(len(global_matched), len(true_global_matched))
-        for k, v in true_global_matched.iteritems():
-            self.assertIn(k, global_matched)
-            self.assertEqual(len(v), len(global_matched[k]))
-
     def test_pipeline_align_pairs(self):
         refset = [['V1', 'aaa', (6.14194444444, 48.67)],
                   ['V2', 'bbb', (6.2, 49)],

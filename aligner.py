@@ -262,9 +262,8 @@ class PipelineAligner(object):
         self.time = None
         self.logger = logging.getLogger('nazca.aligner')
 
-    def align(self, refset, targetset):
-        """ Perform the alignment on the referenceset
-        and the targetset
+    def get_aligned_pairs(self, refset, targetset, unique=True):
+        """ Get the pairs of aligned elements
         """
         start_time = time.time()
         ref_index = range(len(refset))
@@ -273,41 +272,27 @@ class PipelineAligner(object):
         self.targetset_size = len(targetset)
         global_matched = {}
         global_mat = lil_matrix((len(refset), len(targetset)))
+        seen_refset = set()
         # Iteration over aligners
         for ind_aligner, aligner in enumerate(self.aligners):
             # Perform alignment
             _refset = [refset[i] for i in ref_index]
             _targetset = [targetset[i] for i in target_index]
-            _global_mat, _global_matched = aligner.align(_refset, _targetset, get_matrix=False)
-            # Store results
-            for k, values in _global_matched.iteritems():
-                subdict = global_matched.setdefault(ref_index[k], set())
-                for v, d in values:
-                    self.alignments_done += 1
-                    subdict.add((target_index [v], d))
+            for pair in aligner.get_aligned_pairs(_refset, _targetset, unique):
+                self.pairs_found += 1
+                pair = ((pair[0][0], ref_index[pair[0][1]]),
+                        (pair[1][0], target_index[pair[1][1]]))
+                yield pair
+                seen_refset.add(pair[0][1])
             # Store stats
             self.nb_blocks += aligner.nb_blocks
             self.nb_comparisons += aligner.nb_comparisons
             # Update indexes if necessary
+            # For now, we remove all the reference set that are already matched
             if ind_aligner < len(self.aligners) - 1:
                 # There are other aligners after this one
-                _ref_index, _target_index = set(), set()
-                for k, values in _global_matched.iteritems():
-                    _ref_index.add(k)
-                    for v, d in values:
-                        _target_index.add(v)
-                ref_index = [i for i in ref_index if i not in _ref_index]
-                target_index = [i for i in target_index if i not in _target_index]
+                ref_index = [i for i in ref_index if i not in seen_refset]
         self.time = time.time() - start_time
-        return global_mat, global_matched
-
-    def get_aligned_pairs(self, refset, targetset, unique=True):
-        """ Get the pairs of aligned elements
-        """
-        global_mat, global_matched = self.align(refset, targetset)
-        for pair in iter_aligned_pairs(refset, targetset, global_mat, global_matched, unique):
-            self.pairs_found += 1
-            yield pair
         self.log_infos()
 
     def log_infos(self):
