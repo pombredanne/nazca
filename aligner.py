@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 import time
+import logging
 from collections import defaultdict
 
 from scipy import zeros
@@ -48,20 +49,22 @@ def iter_aligned_pairs(refset, targetset, global_mat, global_matched, unique=Tru
 ###############################################################################
 class BaseAligner(object):
 
-    def __init__(self, threshold, processings, normalize_matrix=False, verbose=False):
+    def __init__(self, threshold, processings, normalize_matrix=False):
         self.threshold = threshold
         self.processings = processings
-        self.verbose = verbose
         self.normalize_matrix = normalize_matrix
         self.ref_normalizer = None
         self.target_normalizer = None
+        self.target_normalizer = None
         self.blocking = None
         self.alignments_done = 0
+        self.pairs_found = 0
         self.nb_comparisons = 0
         self.nb_blocks = 0
         self.refset_size = None
         self.targetset_size = None
         self.time = None
+        self.logger = logging.getLogger('nazca.aligner')
 
     def register_ref_normalizer(self, normalizer):
         """ Register normalizers to be applied
@@ -163,9 +166,9 @@ class BaseAligner(object):
         """
         global_mat, global_matched = self.align(refset, targetset, get_matrix=False)
         for pair in iter_aligned_pairs(refset, targetset, global_mat, global_matched, unique):
+            self.pairs_found += 1
             yield pair
-        if self.verbose:
-            self.display_infos()
+        self.log_infos()
 
     def align_from_files(self, reffile, targetfile,
                          ref_indexes=None, target_indexes=None,
@@ -212,21 +215,31 @@ class BaseAligner(object):
         for pair in iter_aligned_pairs(refset, targetset, global_mat, global_matched, unique):
             yield pair
 
-    def display_infos(self):
+    def log_infos(self):
         """ Display some info on the aligner process
         """
-        print 'Computation time : ', self.time
-        print 'Size reference set : ', self.refset_size
-        print 'Size target set : ', self.targetset_size
-        print 'Comparisons done : ', self.nb_comparisons
-        print 'Alignments done : ', self.alignments_done
-        print 'Ratio reference set/alignments done : ', self.alignments_done/float(self.refset_size)
-        print 'Ratio target set/alignments done : ', self.alignments_done/float(self.targetset_size)
-        print 'Maximum comparisons : ', self.refset_size * self.targetset_size
-        print 'Number of blocks : ', self.nb_blocks
+        self.logger.info('Computation time : %s' % self.time)
+        self.logger.info('Size reference set : %s' % self.refset_size)
+        self.logger.info('Size target set : %s' % self.targetset_size)
+        self.logger.info('Comparisons done : %s' % self.nb_comparisons)
+        self.logger.info('Alignments done : %s' % self.alignments_done)
+        self.logger.info('Pairs found : %s' % self.pairs_found)
+        self.logger.info('Ratio reference set/alignments done : %s'
+                         % (self.alignments_done/float(self.refset_size)))
+        self.logger.info('Ratio target set/alignments done : %s'
+                         % (self.alignments_done/float(self.targetset_size)))
+        self.logger.info('Ratio reference set/pairs found : %s'
+                         % (self.pairs_found/float(self.refset_size)))
+        self.logger.info('Ratio target set/pairs found : %s'
+                         % (self.pairs_found/float(self.targetset_size)))
+        self.logger.info('Maximum comparisons : %s'
+                         % (self.refset_size * self.targetset_size))
+        self.logger.info('Number of blocks : %s' % self.nb_blocks)
         if self.nb_blocks:
-            print 'Ratio comparisons/block : ', float(self.nb_comparisons)/self.nb_blocks
-        print 'Blocking reduction : ', self.nb_comparisons/float(self.refset_size * self.targetset_size)
+            self.logger.info('Ratio comparisons/block : %s'
+                             % (float(self.nb_comparisons)/self.nb_blocks))
+        self.logger.info('Blocking reduction : %s'
+                         % (self.nb_comparisons/float(self.refset_size * self.targetset_size)))
 
 
 ###############################################################################
@@ -237,16 +250,17 @@ class PipelineAligner(object):
     the aligned results from the previous aligner.
     """
 
-    def __init__(self, aligners, verbose=False):
+    def __init__(self, aligners):
         self.aligners = aligners
-        self.verbose = verbose
         self.pairs = {}
         self.nb_comparisons = 0
         self.nb_blocks = 0
         self.alignments_done = 0
+        self.pairs_found = 0
         self.refset_size = None
         self.targetset_size = None
         self.time = None
+        self.logger = logging.getLogger('nazca.aligner')
 
     def align(self, refset, targetset):
         """ Perform the alignment on the referenceset
@@ -292,22 +306,32 @@ class PipelineAligner(object):
         """
         global_mat, global_matched = self.align(refset, targetset)
         for pair in iter_aligned_pairs(refset, targetset, global_mat, global_matched, unique):
+            self.pairs_found += 1
             yield pair
-        if self.verbose:
-            self.display_infos()
+        self.log_infos()
 
-    def display_infos(self):
+    def log_infos(self):
         """ Display some info on the aligner process
         """
-        print 'Computation time : ', self.time
-        print 'Size reference set : ', self.refset_size
-        print 'Size target set : ', self.targetset_size
-        print 'Comparisons done : ', self.nb_comparisons
-        print 'Alignments done : ', self.alignments_done
-        print 'Ratio reference set/alignments done : ', self.alignments_done/float(self.refset_size)
-        print 'Ratio target set/alignments done : ', self.alignments_done/float(self.targetset_size)
-        print 'Maximum comparisons : ', self.refset_size * self.targetset_size
-        print 'Number of blocks : ', self.nb_blocks
+        self.logger.info('Computation time : %s' % self.time)
+        self.logger.info('Size reference set : %s' % self.refset_size)
+        self.logger.info('Size target set : %s' % self.targetset_size)
+        self.logger.info('Comparisons done : %s' % self.nb_comparisons)
+        self.logger.info('Alignments done : %s' % self.alignments_done)
+        self.logger.info('Pairs found : %s' % self.pairs_found)
+        self.logger.info('Ratio reference set/alignments done : %s'
+                         % (self.alignments_done/float(self.refset_size)))
+        self.logger.info('Ratio target set/alignments done : %s'
+                         % (self.alignments_done/float(self.targetset_size)))
+        self.logger.info('Ratio reference set/pairs found : %s'
+                         % (self.pairs_found/float(self.refset_size)))
+        self.logger.info('Ratio target set/pairs found : %s'
+                         % (self.pairs_found/float(self.targetset_size)))
+        self.logger.info('Maximum comparisons : %s'
+                         % (self.refset_size * self.targetset_size))
+        self.logger.info('Number of blocks : %s' % self.nb_blocks)
         if self.nb_blocks:
-            print 'Ratio comparisons/block : ', float(self.nb_comparisons)/self.nb_blocks
-        print 'Blocking reduction : ', self.nb_comparisons/float(self.refset_size * self.targetset_size)
+            self.logger.info('Ratio comparisons/block : %s'
+                             % (float(self.nb_comparisons)/self.nb_blocks))
+        self.logger.info('Blocking reduction : %s'
+                         % (self.nb_comparisons/float(self.refset_size * self.targetset_size)))
