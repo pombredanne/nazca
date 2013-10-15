@@ -202,9 +202,10 @@ class KeyBlocking(BaseBlocking):
         the identifiers of the records of the both sets for this value.
     """
 
-    def __init__(self, ref_attr_index, target_attr_index, callback):
+    def __init__(self, ref_attr_index, target_attr_index, callback, ignore_none=False):
         super(KeyBlocking, self).__init__(ref_attr_index, target_attr_index)
         self.callback = callback
+        self.ignore_none = ignore_none
         self.reference_index = {}
         self.target_index = {}
 
@@ -213,9 +214,13 @@ class KeyBlocking(BaseBlocking):
         """
         for ind, rec in enumerate(refset):
             key = self.callback(rec[self.ref_attr_index])
+            if not key and self.ignore_none:
+                continue
             self.reference_index.setdefault(key, []).append((ind, rec[0]))
         for ind, rec in enumerate(targetset):
             key = self.callback(rec[self.target_attr_index])
+            if not key and self.ignore_none:
+                continue
             self.target_index.setdefault(key, []).append((ind, rec[0]))
 
     def _iter_blocks(self):
