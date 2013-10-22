@@ -248,7 +248,7 @@ class NeigbhoursFunctionsTest(unittest2.TestCase):
         try:
             import sklearn as skl
         except ImportError:
-            self.skiptTest('Scikit learn does not seem to be installed')
+            self.skipTest('Scikit learn does not seem to be installed')
         if int(skl.__version__.split('-')[0].split('.')[1])<=11:
             self.skipTest('Scikit learn version is too old - Skipping test')
         neighbours = findneighbours_clustering(alignset, targetset, indexes=(2, 2))
