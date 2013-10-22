@@ -1,0 +1,6 @@
+nerdy (0.1.0-1) unstable; urgency=low
+
+  * Initial release of the Nerdy package for Named Entities Recognition in Python.
+
+ -- Vincent michel <Vincent.Michel@logilab.fr>  Tue, 11 Jun 2013 13:59:22 +0200
+

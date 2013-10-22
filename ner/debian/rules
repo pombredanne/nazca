@@ -26,7 +26,7 @@ install: build
 	dh_testroot
 	dh_clean -k
 	dh_installdirs -i
-	NO_SETUPTOOLS=1 python setup.py -q install --no-compile --prefix=debian/nazca/usr/
+	NO_SETUPTOOLS=1 python setup.py -q install --no-compile --prefix=debian/python-nerdy/usr/
 
 
 # Build architecture-independent files here.

@@ -16,6 +16,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from os.path import exists as fileexists
+from os import path as osp
 
 import csv
 import urllib
@@ -27,7 +28,10 @@ except ImportError:
     SPARQL_ENABLED = False
 
 
-def autocasted(data, encoding=None):
+###############################################################################
+### UTILITY FUNCTIONS #########################################################
+###############################################################################
+def autocast(data, encoding=None):
     """ Try to convert data into a specific type
     in (int, float, str)
     """
@@ -42,7 +46,11 @@ def autocasted(data, encoding=None):
                 return data.decode(encoding)
             return data
 
-def rqlquery(host, rql, indexes=None):
+
+###############################################################################
+### RQL FUNCTIONS #############################################################
+###############################################################################
+def rqlquery(host, rql, indexes=None, formatopt=None):
     """ Run the rql query on the given cubicweb host
     """
 
@@ -54,9 +62,14 @@ def rqlquery(host, rql, indexes=None):
                                 'rql=%(rql)s&vid=csvexport'
                                 % {'rql': rql, 'host': host})
     filehandle.readline()#Skip the first line
-    return parsefile(filehandle, delimiter=';', indexes=indexes);
+    return parsefile(filehandle, delimiter=';', indexes=indexes,
+                     formatopt=formatopt);
 
-def sparqlquery(endpoint, query, indexes=None):
+
+###############################################################################
+### SPARQL FUNCTIONS ##########################################################
+###############################################################################
+def sparqlquery(endpoint, query, indexes=None, autocaste_data=True):
     """ Run the sparql query on the given endpoint, and wrap the items in the
     indexes form. If indexes is empty, keep raw output"""
 
@@ -71,20 +84,27 @@ def sparqlquery(endpoint, query, indexes=None):
     labels = rawresults['head']['vars']
     results = []
     indexes = indexes or []
-
+    if autocaste_data:
+        transform = autocast
+    else:
+        def transform(*args): return args
     for raw in rawresults["results"]["bindings"]:
         data = []
         if not indexes:
-            data = [autocasted(raw[label]['value']) for label in labels]
+            data = [transform(raw[label]['value']) for label in labels]
         else:
-            for ind in indexes:
+            for il, ind in enumerate(indexes):
                 if isinstance(ind, tuple):
-                    data.append(tuple([autocasted(raw[labels[i]]['value']) for i in ind]))
+                    data.append(tuple([transform(raw[labels[i]]['value']) for i in ind]))
                 else:
-                    data.append(autocasted(raw[labels[ind]]['value']))
+                    data.append(transform(raw[labels[il]]['value']))
         results.append(data)
     return results
 
+
+###############################################################################
+### FILE FUNCTIONS ############################################################
+###############################################################################
 def parsefile(filename, indexes=None, nbmax=None, delimiter='\t',
               encoding='utf-8', field_size_limit=None, formatopt=None):
     """ Parse the file (read ``nbmax`` line at maximum if given). Each
@@ -100,8 +120,8 @@ def parsefile(filename, indexes=None, nbmax=None, delimiter='\t',
                     [2, (21.9, 19), u'stramberry', u'horse'],
                     [3, (23, 2.17), u'cherry', u'flower']]
 
-            By default, all cells are "autocasted" (thanks to the
-            ``autocasted()`` function), but you can overpass it thanks to the
+            By default, all cells are "autocast" (thanks to the
+            ``autocast()`` function), but you can overpass it thanks to the
             ``formatopt`` dictionnary. Each key is the index to work on, and the
             value is the function to call. See the following example:
 
@@ -131,7 +151,7 @@ def parsefile(filename, indexes=None, nbmax=None, delimiter='\t',
     indexes = indexes or []
     formatopt = formatopt or {}
     for ind, row in enumerate(formatedoutput(filename)):
-        row = [formatopt.get(i, lambda x: autocasted(x, encoding))(cell)
+        row = [formatopt.get(i, lambda x: autocast(x, encoding))(cell)
                for i, cell in enumerate(row)]
         data = []
         if nbmax and ind > nbmax:
@@ -171,3 +191,34 @@ def write_results(matched, alignset, targetset, resultfile):
                                               else targetid,
                      dist
                      ))
+
+def split_file(filename, outputdir, nblines=60000):
+    """ Split `filename` into smaller files of ``nblines`` lines. Files are
+        written into `outputdir`.
+
+        Return the list of files
+    """
+    NEW = object()
+
+    def readlines(fobj, nblines):
+        """ yield all lines of the file, and
+        at split-file boundaries, yield a NEW marker
+        """
+        for index, line in enumerate(fobj):
+            if index and index % nblines == 0:
+                yield NEW
+            yield line
+
+    count = 0
+    with open(filename, 'rb') as fobj:
+        outfile = open(osp.join(outputdir, '%s' % count), 'wb')
+        for line in readlines(fobj, nblines):
+            if line is NEW:
+                outfile.close()
+                count += 1
+                outfile = open(osp.join(outputdir, '%s' % count), 'wb')
+                continue
+            outfile.write(line)
+        outfile.close()
+        count += 1
+    return map(str, xrange(count))
