@@ -1,12 +1,12 @@
-Source: nazca
-Section: web
+Source: nerdy
+Section: python
 Priority: optional
 Maintainer: LOGILAB S.A. (Paris, FRANCE) <contact@logilab.fr>
 Build-Depends: debhelper (>= 7), python (>=2.5), python-support
 Standards-Version: 3.9.3
 XS-Python-Version: >= 2.5
 
-Package: nazca
+Package: python-nerdy
 Architecture: all
 Depends: ${python:Depends}
-Description: Python library for data alignment..
+Description: Python library for Named Entities Recognition.

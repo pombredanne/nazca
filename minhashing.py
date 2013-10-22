@@ -31,8 +31,9 @@ def randomhashfunction(zr):
         h:x -> ax + b mod R
 
     """
-    a = randint(1, zr - 1)
-    b = randint(1, zr - 1)
+    bound = max(zr - 1, 1)
+    a = randint(1, bound)
+    b = randint(1, bound)
 
     def hashfunc(x):
         return ((a*x + b)%zr)

@@ -1,0 +1,269 @@
+##,non renseigné
+..,non renseigné
+aa,aire géographique ancienne
+ad,Andorre
+ae,Émirats arabes unis
+af,Afghanistan
+ag,Antigua-et-Barbuda
+ai,Anguilla
+al,Albanie
+am,Arménie
+an,Antilles néerlandaises
+ao,Angola
+aq,Antarctique
+ar,Argentine
+as,Samoa américaines
+at,Autriche
+au,Australie
+aw,Aruba
+ax,Aland (îles)
+az,Azerbaïdjan
+ba,Bosnie-Herzégovine
+bb,Barbade
+bd,Bangladesh
+be,Belgique
+bf,Burkina
+bg,Bulgarie
+bh,Bahreïn
+bi,Burundi
+bj,Bénin
+bl,Saint-Barthélemy
+bm,Bermudes
+bn,Brunéi
+bo,Bolivie
+bq,Bonaire, Saint-Eustache et Saba,Saba###Saint-Eustache
+br,Brésil
+bs,Bahamas
+bt,Bhoutan
+bv,Bouvet (île)
+bw,Botswana
+by,Biélorussie,Bélarus
+bz,Belize
+ca,Canada
+cc,Cocos (îles),Keeling (îles)
+cd,Congo (République démocratique),Zaïre
+cf,Centrafrique,République centrafricaine
+cg,Congo,Congo (République)
+ch,Suisse,Confédération helvétique
+ci,Côte d'Ivoire
+ck,Cook (îles)
+cl,Chili
+cm,Cameroun
+cn,Chine,Chine (République populaire)
+co,Colombie
+cr,Costa Rica
+cs,Serbie-et-Monténégro
+cu,Cuba
+cv,Cap-Vert
+cw,Curaçao
+cx,Christmas (île)
+cy,Chypre
+cz,République tchèque,Tchèque, République
+dd,Allemagne (République démocratique)
+de,Allemagne,Allemagne (République fédérale)
+dj,Djibouti
+dk,Danemark
+dm,Dominique
+do,République dominicaine,Dominicaine, République
+dz,Algérie
+ec,Équateur
+ee,Estonie
+eg,Égypte
+eh,Sahara occidental
+er,Érythrée
+es,Espagne
+et,Éthiopie
+fi,Finlande
+fj,Fidji
+fk,Malouines (îles),Falkland (îles)
+fm,Micronésie,États fédérés de Micronésie
+fo,Féroé (îles)
+fr,France
+ga,Gabon
+gb,Grande-Bretagne,Royaume-Uni
+gd,Grenade
+ge,Géorgie
+gf,Guyane française
+gg,Guernesey
+gh,Ghana
+gi,Gibraltar
+gl,Groenland
+gm,Gambie
+gn,Guinée
+gp,Guadeloupe
+gq,Guinée équatoriale
+gr,Grèce
+gs,Géorgie du Sud et les îles Sandwich du Sud
+gt,Guatemala
+gu,Guam
+gw,Guinée-Bissau
+gy,Guyana
+hk,Hong Kong
+hm,Heard (île) et îles McDonald
+hn,Honduras
+hr,Croatie
+ht,Haïti
+hu,Hongrie
+id,Indonésie
+ie,Irlande
+ii,intergouvernemental
+il,Israël
+im,Île de Man,Man, Île de
+in,Inde
+io,Territoire britannique de l'Océan indien,Chagos (îles)###Océan indien, Territoire britannique de l'
+iq,Irak
+ir,Iran
+is,Islande
+it,Italie
+je,Jersey
+jm,Jamaïque
+jo,Jordanie
+jp,Japon
+ke,Kenya
+kg,Kirghizistan
+kh,Cambodge
+ki,Kiribati
+km,Comores
+kn,Saint-Kitts-et-Nevis,Saint-Christophe-et-Nevis
+ko,Kosovo
+kp,Corée (République populaire démocratique),Corée du Nord
+kr,Corée (République),Corée du Sud
+kw,Koweït
+ky,Cayman,Caïmanes, Îles###Caïman (îles)
+kz,Kazakhstan
+la,Laos
+lb,Liban
+lc,Sainte-Lucie
+li,Liechtenstein
+lk,Sri Lanka
+lr,Liberia
+ls,Lesotho
+lt,Lituanie
+lu,Luxembourg
+lv,Lettonie
+ly,Libye
+ma,Maroc
+mc,Monaco
+md,Moldavie,Moldova, République de
+me,Monténégro
+mf,Saint-Martin (partie française)
+mg,Madagascar
+mh,Marshall (îles)
+mk,Macédoine (République)
+ml,Mali
+mm,Myanmar,Birmanie
+mn,Mongolie
+mo,Macao
+mp,Mariannes du Nord (îles)
+mq,Martinique
+mr,Mauritanie
+ms,Montserrat
+mt,Malte
+mu,Maurice
+mv,Maldives
+mw,Malawi
+mx,Mexique
+my,Malaisie
+mz,Mozambique
+na,Namibie
+nc,Nouvelle-Calédonie
+ne,Niger
+nf,Norfolk (île)
+ng,Nigeria
+ni,Nicaragua
+nl,Pays-Bas
+no,Norvège
+np,Népal
+nr,Nauru
+nu,Niue
+nz,Nouvelle-Zélande
+om,Oman
+oo,code non adapté
+pa,Panama
+pe,Pérou
+pf,Polynésie française
+pg,Papouasie-Nouvelle-Guinée
+ph,Philippines
+pk,Pakistan
+pl,Pologne
+pm,Saint-Pierre-et-Miquelon
+pn,Pitcairn
+pr,Porto Rico
+ps,Autorité palestinienne,Palestine
+pt,Portugal
+pw,Palau,Palaos
+py,Paraguay
+qa,Qatar
+re,Réunion
+ro,Roumanie
+rs,Serbie
+ru,Russie (Fédération),Russie
+rw,Rwanda
+sa,Arabie saoudite
+sb,Salomon (îles)
+sc,Seychelles
+sd,Soudan
+se,Suède
+sg,Singapour
+sh,Sainte-Hélène,Ascension (île)###Tristan da Cunha (île)
+si,Slovénie
+sj,Svalbard et île Jan Mayen
+sk,Slovaquie
+sl,Sierra Leone
+sm,Saint-Marin
+sn,Sénégal
+so,Somalie
+sr,Suriname
+ss,Soudan du Sud,Sud Soudan
+st,Sao Tomé-et-Principe
+su,URSS
+sv,El Salvador,Salvador
+sx,Saint-Martin (partie néerlandaise),Sint Maarten
+sy,Syrie
+sz,Swaziland
+tc,Turks et Caïques (îles)
+td,Tchad
+tf,Terres australes françaises
+tg,Togo
+th,Thaïlande
+tj,Tadjikistan
+tk,Tokelau
+tl,Timor oriental
+tm,Turkménistan
+tn,Tunisie
+to,Tonga
+tr,Turquie
+tt,Trinité-et-Tobago
+tv,Tuvalu
+tw,Taïwan,Chine (République)
+tz,Tanzanie
+ua,Ukraine
+ug,Ouganda
+um,Îles mineures éloignées des États-Unis
+us,États-Unis
+uy,Uruguay
+uz,Ouzbékistan
+va,Vatican,Saint-Siège
+vc,Saint-Vincent-et-les Grenadines
+ve,Venezuela
+vg,Îles Vierges britanniques,Vierges (îles) britanniques
+vi,Îles Vierges américaines,Vierges (îles) américaines
+vn,Viet Nam
+vu,Vanuatu
+wf,Wallis et Futuna (îles)
+ws,Samoa,Samoa occidentales
+xc,Tchécoslovaquie
+xd,Allemagne avant 1945
+xe,Europe,Union européenne
+xk,Corée avant 1948
+xn,Pays-Bas avant 1830,Belgique avant 1830
+xx,inconnu
+yd,Yémen (République démocratique populaire),Sud Yémen
+ye,Yémen
+yt,Mayotte
+yu,Yougoslavie
+yy,ne s'applique pas
+za,Afrique du Sud
+zm,Zambie
+zw,Zimbabwe
+zz,multiple
