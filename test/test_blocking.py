@@ -283,7 +283,7 @@ class KmeansBlockingTest(unittest2.TestCase):
         try:
             import sklearn as skl
         except ImportError:
-            self.skiptTest('Scikit learn does not seem to be installed')
+            self.skipTest('Scikit learn does not seem to be installed')
         if int(skl.__version__.split('-')[0].split('.')[1])<=11:
             self.skipTest('Scikit learn version is too old - Skipping test')
         blocking = KmeansBlocking(ref_attr_index=2, target_attr_index=2)
