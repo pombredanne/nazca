@@ -22,8 +22,11 @@ from contextlib import contextmanager
 from os import path
 from tempfile import mkdtemp
 
-from nazca.utils.dataio import sparqlquery, parsefile, autocast, split_file
-
+from nazca.utils.dataio import (HTMLPrettyPrint, ValidXHTMLPrettyPrint,
+                                sparqlquery, rqlquery, parsefile,
+                                autocast, split_file)
+from nazca.named_entities import NerProcess
+from nazca.named_entities.sources import NerSourceLexicon
 
 TESTDIR = path.dirname(__file__)
 
@@ -39,7 +42,54 @@ def tempdir():
             pass
 
 
+class ValidXHTMLPrettyPrintTest(unittest2.TestCase):
+
+    def test_valid(self):
+        from lxml import etree
+        if int(etree.__version__< '3.2.0'):
+            # https://bugs.launchpad.net/lxml/+bug/673205
+            self.skipTest('Lxml version to old for ValidXHTMLPrettyPrint')
+        self.assertTrue(ValidXHTMLPrettyPrint().is_valid(u'<p>coucou</p>'))
+
+    def test_valid_unicode(self):
+        from lxml import etree
+        if int(etree.__version__< '3.2.0'):
+            # https://bugs.launchpad.net/lxml/+bug/673205
+            self.skipTest('Lxml version to old for ValidXHTMLPrettyPrint')
+        self.assertTrue(ValidXHTMLPrettyPrint().is_valid(u'<p>hé</p>'))
+
+    def test_invalid(self):
+        from lxml import etree
+        if int(etree.__version__< '3.2.0'):
+            # https://bugs.launchpad.net/lxml/+bug/673205
+            self.skipTest('Lxml version to old for ValidXHTMLPrettyPrint')
+        self.assertFalse(ValidXHTMLPrettyPrint().is_valid(u'<p><div>coucou</div></p>'))
+
+    def test_prettyprint(self):
+        text = 'Hello everyone, this is   me speaking. And me.'
+        source = NerSourceLexicon({'everyone': 'http://example.com/everyone',
+                                   'me': 'http://example.com/me'})
+        ner = NerProcess((source,))
+        named_entities = ner.process_text(text)
+        html = HTMLPrettyPrint().pprint_text(text, named_entities)
+        self.assertEqual(html, (u'Hello <a href="http://example.com/everyone">everyone</a>, '
+                                u'this is   <a href="http://example.com/me">me</a> speaking. '
+                                u'And <a href="http://example.com/me">me</a>.'))
+
+    def test_prettyprint_class(self):
+        text = 'Hello everyone, this is   me speaking. And me.'
+        source = NerSourceLexicon({'everyone': 'http://example.com/everyone',
+                                   'me': 'http://example.com/me'})
+        ner = NerProcess((source,))
+        named_entities = ner.process_text(text)
+        html = HTMLPrettyPrint().pprint_text(text, named_entities, html_class='ner')
+        self.assertEqual(html, (u'Hello <a href="http://example.com/everyone" class="ner">everyone</a>, '
+                                u'this is   <a href="http://example.com/me" class="ner">me</a> speaking. '
+                                u'And <a href="http://example.com/me" class="ner">me</a>.'))
+
+
 class DataIOTestCase(unittest2.TestCase):
+
     def test_parser(self):
         data = parsefile(path.join(TESTDIR, 'data', 'file2parse'),
                          [0, (2, 3), 4, 1], delimiter=',')
@@ -82,6 +132,16 @@ class DataIOTestCase(unittest2.TestCase):
             with open(file2split) as fobj:
                 self.assertEqual(alllines, fobj.readlines())
 
+    def test_sparql_query(self):
+        results = sparqlquery(u'http://dbpedia.org/sparql',
+                              u'''SELECT DISTINCT ?uri
+                                  WHERE{
+                                  ?uri rdfs:label "Python"@en .
+                                  ?uri rdf:type ?type}''')
+        self.assertEqual(results, [['http://dbpedia.org/resource/Python'],
+                                   ['http://sw.opencyc.org/2008/06/10/concept/en/Python_ProgrammingLanguage'],
+                                   ['http://sw.opencyc.org/2008/06/10/concept/Mx4r74UIARqkEdac2QACs0uFOQ']])
+
     def test_sparql_autocast(self):
         alignset = sparqlquery('http://dbpedia.inria.fr/sparql',
                                  'prefix db-owl: <http://dbpedia.org/ontology/>'
@@ -113,6 +173,11 @@ class DataIOTestCase(unittest2.TestCase):
                                  '} LIMIT 100', indexes=[0, 1, (2, 3)], autocaste_data=False)
         self.assertEqual(len(alignset), 100)
         self.assertFalse(isinstance(alignset[0][2][0], float))
+
+    def test_rqlquery(self):
+        results = rqlquery('http://www.cubicweb.org',
+                           'Any U LIMIT 1 WHERE X cwuri U, X name "apycot"')
+        self.assertEqual(results, [[u'http://www.cubicweb.org/1310453']])
 
 
 if __name__ == '__main__':
