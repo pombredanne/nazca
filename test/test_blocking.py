@@ -23,11 +23,11 @@ random.seed(6) ### Make sure tests are repeatable / Minhashing
 
 from nazca.distances import (levenshtein, soundex, soundexcode,   \
                              jaccard, euclidean, geographical)
-from nazca.blocking import (KeyBlocking, SortedNeighborhoodBlocking,
-                            MergeBlocking,
-                            NGramBlocking, PipelineBlocking,
-                            SoundexBlocking, KmeansBlocking,
-                            MinHashingBlocking, KdTreeBlocking)
+from nazca.record_linkage.blocking import (KeyBlocking, SortedNeighborhoodBlocking,
+                                           MergeBlocking,
+                                           NGramBlocking, PipelineBlocking,
+                                           SoundexBlocking, KmeansBlocking,
+                                           MinHashingBlocking, KdTreeBlocking)
 from nazca.normalize import SimplifyNormalizer, loadlemmas
 
 

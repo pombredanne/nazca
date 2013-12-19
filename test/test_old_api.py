@@ -22,13 +22,13 @@ random.seed(6) ### Make sure tests are repeatable
 from os import path
 
 from nazca.normalize import loadlemmas, simplify
-from nazca.old_api import (normalize_set,
-                           findneighbours_clustering,
-                           findneighbours_kdtree,
-                           findneighbours_minhashing,
-                           align, subalign,
-                           conquer_and_divide_alignment,
-                           alignall, alignall_iterative)
+from nazca.record_linkage.old_api import (normalize_set,
+                                          findneighbours_clustering,
+                                          findneighbours_kdtree,
+                                          findneighbours_minhashing,
+                                          align, subalign,
+                                          conquer_and_divide_alignment,
+                                          alignall, alignall_iterative)
 
 
 TESTDIR = path.dirname(__file__)
