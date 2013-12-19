@@ -2,7 +2,7 @@
 """ Preprocessors for Named Entities Recognition.
 """
 from nazca.utils.tokenizer import Token
-from nazca.reference_data.stopwords import FRENCH_STOPWORDS, ENGLISH_STOPWORDS
+from nazca.data.stopwords import FRENCH_STOPWORDS, ENGLISH_STOPWORDS
 
 STOPWORDS = {'fr': FRENCH_STOPWORDS,
              'en': ENGLISH_STOPWORDS}

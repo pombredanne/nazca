@@ -18,7 +18,7 @@
 import unittest2
 
 from nazca.utils import tokenizer
-from nazca.named_entities import preprocessors
+from nazca.ner import preprocessors
 
 
 class PreprocessorTest(unittest2.TestCase):
