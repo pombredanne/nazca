@@ -1,140 +1,12 @@
 # -*- coding: utf-8 -*-
 """ Core functions for Named Entities Recognition.
 """
-from nerdy.tokenizer import RichStringTokenizer, Token
-from nerdy.dataio import sparql_query, rql_url_query, rql_appid_query
-from nerdy.stopwords import FRENCH_STOPWORDS, ENGLISH_STOPWORDS
+from nazca.utils.tokenizer import RichStringTokenizer, Token
+from nazca.utils.dataio import sparqlquery
+from nazca.reference_data.stopwords import FRENCH_STOPWORDS, ENGLISH_STOPWORDS
 
 STOPWORDS = {'fr': FRENCH_STOPWORDS,
              'en': ENGLISH_STOPWORDS}
-
-# XXX Add SQL source ?
-# XXX NER preprocessor
-
-###############################################################################
-### NER SOURCE ################################################################
-###############################################################################
-class AbstractNerdySource(object):
-    """ High-level source for Named Entities Recognition
-    """
-
-    def __init__(self, query, endpoint, name=None, use_cache=True, preprocessors=None):
-        """ Initialise the class.
-        """
-        self.query = query
-        self.endpoint = endpoint
-        self.name = name
-        self.preprocessors = preprocessors or []
-        self.use_cache = use_cache
-        self._recognized_cache = {}
-
-    def add_preprocessors(self, preprocessor):
-        """ Add a preprocessor
-        """
-        self.preprocessors.append(preprocessor)
-
-    def recognize_token(self, token):
-        """ Recognize a token
-        """
-        # Applies source specific preprocessors
-        for preprocessor in self.preprocessors:
-            token = preprocessor(token)
-            if not token:
-                return []
-        if self.use_cache and token.word in self._recognized_cache:
-            return self._recognized_cache[token.word]
-        uris = self.query_word(token.word) if token.word else []
-        if self.use_cache:
-            self._recognized_cache[token.word] = uris
-        return uris
-
-    def query_word(self, word):
-        """ Query a word for a Named Entities Recognition process
-        """
-        raise NotImplementedError
-
-
-class NerdySourceLexical(AbstractNerdySource):
-    """ Source based on a (pre-computed) dictionnary of words (token, uri)
-    """
-    def __init__(self, lexicon, name=None, use_cache=True, preprocessors=None):
-        self.lexicon = lexicon
-        self.name = name
-        self.preprocessors = preprocessors or []
-        self.use_cache = use_cache
-        self._recognized_cache = {}
-
-    def query_word(self, word):
-        uri = self.lexicon.get(word)
-        return [uri,] if uri else []
-
-
-class NerdySourceLocalRql(AbstractNerdySource):
-    """ High-level source for Named Entities Recognition
-    Local RQL version
-    """
-
-    def __init__(self, query, session, name=None, use_cache=True, preprocessors=None):
-        """ Initialise the class.
-        """
-        self.query = query
-        self.session = session
-        self.name = name
-        self.preprocessors = preprocessors or []
-        self.use_cache = use_cache
-        self._recognized_cache = {}
-
-    def query_word(self, word):
-        """ Query a word for a Named Entities Recognition process
-        """
-        return [r[0] for r in self.session.execute(self.query, dict(word=word))]
-
-
-class NerdySourceAppidRql(AbstractNerdySource):
-    """ High-level source for Named Entities Recognition
-    Appid RQL version
-    """
-
-    def query_word(self, word):
-        """ Query a word for a Named Entities Recognition process
-        """
-        return [r[0] for r in rql_appid_query(self.query, self.endpoint, word=word)]
-
-
-class NerdySourceUrlRql(AbstractNerdySource):
-    """ High-level source for Named Entities Recognition
-    Url RQL version
-    """
-
-    def query_word(self, word):
-        """ Query a word for a Named Entities Recognition process
-        """
-        return [r[0] for r in rql_url_query(self.query % {'word': word}, self.endpoint)]
-
-
-class NerdySourceSparql(AbstractNerdySource):
-    """ High-level source for Named Entities Recognition
-    SPARQL version
-
-   >>> from nerdy.core import NerdySourceSparql
-   >>> ner_source = NerdySourceSparql('''SELECT ?uri
-                                         WHERE{
-                                         ?uri rdfs:label "%(word)s"@en}''',
-			                 'http://dbpedia.org/sparql')
-   >>> print ner_source.recognize_token('Victor Hugo')
-		... ['http://dbpedia.org/resource/Category:Victor_Hugo',
-		     'http://dbpedia.org/resource/Victor_Hugo',
-		     'http://dbpedia.org/class/yago/VictorHugo',
-		     'http://dbpedia.org/class/yago/VictorHugo(ParisM%C3%A9tro)',
-		     'http://sw.opencyc.org/2008/06/10/concept/en/VictorHugo',
-		     'http://sw.opencyc.org/2008/06/10/concept/Mx4rve1ZXJwpEbGdrcN5Y29ycA']
-
-    """
-
-    def query_word(self, word):
-        """ Query a word for a Named Entities Recognition process
-        """
-        return [r['uri']['value'] for r in sparql_query(self.query % {'word': word}, self.endpoint)]
 
 
 ###############################################################################
@@ -261,7 +133,7 @@ class NerdyRDFTypeFilter(object):
                 if seen_uris[uri]:
                     filtered_named_entities.append((uri, p, t))
             else:
-                results = sparql_query(self.query % {'uri': uri}, self.endpoint)
+                results = sparqlquery(self.endpoint, self.query % {'uri': uri})
                 types = set([r['type']['value'] for r in results])
                 if not len(types.intersection(self.accepted_types)):
                     seen_uris[uri] = False
