@@ -61,7 +61,7 @@ MANUAL_UNICODE_MAP = {
 ###############################################################################
 ### NORMALIZE FUNCTIONS #######################################################
 ###############################################################################
-def unormalize(ustring, ignorenonascii=None, substitute=None):
+def unormalize(ustring, substitute=None):
     """replace diacritical characters with their corresponding ascii characters
 
     Convert the unicode string to its long normalized form (unicode character
@@ -75,12 +75,6 @@ def unormalize(ustring, ignorenonascii=None, substitute=None):
     :see: Another project about ASCII transliterations of Unicode text
           http://pypi.python.org/pypi/Unidecode
     """
-    # backward compatibility, ignorenonascii was a boolean
-    if ignorenonascii is not None:
-        warn("ignorenonascii is deprecated, use substitute named parameter instead",
-             DeprecationWarning, stacklevel=2)
-        if ignorenonascii:
-            substitute = ''
     res = []
     for letter in ustring[:]:
         try:
@@ -97,9 +91,9 @@ def unormalize(ustring, ignorenonascii=None, substitute=None):
         res.append(replacement)
     return u''.join(res)
 
-def lunormalize(sentence, ignorenonascii=None, substitute=None):
+def lunormalize(sentence, substitute=None):
     """ Normalize a sentence (ie remove accents, set to lower, etc) """
-    return unormalize(sentence, ignorenonascii, substitute).lower()
+    return unormalize(sentence,substitute).lower()
 
 def simplify(sentence, lemmas=None, remove_stopwords=True, stopwords=FRENCH_STOPWORDS):
     """ Simply the given sentence
@@ -291,8 +285,8 @@ class UnicodeNormalizer(BaseNormalizer):
     """ Normalizer that unormalize the unicode
     (i.e. replace accentuating characters by ASCII ones)
     """
-    def __init__(self, attr_index=None, ignorenonascii=None, substitute=None):
-        callback = partial(lunormalize, ignorenonascii=ignorenonascii, substitute=substitute)
+    def __init__(self, attr_index=None, substitute=None):
+        callback = partial(lunormalize, substitute=substitute)
         super(UnicodeNormalizer, self).__init__(callback, attr_index=attr_index)
 
 
