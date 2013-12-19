@@ -21,6 +21,8 @@ from os import path as osp
 import csv
 import urllib
 
+from lxml import etree
+
 try:
     from SPARQLWrapper import SPARQLWrapper, JSON
     SPARQL_ENABLED = True
@@ -50,20 +52,45 @@ def autocast(data, encoding=None):
 ###############################################################################
 ### RQL FUNCTIONS #############################################################
 ###############################################################################
-def rqlquery(host, rql, indexes=None, formatopt=None):
-    """ Run the rql query on the given cubicweb host
+def get_cw_cnx(endpoint):
+    """ Get a cnx on a CubicWeb database
     """
+    from cubicweb import dbapi
+    from cubicweb.cwconfig import CubicWebConfiguration
+    from cubicweb.entities import AnyEntity
+    CubicWebConfiguration.load_cwctl_plugins()
+    config = CubicWebConfiguration.config_for(endpoint)
+    sourceinfo = config.sources()['admin']
+    login = sourceinfo['login']
+    password = sourceinfo['password']
+    _, cnx = dbapi.in_memory_repo_cnx(config, login, password=password)
+    req = cnx.request()
+    return req
 
-    if host.endswith('/'):
-        host = host[:-1]
-
-    indexes = indexes or []
-    filehandle = urllib.urlopen('%(host)s/view?'
-                                'rql=%(rql)s&vid=csvexport'
-                                % {'rql': rql, 'host': host})
-    filehandle.readline()#Skip the first line
-    return parsefile(filehandle, delimiter=';', indexes=indexes,
-                     formatopt=formatopt);
+def rqlquery(host, rql, indexes=None, formatopt=None, _cache_cnx={}, **kwargs):
+    """ Run the rql query on the given cubicweb host
+    Additional arguments can be passed to be properly substitued
+    in the execute() function for appid accces.
+    """
+    if host.startswith('http://'):
+        # By url
+        if host.endswith('/'):
+            host = host[:-1]
+        indexes = indexes or []
+        filehandle = urllib.urlopen('%(host)s/view?'
+                                    'rql=%(rql)s&vid=csvexport'
+                                    % {'rql': rql, 'host': host})
+        filehandle.readline()#Skip the first line
+        return parsefile(filehandle, delimiter=';', indexes=indexes,
+                         formatopt=formatopt);
+    else:
+        # By appid
+        if host in _cache_cnx:
+            cnx = _cache_cnx[host]
+        else:
+            cnx = get_cw_cnx(host)
+            _cache_cnx[host] = cnx
+        return cnx.execute(query, kwargs)
 
 
 ###############################################################################
@@ -222,3 +249,73 @@ def split_file(filename, outputdir, nblines=60000):
         outfile.close()
         count += 1
     return map(str, xrange(count))
+
+
+###############################################################################
+### OUTPUT UTILITIES ##########################################################
+###############################################################################
+class AbstractPrettyPrint(object):
+    """ Pretty print the output of a named entities process
+    """
+
+    def pprint_text(self, text, named_entities, **kwargs):
+        newtext = u''
+        indice = 0
+        tindices = dict([(t.start, (uri, t)) for uri, p, t in named_entities])
+        while indice < len(text):
+            if indice in tindices:
+                uri, t = tindices[indice]
+                words = text[t.start:t.end]
+                fragment = self.pprint_entity(uri, words, **kwargs)
+                if not self.is_valid(newtext+fragment+text[t.end:]):
+                    fragment = words
+                newtext += fragment
+                indice = t.end
+            else:
+                newtext += text[indice]
+                indice += 1
+        return newtext
+
+    def pprint_entity(self, uri, word, **kwargs):
+        """ Pretty print an entity """
+        raise NotImplementedError
+
+    def is_valid(self, newtext):
+        """Override to check the validity of the prettified content at each
+        enrichement step"""
+        return True
+
+
+class HTMLPrettyPrint(AbstractPrettyPrint):
+    """ Pretty print the output of a named entities process, in HTML
+    """
+
+    def pprint_entity(self, uri, word, **kwargs):
+        """ Pretty print an entity """
+        klass = ' class="%s"' % kwargs['html_class'] if 'html_class' in kwargs else ''
+        return u'<a href="%s"%s>%s</a>' % (uri, klass, word)
+
+
+class ValidXHTMLPrettyPrint(HTMLPrettyPrint):
+    """ Pretty print the output of a named entities process,
+    in valid XHTML.
+    """
+
+    XHTML_DOC_TEMPLATE = '''\
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+<title>ner</title>
+</head>
+<body><div>%s</div></body>
+</html>'''
+
+    def is_valid(self, html):
+        try:
+            etree.fromstring(self.XHTML_DOC_TEMPLATE % html.encode('utf-8'),
+                          parser=etree.XMLParser(dtd_validation=True))
+        except etree.XMLSyntaxError:
+            return False
+        return True
