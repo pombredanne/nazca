@@ -21,7 +21,7 @@ from collections import defaultdict
 from scipy import zeros
 from scipy.sparse import lil_matrix
 
-from nazca.dataio import parsefile
+from nazca.utils.dataio import parsefile
 
 
 ###############################################################################

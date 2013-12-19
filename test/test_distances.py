@@ -21,9 +21,9 @@ import random
 random.seed(6) ### Make sure tests are repeatable
 from dateutil import parser as dateparser
 
-from nazca.distances import (levenshtein, soundex, soundexcode,\
-                             jaccard, euclidean, geographical,
-                             LevenshteinProcessing)
+from nazca.utils.distances import (levenshtein, soundex, soundexcode,
+                                   jaccard, euclidean, geographical,
+                                   LevenshteinProcessing)
 
 
 class DistancesTest(unittest2.TestCase):

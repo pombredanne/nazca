@@ -23,7 +23,7 @@ from collections import defaultdict
 import numpy as np
 from scipy.optimize import bisect
 
-from nazca.normalize import iter_wordgrams
+from nazca.utils.normalize import iter_wordgrams
 
 
 def randomhashfunction(zr):

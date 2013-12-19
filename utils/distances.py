@@ -24,7 +24,7 @@ except ImportError:
     DATEUTIL_ENABLED = False
 from scipy import matrix, empty
 
-from nazca.normalize import tokenize
+from nazca.utils.normalize import tokenize
 
 
 ###############################################################################

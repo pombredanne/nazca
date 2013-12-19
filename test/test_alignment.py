@@ -21,10 +21,10 @@ import random
 random.seed(6) ### Make sure tests are repeatable
 from os import path
 
-from nazca.normalize import simplify
+from nazca.utils.normalize import simplify
 import nazca.record_linkage.aligner as alig
 import nazca.record_linkage.blocking as blo
-from nazca.distances import LevenshteinProcessing, GeographicalProcessing
+from nazca.utils.distances import LevenshteinProcessing, GeographicalProcessing
 
 
 TESTDIR = path.dirname(__file__)

@@ -22,7 +22,7 @@ from contextlib import contextmanager
 from os import path
 from tempfile import mkdtemp
 
-from nazca.dataio import sparqlquery, parsefile, autocast, split_file
+from nazca.utils.dataio import sparqlquery, parsefile, autocast, split_file
 
 
 TESTDIR = path.dirname(__file__)

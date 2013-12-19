@@ -32,8 +32,8 @@ import warnings
 
 from scipy.spatial import KDTree
 
-from nazca.minhashing import Minlsh
-from nazca.distances import soundexcode
+from nazca.utils.minhashing import Minlsh
+from nazca.utils.distances import soundexcode
 
 
 ###############################################################################
