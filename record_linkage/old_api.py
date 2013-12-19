@@ -28,9 +28,9 @@ from scipy.sparse import lil_matrix
 
 from nazca.dataio import write_results, split_file, parsefile
 from nazca.normalize import BaseNormalizer, NormalizerPipeline
-from nazca.blocking import KmeansBlocking, KdTreeBlocking, MinHashingBlocking
 from nazca.distances import GeographicalProcessing
-from nazca.aligner import BaseAligner
+from nazca.record_linkage.aligner import BaseAligner
+from nazca.record_linkage.blocking import KmeansBlocking, KdTreeBlocking, MinHashingBlocking
 
 
 # Backward compatibility. Now, use the BaseAligner inside the functions.
