@@ -28,7 +28,8 @@ from nazca.rl.blocking import (KeyBlocking, SortedNeighborhoodBlocking,
                                NGramBlocking, PipelineBlocking,
                                SoundexBlocking, KmeansBlocking,
                                MinHashingBlocking, KdTreeBlocking)
-from nazca.utils.normalize import SimplifyNormalizer, loadlemmas
+from nazca.utils.normalize import SimplifyNormalizer
+from nazca.data.lemmas import FRENCH_LEMMAS
 
 
 TESTDIR = path.dirname(__file__)
@@ -313,8 +314,7 @@ class MinHashingBlockingTest(unittest2.TestCase):
                      ['T2', 'labelt2', u"Je les ai vus ensemble à plusieurs occasions."],
                      ['T3', 'labelt3', u"J'aime les bandes dessinées de genre comiques."],
                      ]
-        lemmas = loadlemmas(path.join(TESTDIR, 'data', 'french_lemmas.txt'))
-        normalizer = SimplifyNormalizer(attr_index=2, lemmas=lemmas)
+        normalizer = SimplifyNormalizer(attr_index=2, lemmas=FRENCH_LEMMAS)
         refset = normalizer.normalize_dataset(refset)
         targetset = normalizer.normalize_dataset(targetset)
         blocking = MinHashingBlocking(threshold=0.4, ref_attr_index=2, target_attr_index=2)
