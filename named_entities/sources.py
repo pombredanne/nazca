@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-""" Core functions for Named Entities Recognition.
+""" Sources for Named Entities Recognition.
 """
 from nazca.utils.tokenizer import Token
 from nazca.utils.dataio import sparqlquery, rqlquery
@@ -103,7 +103,7 @@ class NerSourceSparql(AbstractNerSource):
     """ High-level source for Named Entities Recognition
     SPARQL version
 
-   >>> from nerdy.core import NerSourceSparql
+   >>> from ner.core import NerSourceSparql
    >>> ner_source = NerSourceSparql('''SELECT ?uri
                                          WHERE{
                                          ?uri rdfs:label "%(word)s"@en}''',
@@ -121,4 +121,4 @@ class NerSourceSparql(AbstractNerSource):
     def query_word(self, word):
         """ Query a word for a Named Entities Recognition process
         """
-        return [r['uri']['value'] for r in sparqlquery(self.endpoint, self.query % {'word': word})]
+        return [r[0] for r in sparqlquery(self.endpoint, self.query % {'word': word})]

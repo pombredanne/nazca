@@ -17,8 +17,9 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 import unittest2
 
-from nerdy import core
-from nerdy.tokenizer import Token, Sentence
+from nazca.named_entities import named_entities as core, filters
+from nazca.named_entities.sources import NerSourceLexicon
+from nazca.utils.tokenizer import Token, Sentence
 
 
 class FilterTest(unittest2.TestCase):
@@ -27,12 +28,12 @@ class FilterTest(unittest2.TestCase):
     def test_occurence_filter_min_occ(self):
         """ Test occurence filter """
         text = 'Hello everyone, this is   me speaking. And me.'
-        source1 = core.NerdySourceLexical({'everyone': 'http://example.com/everyone',
-                                          'me': 'http://example.com/me'})
-        source2 = core.NerdySourceLexical({'me': 'http://example2.com/me'})
-        _filter = core.NerdyOccurenceFilter(min_occ=2)
-        nerdy = core.NerdyProcess((source1, source2), filters=(_filter,))
-        named_entities = nerdy.process_text(text)
+        source1 = NerSourceLexicon({'everyone': 'http://example.com/everyone',
+                                    'me': 'http://example.com/me'})
+        source2 = NerSourceLexicon({'me': 'http://example2.com/me'})
+        _filter = filters.NerOccurenceFilter(min_occ=2)
+        ner = core.NerProcess((source1, source2), filters=(_filter,))
+        named_entities = ner.process_text(text)
         self.assertEqual(named_entities,
                          [('http://example.com/me', None,
                            Token(word='me', start=26, end=28,
@@ -50,12 +51,12 @@ class FilterTest(unittest2.TestCase):
     def test_occurence_filter_max_occ(self):
         """ Test occurence filter """
         text = 'Hello everyone, this is   me speaking. And me.'
-        source1 = core.NerdySourceLexical({'everyone': 'http://example.com/everyone',
-                                          'me': 'http://example.com/me'})
-        source2 = core.NerdySourceLexical({'me': 'http://example2.com/me'})
-        _filter = core.NerdyOccurenceFilter(max_occ=1)
-        nerdy = core.NerdyProcess((source1, source2), filters=(_filter,))
-        named_entities = nerdy.process_text(text)
+        source1 = NerSourceLexicon({'everyone': 'http://example.com/everyone',
+                                    'me': 'http://example.com/me'})
+        source2 = NerSourceLexicon({'me': 'http://example2.com/me'})
+        _filter = filters.NerOccurenceFilter(max_occ=1)
+        ner = core.NerProcess((source1, source2), filters=(_filter,))
+        named_entities = ner.process_text(text)
         self.assertEqual(named_entities,
                          [('http://example.com/everyone', None,
                            Token(word='everyone', start=6, end=14,
@@ -64,11 +65,11 @@ class FilterTest(unittest2.TestCase):
     def test_disambiguation_word_length(self):
         """ Test occurence filter """
         text = 'Hello toto tutu. And toto.'
-        source = core.NerdySourceLexical({'toto tutu': 'http://example.com/toto_tutu',
-                                          'toto': 'http://example.com/toto'})
-        _filter = core.NerdyDisambiguationWordParts()
-        nerdy = core.NerdyProcess((source,), filters=(_filter,))
-        named_entities = nerdy.process_text(text)
+        source = NerSourceLexicon({'toto tutu': 'http://example.com/toto_tutu',
+                                   'toto': 'http://example.com/toto'})
+        _filter = filters.NerDisambiguationWordParts()
+        ner = core.NerProcess((source,), filters=(_filter,))
+        named_entities = ner.process_text(text)
         self.assertEqual(named_entities,
                          [('http://example.com/toto_tutu', None,
                            Token(word='toto tutu', start=6, end=15,
@@ -80,12 +81,12 @@ class FilterTest(unittest2.TestCase):
     def test_rules_filter(self):
         """ Test rules filter """
         text = 'Hello toto tutu. And toto.'
-        source = core.NerdySourceLexical({'toto tutu': 'http://example.com/toto_tutu',
-                                          'toto': 'http://example.com/toto'})
+        source = NerSourceLexicon({'toto tutu': 'http://example.com/toto_tutu',
+                                   'toto': 'http://example.com/toto'})
         rules = {'http://example.com/toto': 'http://example.com/tata'}
-        _filter = core.NerdyReplacementRulesFilter(rules)
-        nerdy = core.NerdyProcess((source,), filters=(_filter,))
-        named_entities = nerdy.process_text(text)
+        _filter = filters.NerReplacementRulesFilter(rules)
+        ner = core.NerProcess((source,), filters=(_filter,))
+        named_entities = ner.process_text(text)
         self.assertEqual(named_entities,
                          [('http://example.com/toto_tutu', None,
                            Token(word='toto tutu', start=6, end=15,

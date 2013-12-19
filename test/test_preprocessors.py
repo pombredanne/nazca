@@ -17,14 +17,15 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 import unittest2
 
-from nerdy import core, tokenizer
+from nazca.utils import tokenizer
+from nazca.named_entities import preprocessors
 
 
 class PreprocessorTest(unittest2.TestCase):
     """ Test of preprocessors """
 
     def test_lowercasefilter(self):
-        preprocessor = core.NerdyLowerCaseFilterPreprocessor()
+        preprocessor = preprocessors.NerLowerCaseFilterPreprocessor()
         token = tokenizer.Token('toto', 0, 4, None)
         self.assertEqual(preprocessor(token), None)
         token = tokenizer.Token('toto Tata', 0, 4, None)
@@ -33,22 +34,22 @@ class PreprocessorTest(unittest2.TestCase):
         self.assertEqual(preprocessor(token), None)
 
     def test_wordsizefilter(self):
-        preprocessor = core.NerdyWordSizeFilterPreprocessor()
+        preprocessor = preprocessors.NerWordSizeFilterPreprocessor()
         token = tokenizer.Token('toto', 0, 4, None)
         self.assertEqual(preprocessor(token), token)
-        preprocessor = core.NerdyWordSizeFilterPreprocessor(min_size=3)
+        preprocessor = preprocessors.NerWordSizeFilterPreprocessor(min_size=3)
         token = tokenizer.Token('toto', 0, 4, None)
         self.assertEqual(preprocessor(token), token)
         token = tokenizer.Token('to', 0, 4, None)
         self.assertEqual(preprocessor(token), None)
-        preprocessor = core.NerdyWordSizeFilterPreprocessor(max_size=3)
+        preprocessor = preprocessors.NerWordSizeFilterPreprocessor(max_size=3)
         token = tokenizer.Token('toto', 0, 4, None)
         self.assertEqual(preprocessor(token), None)
         token = tokenizer.Token('to', 0, 4, None)
         self.assertEqual(preprocessor(token), token)
 
     def test_lowerfirstword(self):
-        preprocessor = core.NerdyLowerFirstWordPreprocessor()
+        preprocessor = preprocessors.NerLowerFirstWordPreprocessor()
         sentence = tokenizer.Sentence(0, 0, 20)
         # Start of the sentence
         token1 = tokenizer.Token('Toto tata', 0, 4, sentence)
@@ -66,7 +67,7 @@ class PreprocessorTest(unittest2.TestCase):
         self.assertEqual(preprocessor(token1), token2)
 
     def test_stopwordsfilter(self):
-        preprocessor = core.NerdyStopwordsFilterPreprocessor()
+        preprocessor = preprocessors.NerStopwordsFilterPreprocessor()
         token = tokenizer.Token('Toto', 0, 4, None)
         self.assertEqual(preprocessor(token), token)
         token = tokenizer.Token('Us', 0, 4, None)
@@ -74,14 +75,14 @@ class PreprocessorTest(unittest2.TestCase):
         token = tokenizer.Token('Us there', 0, 4, None)
         self.assertEqual(preprocessor(token), token)
         # Split words
-        preprocessor = core.NerdyStopwordsFilterPreprocessor(split_words=True)
+        preprocessor = preprocessors.NerStopwordsFilterPreprocessor(split_words=True)
         token = tokenizer.Token('Us there', 0, 4, None)
         self.assertEqual(preprocessor(token), None)
         token = tokenizer.Token('Us there toto', 0, 4, None)
         self.assertEqual(preprocessor(token), token)
 
     def test_hashtag(self):
-        preprocessor = core.NerdyHashTagPreprocessor()
+        preprocessor = preprocessors.NerHashTagPreprocessor()
         token = tokenizer.Token('Toto', 0, 4, None)
         self.assertEqual(preprocessor(token), token)
         token1 = tokenizer.Token('@BarackObama', 0, 4, None)
