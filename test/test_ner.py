@@ -17,12 +17,12 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 import unittest2
 
-from nazca.named_entities.sources import (NerSourceLexicon,
+from nazca.ner.sources import (NerSourceLexicon,
                                           NerSourceSparql,
                                           NerSourceRql)
-from nazca.named_entities import NerProcess
+from nazca.ner import NerProcess
 from nazca.utils.tokenizer import Token, Sentence
-from nazca.named_entities.preprocessors import NerStopwordsFilterPreprocessor
+from nazca.ner.preprocessors import NerStopwordsFilterPreprocessor
 
 
 class NerTest(unittest2.TestCase):

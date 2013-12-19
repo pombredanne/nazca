@@ -17,8 +17,11 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 import unittest2
 
-from nazca.named_entities import named_entities as core, filters
-from nazca.named_entities.sources import NerSourceLexicon
+from nazca.ner import NerProcess
+from nazca.ner.filters import (NerOccurenceFilter,
+                               NerReplacementRulesFilter,
+                               NerDisambiguationWordParts)
+from nazca.ner.sources import NerSourceLexicon
 from nazca.utils.tokenizer import Token, Sentence
 
 
@@ -31,8 +34,8 @@ class FilterTest(unittest2.TestCase):
         source1 = NerSourceLexicon({'everyone': 'http://example.com/everyone',
                                     'me': 'http://example.com/me'})
         source2 = NerSourceLexicon({'me': 'http://example2.com/me'})
-        _filter = filters.NerOccurenceFilter(min_occ=2)
-        ner = core.NerProcess((source1, source2), filters=(_filter,))
+        _filter = NerOccurenceFilter(min_occ=2)
+        ner = NerProcess((source1, source2), filters=(_filter,))
         named_entities = ner.process_text(text)
         self.assertEqual(named_entities,
                          [('http://example.com/me', None,
@@ -54,8 +57,8 @@ class FilterTest(unittest2.TestCase):
         source1 = NerSourceLexicon({'everyone': 'http://example.com/everyone',
                                     'me': 'http://example.com/me'})
         source2 = NerSourceLexicon({'me': 'http://example2.com/me'})
-        _filter = filters.NerOccurenceFilter(max_occ=1)
-        ner = core.NerProcess((source1, source2), filters=(_filter,))
+        _filter = NerOccurenceFilter(max_occ=1)
+        ner = NerProcess((source1, source2), filters=(_filter,))
         named_entities = ner.process_text(text)
         self.assertEqual(named_entities,
                          [('http://example.com/everyone', None,
@@ -67,8 +70,8 @@ class FilterTest(unittest2.TestCase):
         text = 'Hello toto tutu. And toto.'
         source = NerSourceLexicon({'toto tutu': 'http://example.com/toto_tutu',
                                    'toto': 'http://example.com/toto'})
-        _filter = filters.NerDisambiguationWordParts()
-        ner = core.NerProcess((source,), filters=(_filter,))
+        _filter = NerDisambiguationWordParts()
+        ner = NerProcess((source,), filters=(_filter,))
         named_entities = ner.process_text(text)
         self.assertEqual(named_entities,
                          [('http://example.com/toto_tutu', None,
@@ -84,8 +87,8 @@ class FilterTest(unittest2.TestCase):
         source = NerSourceLexicon({'toto tutu': 'http://example.com/toto_tutu',
                                    'toto': 'http://example.com/toto'})
         rules = {'http://example.com/toto': 'http://example.com/tata'}
-        _filter = filters.NerReplacementRulesFilter(rules)
-        ner = core.NerProcess((source,), filters=(_filter,))
+        _filter = NerReplacementRulesFilter(rules)
+        ner = NerProcess((source,), filters=(_filter,))
         named_entities = ner.process_text(text)
         self.assertEqual(named_entities,
                          [('http://example.com/toto_tutu', None,

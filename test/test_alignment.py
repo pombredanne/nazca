@@ -22,8 +22,8 @@ random.seed(6) ### Make sure tests are repeatable
 from os import path
 
 from nazca.utils.normalize import simplify
-import nazca.record_linkage.aligner as alig
-import nazca.record_linkage.blocking as blo
+import nazca.rl.aligner as alig
+import nazca.rl.blocking as blo
 from nazca.utils.distances import LevenshteinProcessing, GeographicalProcessing
 
 

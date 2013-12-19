@@ -25,8 +25,8 @@ from tempfile import mkdtemp
 from nazca.utils.dataio import (HTMLPrettyPrint, ValidXHTMLPrettyPrint,
                                 sparqlquery, rqlquery, parsefile,
                                 autocast, split_file)
-from nazca.named_entities import NerProcess
-from nazca.named_entities.sources import NerSourceLexicon
+from nazca.ner import NerProcess
+from nazca.ner.sources import NerSourceLexicon
 
 TESTDIR = path.dirname(__file__)
 
