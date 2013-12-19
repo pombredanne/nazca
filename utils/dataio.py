@@ -103,7 +103,6 @@ def sparqlquery(endpoint, query, indexes=None, autocaste_data=True):
     if not SPARQL_ENABLED:
         raise ImportError("You have to install SPARQLWrapper and JSON modules to"
                           "used this function")
-
     sparql = SPARQLWrapper(endpoint)
     sparql.setQuery(query)
     sparql.setReturnFormat(JSON)

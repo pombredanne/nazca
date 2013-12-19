@@ -17,18 +17,21 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 import unittest2
 
-from nerdy import core
-from nerdy.tokenizer import Token, Sentence
+from nazca.named_entities.sources import (NerSourceLexicon,
+                                          NerSourceSparql,
+                                          NerSourceRql)
+from nazca.named_entities import named_entities as core
+from nazca.utils.tokenizer import Token, Sentence
 
 
 class CoreTest(unittest2.TestCase):
     """ Test of core """
 
-    def test_lexical_source(self):
-        """ Test lexical source """
+    def test_lexicon_source(self):
+        """ Test lexicon source """
         lexicon = {'everyone': 'http://example.com/everyone',
                    'me': 'http://example.com/me'}
-        source = core.NerdySourceLexical(lexicon)
+        source = NerSourceLexicon(lexicon)
         self.assertEqual(source.query_word('me'), ['http://example.com/me',])
         self.assertEqual(source.query_word('everyone'), ['http://example.com/everyone',])
         self.assertEqual(source.query_word('me everyone'), [])
@@ -41,17 +44,17 @@ class CoreTest(unittest2.TestCase):
 
     def test_rql_source(self):
         """ Test rql source """
-        source = core.NerdySourceUrlRql('Any U LIMIT 1 WHERE X cwuri U, X name "%(word)s"',
-                                       'http://www.cubicweb.org')
+        source = NerSourceRql('http://www.cubicweb.org',
+                              'Any U LIMIT 1 WHERE X cwuri U, X name "%(word)s"')
         self.assertEqual(source.query_word('apycot'), [u'http://www.cubicweb.org/1310453',])
 
     def test_sparql_source(self):
         """ Test sparql source """
-        source = core.NerdySourceSparql(u'''SELECT ?uri
-                                            WHERE{
-                                            ?uri rdfs:label "Python"@en .
-                                            ?uri rdf:type ?type}''',
-                                        u'http://dbpedia.org/sparql')
+        source = NerSourceSparql(u'http://dbpedia.org/sparql',
+                                 u'''SELECT ?uri
+                                     WHERE{
+                                     ?uri rdfs:label "Python"@en .
+                                     ?uri rdf:type ?type}''')
         self.assertEqual(source.query_word('cubicweb'),
                          [u'http://sw.opencyc.org/2008/06/10/concept/en/Python_ProgrammingLanguage',
                           u'http://sw.opencyc.org/2008/06/10/concept/Mx4r74UIARqkEdac2QACs0uFOQ'])
@@ -59,8 +62,8 @@ class CoreTest(unittest2.TestCase):
     def test_nerdy_process(self):
         """ Test nerdy process """
         text = 'Hello everyone, this is   me speaking. And me.'
-        source = core.NerdySourceLexical({'everyone': 'http://example.com/everyone',
-                                          'me': 'http://example.com/me'})
+        source = NerSourceLexicon({'everyone': 'http://example.com/everyone',
+                                   'me': 'http://example.com/me'})
         nerdy = core.NerdyProcess((source,))
         named_entities = nerdy.process_text(text)
         self.assertEqual(named_entities,
@@ -77,9 +80,9 @@ class CoreTest(unittest2.TestCase):
     def test_nerdy_process_multisources(self):
         """ Test nerdy process """
         text = 'Hello everyone, this is   me speaking. And me.'
-        source1 = core.NerdySourceLexical({'everyone': 'http://example.com/everyone',
-                                          'me': 'http://example.com/me'})
-        source2 = core.NerdySourceLexical({'me': 'http://example2.com/me'})
+        source1 = NerSourceLexicon({'everyone': 'http://example.com/everyone',
+                                    'me': 'http://example.com/me'})
+        source2 = NerSourceLexicon({'me': 'http://example2.com/me'})
         # Two sources, not unique
         nerdy = core.NerdyProcess((source1, source2))
         named_entities = nerdy.process_text(text)
@@ -129,9 +132,9 @@ class CoreTest(unittest2.TestCase):
     def test_nerdy_process_add_sources(self):
         """ Test nerdy process """
         text = 'Hello everyone, this is   me speaking. And me.'
-        source1 = core.NerdySourceLexical({'everyone': 'http://example.com/everyone',
-                                          'me': 'http://example.com/me'})
-        source2 = core.NerdySourceLexical({'me': 'http://example2.com/me'})
+        source1 = NerSourceLexicon({'everyone': 'http://example.com/everyone',
+                                    'me': 'http://example.com/me'})
+        source2 = NerSourceLexicon({'me': 'http://example2.com/me'})
         nerdy = core.NerdyProcess((source1,))
         named_entities = nerdy.process_text(text)
         self.assertEqual(named_entities,
@@ -167,8 +170,8 @@ class CoreTest(unittest2.TestCase):
     def test_nerdy_process_preprocess(self):
         """ Test nerdy process """
         text = 'Hello Toto, this is   me speaking. And me.'
-        source = core.NerdySourceLexical({'Toto': 'http://example.com/toto',
-                                          'me': 'http://example.com/me'})
+        source = NerSourceLexicon({'Toto': 'http://example.com/toto',
+                                   'me': 'http://example.com/me'})
         preprocessor = core.NerdyStopwordsFilterPreprocessor()
         nerdy = core.NerdyProcess((source,),
                                   preprocessors=(preprocessor,))
@@ -180,8 +183,8 @@ class CoreTest(unittest2.TestCase):
     def test_nerdy_process_add_preprocess(self):
         """ Test nerdy process """
         text = 'Hello Toto, this is   me speaking. And me.'
-        source = core.NerdySourceLexical({'Toto': 'http://example.com/toto',
-                                          'me': 'http://example.com/me'})
+        source = NerSourceLexicon({'Toto': 'http://example.com/toto',
+                                   'me': 'http://example.com/me'})
         preprocessor = core.NerdyStopwordsFilterPreprocessor()
         nerdy = core.NerdyProcess((source,),)
         named_entities = nerdy.process_text(text)
@@ -204,9 +207,9 @@ class CoreTest(unittest2.TestCase):
     def test_nerdy_process_chained_word(self):
         """ Test nerdy process """
         text = 'Hello everyone me, this is   me speaking. And me.'
-        source = core.NerdySourceLexical({'everyone': 'http://example.com/everyone',
-                                          'everyone me': 'http://example.com/everyone_me',
-                                          'me': 'http://example.com/me'})
+        source = NerSourceLexicon({'everyone': 'http://example.com/everyone',
+                                   'everyone me': 'http://example.com/everyone_me',
+                                   'me': 'http://example.com/me'})
         nerdy = core.NerdyProcess((source,))
         named_entities = nerdy.process_text(text)
         self.assertEqual(named_entities,

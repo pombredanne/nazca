@@ -17,7 +17,7 @@
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 import unittest2
 
-from nerdy.tokenizer import RichStringTokenizer, Token, Sentence
+from nazca.utils.tokenizer import RichStringTokenizer, Token, Sentence
 
 
 class TokenizerTest(unittest2.TestCase):
