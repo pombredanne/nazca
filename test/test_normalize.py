@@ -19,12 +19,12 @@
 import unittest2
 from os import path
 
-from nazca.normalize import (BaseNormalizer, UnicodeNormalizer, JoinNormalizer,
-                             SimplifyNormalizer, TokenizerNormalizer,
-                             LemmatizerNormalizer, RoundNormalizer,
-                             RegexpNormalizer, NormalizerPipeline,
-                             lunormalize, loadlemmas, lemmatized, \
-                             roundstr, rgxformat, tokenize, simplify)
+from nazca.utils.normalize import (BaseNormalizer, UnicodeNormalizer, JoinNormalizer,
+                                   SimplifyNormalizer, TokenizerNormalizer,
+                                   LemmatizerNormalizer, RoundNormalizer,
+                                   RegexpNormalizer, NormalizerPipeline,
+                                   lunormalize, loadlemmas, lemmatized,
+                                   roundstr, rgxformat, tokenize, simplify)
 
 
 TESTDIR = path.dirname(__file__)

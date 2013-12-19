@@ -21,14 +21,14 @@ from functools import partial
 import random
 random.seed(6) ### Make sure tests are repeatable / Minhashing
 
-from nazca.distances import (levenshtein, soundex, soundexcode,   \
-                             jaccard, euclidean, geographical)
+from nazca.utils.distances import (levenshtein, soundex, soundexcode,   \
+                                       jaccard, euclidean, geographical)
 from nazca.record_linkage.blocking import (KeyBlocking, SortedNeighborhoodBlocking,
                                            MergeBlocking,
                                            NGramBlocking, PipelineBlocking,
                                            SoundexBlocking, KmeansBlocking,
                                            MinHashingBlocking, KdTreeBlocking)
-from nazca.normalize import SimplifyNormalizer, loadlemmas
+from nazca.utils.normalize import SimplifyNormalizer, loadlemmas
 
 
 TESTDIR = path.dirname(__file__)

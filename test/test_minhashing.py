@@ -21,8 +21,8 @@ from os import path
 import random
 random.seed(6) ### Make sure tests are repeatable
 
-from nazca.normalize import loadlemmas, simplify
-from nazca.minhashing import Minlsh
+from nazca.utils.normalize import loadlemmas, simplify
+from nazca.utils.minhashing import Minlsh
 
 TESTDIR = path.dirname(__file__)
 
