@@ -23,16 +23,15 @@ from nazca.utils.normalize import (BaseNormalizer, UnicodeNormalizer, JoinNormal
                                    SimplifyNormalizer, TokenizerNormalizer,
                                    LemmatizerNormalizer, RoundNormalizer,
                                    RegexpNormalizer, NormalizerPipeline,
-                                   lunormalize, loadlemmas, lemmatized,
+                                   lunormalize, lemmatized,
                                    roundstr, rgxformat, tokenize, simplify)
+from nazca.data.lemmas import FRENCH_LEMMAS
 
 
 TESTDIR = path.dirname(__file__)
 
 
 class NormalizerFunctionTestCase(unittest2.TestCase):
-    def setUp(self):
-        self.lemmas = loadlemmas(path.join(TESTDIR, 'data', 'french_lemmas.txt'))
 
     def test_unormalize(self):
         self.assertEqual(lunormalize(u'bépoèàÀêùï'),
@@ -40,7 +39,7 @@ class NormalizerFunctionTestCase(unittest2.TestCase):
 
     def test_simplify(self):
         self.assertEqual(simplify(u"J'aime les frites, les pommes et les" \
-                                  u" scoubidous !", self.lemmas),
+                                  u" scoubidous !", FRENCH_LEMMAS),
                          u"aimer frites pomme scoubidou")
 
     def test_tokenize(self):
@@ -48,10 +47,10 @@ class NormalizerFunctionTestCase(unittest2.TestCase):
                          [u"J'", u'aime', u'les', u'frites', u'!',])
 
     def test_lemmatizer(self):
-        self.assertEqual(lemmatized(u'sacré rubert', self.lemmas), u'sacré rubert')
-        self.assertEqual(lemmatized(u"J'aime les frites !", self.lemmas),
+        self.assertEqual(lemmatized(u'sacré rubert', FRENCH_LEMMAS), u'sacré rubert')
+        self.assertEqual(lemmatized(u"J'aime les frites !", FRENCH_LEMMAS),
                          u'je aimer le frite')
-        self.assertEqual(lemmatized(u", J'aime les frites", self.lemmas),
+        self.assertEqual(lemmatized(u", J'aime les frites", FRENCH_LEMMAS),
                          u'je aimer le frite')
 
     def test_round(self):
@@ -75,8 +74,6 @@ class NormalizerFunctionTestCase(unittest2.TestCase):
 
 
 class NormalizerObjectTestCase(unittest2.TestCase):
-    def setUp(self):
-        self.lemmas = loadlemmas(path.join(TESTDIR, 'data', 'french_lemmas.txt'))
 
     def test_normalizer(self):
         normalizer = BaseNormalizer(lunormalize)
@@ -110,12 +107,12 @@ class NormalizerObjectTestCase(unittest2.TestCase):
         self.assertEqual(['a1',u'bepoeaaeui'], normalizer.normalize(record))
 
     def test_simplify(self):
-        normalizer = SimplifyNormalizer(lemmas=self.lemmas)
+        normalizer = SimplifyNormalizer(lemmas=FRENCH_LEMMAS)
         self.assertEqual(normalizer.normalize(u"J'aime les frites, les pommes et les scoubidous !")
                          , u"aimer frites pomme scoubidou")
 
     def test_simplify_record(self):
-        normalizer = SimplifyNormalizer(attr_index=1, lemmas=self.lemmas)
+        normalizer = SimplifyNormalizer(attr_index=1, lemmas=FRENCH_LEMMAS)
         self.assertEqual(['a1', u"aimer frites pomme scoubidou"],
                          normalizer.normalize(['a1', u"J'aime les frites, les pommes "
                                                "et les scoubidous !"]))
@@ -131,13 +128,13 @@ class NormalizerObjectTestCase(unittest2.TestCase):
                          normalizer.normalize(['a1', u"J'aime les frites !"]))
 
     def test_lemmatizer(self):
-        normalizer = LemmatizerNormalizer(self.lemmas)
+        normalizer = LemmatizerNormalizer(FRENCH_LEMMAS)
         self.assertEqual(normalizer.normalize(u'sacré rubert'), u'sacré rubert')
         self.assertEqual(normalizer.normalize(u"J'aime les frites !"), u'je aimer le frite')
         self.assertEqual(normalizer.normalize(u", J'aime les frites"), u'je aimer le frite')
 
     def test_lemmatizer_record(self):
-        normalizer = LemmatizerNormalizer(self.lemmas, attr_index=1)
+        normalizer = LemmatizerNormalizer(FRENCH_LEMMAS, attr_index=1)
         self.assertEqual(['a1', u'sacré rubert'],
                          normalizer.normalize(['a1', u'sacré rubert']))
         self.assertEqual(['a1', u'je aimer le frite'],

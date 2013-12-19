@@ -21,8 +21,9 @@ from os import path
 import random
 random.seed(6) ### Make sure tests are repeatable
 
-from nazca.utils.normalize import loadlemmas, simplify
+from nazca.utils.normalize import simplify
 from nazca.utils.minhashing import Minlsh
+from nazca.data.lemmas import FRENCH_LEMMAS
 
 TESTDIR = path.dirname(__file__)
 
@@ -39,9 +40,8 @@ class MinLSHTest(unittest2.TestCase):
                      u"Je les ai vus ensemble à plusieurs occasions.",
                     ]
         minlsh = Minlsh()
-        lemmas = loadlemmas(path.join(TESTDIR, 'data', 'french_lemmas.txt'))
         # XXX Should works independantly of the seed. Unstability due to the bands number ?
-        minlsh.train((simplify(s, lemmas, remove_stopwords=True) for s in sentences), 1, 200)
+        minlsh.train((simplify(s, FRENCH_LEMMAS, remove_stopwords=True) for s in sentences), 1, 200)
         self.assertEqual(set([(0, 1), (2, 3), (5,6)]), minlsh.predict(0.4))
 
 
