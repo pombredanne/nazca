@@ -10,8 +10,12 @@ In particular, it helps you:
 
  * interact with SPARQL endpoints and reference databases.
 
- * align your data (`record linkage`), i.e. link data from
-   your database to data in other databases.
+ * align your data (`record linkage` or `rl`), i.e. link data from
+   your database to data in other databases;
+
+ * contextualize your data by finding reference entities in your text corpus
+   (`named entities recognition` or `ner`);
+
 
 
 Record linkage
@@ -30,7 +34,7 @@ This library provides you all the stuff we need to do it.
 
 
 Introduction
-~~~~~~~~~~~~
+------------
 
 The record linkage process is divided into three main steps:
 
@@ -47,7 +51,7 @@ The record linkage process is divided into three main steps:
 
 
 Simple case
-~~~~~~~~~~~
+-----------
 
 1. Let's define `referenceset` and `targetset` as simple python lists.
 
@@ -105,15 +109,15 @@ nested lists. See the following example:
 In such a case, two distance functions are used, the Levenshtein one for the
 name and the city and a temporal one for the birth date [#]_.
 
-.. [#] Provided in the `nazca.distances` module.
+.. [#] Provided in the `nazca.utils.distances` module.
 
 
-The :func:`cdist` function of `nazca.distances` enables us to compute those
+The :func:`cdist` function of `nazca.utils.distances` enables us to compute those
 matrices :
 
 .. sourcecode:: python
 
-    >>> from nazca.distances import levenshtein, cdist
+    >>> from nazca.utils.distances import levenshtein, cdist
     >>> cdist(levenshtein,[a[0] for a in referenceset],
     >>>       [t[0] for t in targetset], matrix_normalized=False)
     array([[ 1.,  6.,  5.,  0.],
@@ -132,7 +136,7 @@ matrices :
 
 .. sourcecode:: python
 
-    >>> from nazca.distances import temporal
+    >>> from nazca.utils.distances import temporal
     >>> cdist(temporal, [a[1] for a in referenceset], [t[1] for t in targetset],
     >>>       matrix_normalized=False)
     array([[     0.,  40294.,   2702.,   7780.],
@@ -235,6 +239,7 @@ This is told to python thanks to the following code:
 .. sourcecode:: python
 
    >>> import os.path as osp
+   >>> from nazca.utils.dataio import parsefile
    >>> from nazca import examples
    >>> filename = osp.join(osp.split(examples.__file__)[0], 'goncourt.csv')
    >>> referenceset = parsefile(filename, delimiter='\t')
@@ -254,8 +259,8 @@ end-point:
 
 .. sourcecode:: python
 
-   >>> from nazca.dataio import sparqlquery
-   >>> query = """SELECT ?writer, ?name WHERE {
+   >>> from nazca.utils.dataio import sparqlquery
+   >>> query = """SELECT DISTINCT ?writer, ?name WHERE {
    ?writer  <http://purl.org/dc/terms/subject> <http://dbpedia.org/resource/Category:French_novelists>.
    ?writer rdfs:label ?name.
    FILTER(lang(?name) = 'fr')
@@ -270,21 +275,21 @@ This is done thanks to a the `BaseProcessing` class::
 
 .. sourcecode:: python
 
-   >>> from nazca.distances import BaseProcessing, levenshtein
+   >>> from nazca.utils.distances import BaseProcessing, levenshtein
    >>> processing = BaseProcessing(ref_attr_index=1, target_attr_index=1, distance_callback=levenshtein)
 
 or (equivalent way)::
 
 .. sourcecode:: python
 
-   >>> from nazca.distances import LevenshteinProcessing
+   >>> from nazca.utils.distances import LevenshteinProcessing
    >>> processing = LevenshteinProcessing(ref_attr_index=1, target_attr_index=1)
 
 Now, we create an aligner (using the `BaseAligner` class):
 
 .. sourcecode:: python
 
-   >>> from nazca.aligner import BaseAligner
+   >>> from nazca.rl.aligner import BaseAligner
    >>> aligner = BaseAligner(threshold=0, processings=(processing,))
 
 
@@ -292,7 +297,7 @@ To limit the number of comparisons we may add a blocking technic:
 
 .. sourcecode:: python
 
-   >>> from nazca.blocking import SortedNeighborhoodBlocking
+   >>> from nazca.rl.blocking import SortedNeighborhoodBlocking
    >>> aligner.register_blocking(SortedNeighborhoodBlocking(1, 1, window_width=4))
 
 
@@ -315,7 +320,7 @@ be the :func:`simplify` function (see the docstring for more information).
 .. sourcecode:: python
 
 
-   >>> from nazca.normalize import SimplifyNormalizer
+   >>> from nazca.utils.normalize import SimplifyNormalizer
    >>> aligner.register_ref_normalizer(SimplifyNormalizer(attr_index=1))
 
 
@@ -338,7 +343,7 @@ This is done by the following python code:
 
 .. sourcecode:: python
 
-   >>> from nazca.dataio import sparqlquery, rqlquery
+   >>> from nazca.utils.dataio import sparqlquery, rqlquery
    >>> referenceset = sparqlquery('http://dbpedia.inria.fr/sparql',
 		'prefix db-owl: <http://dbpedia.org/ontology/>'
 		'prefix db-prop: <http://fr.dbpedia.org/property/>'
@@ -359,13 +364,13 @@ This is done by the following python code:
 		' feature_class "P", X cwuri U',
 		indexes=[0, 1, (2, 3)])
 
-   >>> from nazca.distances import BaseProcessing, levenshtein
+   >>> from nazca.utils.distances import BaseProcessing, levenshtein
    >>> processing = BaseProcessing(ref_attr_index=1, target_attr_index=1, distance_callback=levenshtein)
 
-   >>> from nazca.aligner import BaseAligner
+   >>> from nazca.rl.aligner import BaseAligner
    >>> aligner = BaseAligner(threshold=0, processings=(processing,))
 
-   >>> from nazca.blocking import KdTreeBlocking
+   >>> from nazca.rl.blocking import KdTreeBlocking
    >>> aligner.register_blocking(KdTreeBlocking(2, 2))
 
    >>> results = list(aligner.get_aligned_pairs(referenceset, targetset, unique=True))
@@ -410,3 +415,142 @@ little bit, and you can either download the results in a *csv* or *rdf* file, or
 directly see the results online choosing the *html* output.
 
 .. [#] Your csv file must be tab-separated for the moment…
+
+
+
+Named Entities Recognition
+==========================
+
+Named Entities Recognition is the process of recognizing elements in a text and matching it
+to different types (e.g. Person, Organization, Place). In Nazca, we provide tools to match
+named entities to existing corpus/reference database.
+
+This is used for contextualizing your data, e.g. by recognizing in them elements from Dbpedia.
+
+
+
+
+Named entities sources
+~~~~~~~~~~~~~~~~~~~~
+
+Use of Sparql Source
+--------------------
+
+Simple NerSourceSparql on Dbpedia sparql endpoint::
+
+   .. sourcecode:: python
+
+   >>> from nazca.ner.sources import NerSourceSparql
+   >>> ner_source = NerSourceSparql('http://dbpedia.org/sparql',
+                                    '''SELECT distinct ?uri
+                                    WHERE{
+                                    ?uri rdfs:label "%(word)s"@en}''')
+   >>> print ner_source.query_word('Victor Hugo')
+   ...     ['http://dbpedia.org/resource/Category:Victor_Hugo',
+	    'http://dbpedia.org/resource/Victor_Hugo',
+	    'http://dbpedia.org/class/yago/VictorHugo',
+	    'http://dbpedia.org/class/yago/VictorHugo(ParisM%C3%A9tro)',
+	    'http://sw.opencyc.org/2008/06/10/concept/en/VictorHugo',
+	    'http://sw.opencyc.org/2008/06/10/concept/Mx4rve1ZXJwpEbGdrcN5Y29ycA']
+
+
+With restriction in the SPARQL query::
+
+   .. sourcecode:: python
+
+   >>> from nazca.ner.sources import NerSourceSparql
+   >>> ner_source = NerSourceSparql('http://dbpedia.org/sparql',
+                                    '''SELECT distinct ?uri
+                                    WHERE{
+                                    ?uri rdfs:label "%(word)s"@en .
+                                    ?p foaf:primaryTopic ?uri}''')
+   >>> print ner_source.query_word('Victor Hugo')
+   ...    ['http://dbpedia.org/resource/Victor_Hugo']
+
+
+
+NerSourceRql
+------------
+
+Simple NerSourceRql on a Rql endpoint::
+
+   .. sourcecode:: python
+
+   >>> from nazca.ner.sources import NerSourceRql
+   >>> ner_source = NerSourceRql('http://www.cubicweb.org',
+                                 'Any U WHERE X cwuri U, X name "%(word)s"')
+   >>> print ner_source.query_word('apycot')
+   ...     [u'http://www.cubicweb.org/1310453', u'http://www.cubicweb.org/749162']
+
+
+
+Examples of full Ner process
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+1 - Define some text
+--------------------
+
+For example, this text comes from Dbpedia (http://dbpedia.org/page/Victor_Hugo)::
+
+    .. sourcecode:: python
+
+   >>> text = u"""Victor Hugo, né le 26 février 1802 à Besançon et mort le 22 mai 1885 à Paris, est un poète, dramaturge et prosateur romantique considéré comme l'un des plus importants écrivains de langue française. Il est aussi une personnalité politique et un intellectuel engagé qui a compté dans l'Histoire du XIX siècle. Victor Hugo occupe une place marquante dans l'histoire des lettres françaises au XIX siècle, dans des genres et des domaines d'une remarquable variété. Il est poète lyrique avec des recueils comme Odes et Ballades (1826), Les Feuilles d'automne (1831) ou Les Contemplations (1856), mais il est aussi poète engagé contre Napoléon III dans Les Châtiments (1853) ou encore poète épique avec La Légende des siècles (1859 et 1877). Il est également un romancier du peuple qui rencontre un grand succès populaire avec par exemple Notre-Dame de Paris (1831), et plus encore avec Les Misérables (1862). Au théâtre, il expose sa théorie du drame romantique dans sa préface de Cromwell en 1827 et l'illustre principalement avec Hernani en 1830 et Ruy Blas en 1838. Son œuvre multiple comprend aussi des discours politiques à la Chambre des pairs, à l'Assemblée constituante et à l'Assemblée législative, notamment sur la peine de mort, l'école ou l'Europe, des récits de voyages (Le Rhin, 1842, ou Choses vues, posthumes, 1887 et 1890), et une correspondance abondante. Victor Hugo a fortement contribué au renouvellement de la poésie et du théâtre ; il a été admiré par ses contemporains et l'est encore, mais il a été aussi contesté par certains auteurs modernes. Il a aussi permis à de nombreuses générations de développer une réflexion sur l'engagement de l'écrivain dans la vie politique et sociale grâce à ses multiples prises de position qui le condamneront à l'exil pendant les vingt ans du Second Empire. Ses choix, à la fois moraux et politiques, durant la deuxième partie de sa vie, et son œuvre hors du commun ont fait de lui un personnage emblématique que la Troisième République a honoré à sa mort le 22 mai 1885 par des funérailles nationales qui ont accompagné le transfert de sa dépouille au Panthéon de Paris, le 31 mai 1885."""
+
+
+2 - Define a source
+-------------------
+
+Now, define a source for the Named Entities::
+
+    .. sourcecode:: python
+
+    >>> from nazca.ner.sources import NerSourceSparql
+    >>> dbpedia_sparql_source = NerSourceSparql('http://dbpedia.org/sparql',
+                                                '''SELECT distinct ?uri
+                                                   WHERE{
+ 						   ?uri rdfs:label "%(word)s"@en .
+ 						   ?p foaf:primaryTopic ?uri}''',
+ 						   'http://dbpedia.org/sparql',
+ 						use_cache=True)
+    >>> ner_sources = [dbpedia_sparql_source,]
+
+
+3 - Define some preprocessors
+-----------------------------
+
+Define some preprocessors that will cleanup the words before matching::
+
+    .. sourcecode:: python
+
+    >>> from nazca.ner.preprocessors import (NerLowerCaseFilterPreprocessor,
+                                             NerStopwordsFilterPreprocessor)
+    >>> preprocessors = [NerLowerCaseFilterPreprocessor(),
+        	         NerStopwordsFilterPreprocessor()]
+
+
+4 - Define the Ner process
+----------------------------
+
+Define the process and process the text::
+
+    .. sourcecode:: python
+
+    >>> from nazca.ner import NerProcess
+    >>> process = NerProcess(ner_sources, preprocessors=preprocessors)
+    >>> named_entities = process.process_text(text)
+    >>> print named_entities
+
+
+5 - Pretty priint the output
+----------------------------
+
+And finally, we can print the output as HTML with links::
+
+    .. sourcecode:: python
+
+    >>> from nazca.utils.dataio import HTMLPrettyPrint
+    >>> html = HTMLPrettyPrint().pprint_text(text, named_entities)
+    >>> print html
+
+
