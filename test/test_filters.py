@@ -81,6 +81,22 @@ class FilterTest(unittest2.TestCase):
                            Token(word='toto', start=21, end=25,
                                  sentence=Sentence(indice=1, start=16, end=26)))])
 
+    def test_disambiguation_word_case(self):
+        """ Test occurence filter """
+        text = 'Hello Toto Tutu. And Toto.'
+        source = NerSourceLexicon({'Toto Tutu': 'http://example.com/toto_tutu',
+                                   'Toto': 'http://example.com/toto'})
+        _filter = NerDisambiguationWordParts()
+        ner = NerProcess((source,), filters=(_filter,))
+        named_entities = ner.process_text(text)
+        self.assertEqual(named_entities,
+                         [('http://example.com/toto_tutu', None,
+                           Token(word='Toto Tutu', start=6, end=15,
+                                 sentence=Sentence(indice=0, start=0, end=16))),
+                          ('http://example.com/toto_tutu', None,
+                           Token(word='Toto', start=21, end=25,
+                                 sentence=Sentence(indice=1, start=16, end=26)))])
+
     def test_rules_filter(self):
         """ Test rules filter """
         text = 'Hello toto tutu. And toto.'

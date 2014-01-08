@@ -82,9 +82,9 @@ class NerDisambiguationWordParts(object):
         # Replace named entities
         filtered_named_entities = []
         for uri, peid, token in named_entities:
-            if token.word in parts:
+            if token.word.lower() in parts:
                 # Change URI
-                uri = parts[token.word]
+                uri = parts[token.word.lower()]
             filtered_named_entities.append((uri, peid, token))
         return filtered_named_entities
 
