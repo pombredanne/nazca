@@ -25,7 +25,7 @@ from nazca.utils.normalize import (BaseNormalizer, UnicodeNormalizer, JoinNormal
                                    RegexpNormalizer, NormalizerPipeline,
                                    lunormalize, lemmatized,
                                    roundstr, rgxformat, tokenize, simplify)
-from nazca.data.lemmas import FRENCH_LEMMAS
+from nazca.data import FRENCH_LEMMAS
 
 
 TESTDIR = path.dirname(__file__)

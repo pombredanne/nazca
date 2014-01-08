@@ -23,7 +23,7 @@ random.seed(6) ### Make sure tests are repeatable
 
 from nazca.utils.normalize import simplify
 from nazca.utils.minhashing import Minlsh
-from nazca.data.lemmas import FRENCH_LEMMAS
+from nazca.data import FRENCH_LEMMAS
 
 TESTDIR = path.dirname(__file__)
 
