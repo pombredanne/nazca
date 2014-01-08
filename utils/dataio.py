@@ -18,6 +18,7 @@
 from os.path import exists as fileexists
 from os import path as osp
 
+import json
 import csv
 import urllib
 
@@ -96,17 +97,33 @@ def rqlquery(host, rql, indexes=None, formatopt=None, _cache_cnx={}, **kwargs):
 ###############################################################################
 ### SPARQL FUNCTIONS ##########################################################
 ###############################################################################
-def sparqlquery(endpoint, query, indexes=None, autocaste_data=True):
-    """ Run the sparql query on the given endpoint, and wrap the items in the
-    indexes form. If indexes is empty, keep raw output"""
-
+def _sparqlexecute(endpoint, query, raise_on_error=False):
+    """ Execute a sparql query and return the raw results
+    """
     if not SPARQL_ENABLED:
         raise ImportError("You have to install SPARQLWrapper and JSON modules to"
                           "used this function")
     sparql = SPARQLWrapper(endpoint)
     sparql.setQuery(query)
     sparql.setReturnFormat(JSON)
-    rawresults = sparql.query().convert()
+    try:
+        try:
+            rawresults = sparql.query().convert()
+            return rawresults
+        except ValueError:
+            # Bad json
+            rawresults = sparql.query()
+            return json.loads(codecs.escape_decode(rawresults.response.read())[0])
+    except:
+        if raise_on_error:
+            raise RuntimeError('Error in sparql query')
+        else:
+            return []
+
+def sparqlquery(endpoint, query, indexes=None, autocaste_data=True, raise_on_error=False):
+    """ Run the sparql query on the given endpoint, and wrap the items in the
+    indexes form. If indexes is empty, keep raw output"""
+    rawresults = _sparqlexecute(endpoint, query, raise_on_error)
     labels = rawresults['head']['vars']
     results = []
     indexes = indexes or []
@@ -126,6 +143,29 @@ def sparqlquery(endpoint, query, indexes=None, autocaste_data=True):
                     data.append(transform(raw[labels[il]]['value']))
         results.append(data)
     return results
+
+def sparqljson(endpoint, query, lang_order=('fr', 'en'), raise_on_error=False):
+    """ Execute and format the results of a sparql query.
+    Sort the litterals using lang_order.
+    """
+    rawresults = _sparqlexecute(endpoint, query, raise_on_error)
+    results = rawresults["results"]["bindings"]
+    data_lang = {}
+    data = {}
+    for row in results:
+        for k, v in row.iteritems():
+            if v['type'] == 'uri':
+                # Uri, keep it in a set
+                data.setdefault(k, set()).add(v['value'])
+            elif v['type'] == 'typed-literal':
+                # E.g. latitude, longitude, geometry - Keep on value
+                data[k] = v['value']
+            else:
+                # Literal - Use lang
+                data_lang.setdefault(k, []).append((v['value'], v.get('xml:lang')))
+    keyfunc = lambda x: lang_order.index(x[1]) if x[1] in lang_order else len(lang_order)
+    data.update(dict([(k, sorted(v, key=keyfunc)[0][0]) for k, v in data_lang.iteritems()]))
+    return data
 
 
 ###############################################################################
