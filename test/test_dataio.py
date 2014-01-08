@@ -23,7 +23,8 @@ from os import path
 from tempfile import mkdtemp
 
 from nazca.utils.dataio import (HTMLPrettyPrint, ValidXHTMLPrettyPrint,
-                                sparqlquery, rqlquery, parsefile,
+                                sparqlquery, sparqljson, _sparqlexecute,
+                                rqlquery, parsefile,
                                 autocast, split_file)
 from nazca.ner import NerProcess
 from nazca.ner.sources import NerSourceLexicon
@@ -141,6 +142,50 @@ class DataIOTestCase(unittest2.TestCase):
         self.assertEqual(results, [['http://dbpedia.org/resource/Python'],
                                    ['http://sw.opencyc.org/2008/06/10/concept/en/Python_ProgrammingLanguage'],
                                    ['http://sw.opencyc.org/2008/06/10/concept/Mx4r74UIARqkEdac2QACs0uFOQ']])
+
+    def test_sparql_execute(self):
+        rawresults = _sparqlexecute(u'http://dbpedia.org/sparql',
+                                    u'''SELECT DISTINCT ?uri
+                                    WHERE{
+                                    ?uri rdfs:label "Python"@en .
+                                    ?uri rdf:type ?type}''')
+        self.assertEqual(rawresults, {u'head': {u'link': [], u'vars': [u'uri']},
+                                      u'results': {u'distinct': False, u'bindings': [{u'uri': {u'type': u'uri', u'value': u'http://dbpedia.org/resource/Python'}}, {u'uri': {u'type': u'uri', u'value': u'http://sw.opencyc.org/2008/06/10/concept/en/Python_ProgrammingLanguage'}}, {u'uri': {u'type': u'uri', u'value': u'http://sw.opencyc.org/2008/06/10/concept/Mx4r74UIARqkEdac2QACs0uFOQ'}}],
+                                                   u'ordered': True}})
+
+    def test_sparql_execute_no_raise_on_error(self):
+        rawresults = _sparqlexecute(u'http://dbpedia.org/sparql',
+                                    u'''SELECT DISTINCT ?uri
+                                    WHERE{
+                                    ?uri faultyrdf
+                                    ?uri rdf:type ?type}''')
+        self.assertEqual(rawresults, [])
+
+    def test_sparql_execute_raise_on_error(self):
+        with self.assertRaises(RuntimeError):
+            rawresults = _sparqlexecute(u'http://dbpedia.org/sparql',
+                                        u'''SELECT DISTINCT ?uri
+                                        WHERE{
+                                        ?uri faultyrdf
+                                        ?uri rdf:type ?type}''',
+                                        raise_on_error=True)
+
+    def test_sparql_json(self):
+        results = sparqljson(u'http://dbpedia.org/sparql',
+                             u'''SELECT DISTINCT ?uri
+                             WHERE{
+                             ?uri rdfs:label "Python"@en .
+                             ?uri rdf:type ?type}''')
+        self.assertEqual(results, {u'uri': set([u'http://sw.opencyc.org/2008/06/10/concept/Mx4r74UIARqkEdac2QACs0uFOQ', u'http://sw.opencyc.org/2008/06/10/concept/en/Python_ProgrammingLanguage', u'http://dbpedia.org/resource/Python'])})
+
+    def test_sparql_json2(self):
+        results = sparqljson(u'http://dbpedia.org/sparql',
+                             u'''SELECT DISTINCT ?uri ?label
+                             WHERE{
+                             ?uri rdfs:label "Python"@en .
+                             ?uri rdfs:label ?label .
+                             ?uri rdf:type ?type}''')
+        self.assertEqual(results, {u'uri': set([u'http://sw.opencyc.org/2008/06/10/concept/Mx4r74UIARqkEdac2QACs0uFOQ', u'http://sw.opencyc.org/2008/06/10/concept/en/Python_ProgrammingLanguage', u'http://dbpedia.org/resource/Python']), u'label': u'Python'})
 
     def test_sparql_autocast(self):
         alignset = sparqlquery('http://dbpedia.inria.fr/sparql',
