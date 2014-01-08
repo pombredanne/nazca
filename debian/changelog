@@ -1,3 +1,9 @@
+nazca (0.4.0-1) unstable; urgency=low
+
+  * Merge with Nerdy
+
+ -- Vincent michel <Vincent.Michel@logilab.fr>  Thu, 19 Dec 2013 14:45:17 +0100
+
 nazca (0.3.0-1) unstable; urgency=low
 
   * Refactor the API, add standard blocking technics

@@ -23,7 +23,7 @@ import sys
 distname = 'nazca'
 modname = 'nazca'
 
-numversion = (0, 3, 0)
+numversion = (0, 4, 0)
 version = '.'.join([str(num) for num in numversion])
 
 license = 'LGPL' # 2.1 or later
@@ -34,8 +34,7 @@ author_email = "contact@logilab.fr"
 
 
 from os.path import join
-scripts = [join('bin', 'pytest')]
-include_dirs = [join('test', 'data')]
+include_dirs = [join('test', 'data'), 'data', 'examples', 'ner', 'rl', 'utils']
 
 if sys.version_info < (2, 7):
     install_requires = ['unittest2 >= 0.5.1']
