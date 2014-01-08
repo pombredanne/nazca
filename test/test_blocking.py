@@ -29,7 +29,7 @@ from nazca.rl.blocking import (KeyBlocking, SortedNeighborhoodBlocking,
                                SoundexBlocking, KmeansBlocking,
                                MinHashingBlocking, KdTreeBlocking)
 from nazca.utils.normalize import SimplifyNormalizer
-from nazca.data.lemmas import FRENCH_LEMMAS
+from nazca.data import FRENCH_LEMMAS
 
 
 TESTDIR = path.dirname(__file__)
