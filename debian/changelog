@@ -1,3 +1,9 @@
+nazca (0.4.1-1) unstable; urgency=low
+
+  * Correct iter word grams in Minhashing
+
+ -- Vincent michel <Vincent.Michel@logilab.fr>  Mon, 10 Mar 2014 11:57:55 +0100
+
 nazca (0.4.0-1) unstable; urgency=low
 
   * Merge with Nerdy
