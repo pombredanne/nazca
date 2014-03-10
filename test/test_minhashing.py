@@ -15,14 +15,14 @@
 #
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-
+from functools import partial
 import unittest2
 from os import path
 import random
 random.seed(6) ### Make sure tests are repeatable
 
 from nazca.utils.normalize import simplify
-from nazca.utils.minhashing import Minlsh
+from nazca.utils.minhashing import Minlsh, count_vectorizer_func
 from nazca.data import FRENCH_LEMMAS
 
 TESTDIR = path.dirname(__file__)
@@ -30,6 +30,24 @@ TESTDIR = path.dirname(__file__)
 
 
 class MinLSHTest(unittest2.TestCase):
+
+    def test_iter_wordgrams(self):
+        sentence = 'nom de la rose'
+        minlsh = Minlsh()
+        results = list(minlsh._iter_wordgrams(sentence, 2))
+        truth = ['nom de', 'nom', 'de la', 'de', 'la rose', 'la', 'rose']
+        self.assertEqual(len(results), len(truth))
+        self.assertEqual(set(results), set(truth))
+
+    def test_iter_wordgrams_sklearn(self):
+        sentences = ('nom de la rose', 'nom de la')
+        tokenizer_func = partial(count_vectorizer_func, min_n=1, max_n=2)
+        minlsh = Minlsh(tokenizer_func=tokenizer_func)
+        rows, shape = list(minlsh._buildmatrixdocument(sentences, 2))
+        self.assertEqual(shape, (2, 7))
+        self.assertEqual(rows[0], [0, 1, 2, 3, 4, 5, 6])
+        self.assertEqual(rows[1], [0, 1, 2, 4, 5])
+
     def test_all(self):
         sentences = [u"Un nuage flotta dans le grand ciel bleu.",
                      u"Des grands nuages noirs flottent dans le ciel.",

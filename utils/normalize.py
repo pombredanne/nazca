@@ -140,14 +140,6 @@ def tokenize(sentence, tokenizer=None, regexp=re.compile(r"[^\s]+")):
             chunks.append(chunk)
     return chunks
 
-def iter_wordgrams(sentence, k):
-    """ Generator of k-wordgrams on the given sentence
-    """
-    words = sentence.split(' ')
-    #XXX Call tokenizer
-    for r in xrange(len(words)):
-        yield ' '.join(words[r:r + k])
-
 def lemmatized(sentence, lemmas, tokenizer=None):
     """ Return the lemmatized sentence
     """

@@ -23,9 +23,10 @@ from collections import defaultdict
 import numpy as np
 from scipy.optimize import bisect
 
-from nazca.utils.normalize import iter_wordgrams
 
-
+###############################################################################
+### UTILITY FUNCTIONS #########################################################
+###############################################################################
 def randomhashfunction(zr):
     """ Return a random hash function, mapping x in Z to ZR
         h:x -> ax + b mod R
@@ -40,14 +41,41 @@ def randomhashfunction(zr):
 
     return hashfunc
 
+def count_vectorizer_func(sentences, min_n, max_n):
+    """ Perform a tokenization using scikit learn
+    """
+    from sklearn.feature_extraction.text import CountVectorizer
+    count_vec = CountVectorizer(min_n=min_n, max_n=max_n)
+    # Transform and convert to lil to get rows
+    data = count_vec.fit_transform(sentences).tolil()
+    return [list(l) for l in data.rows], data.shape
 
+
+###############################################################################
+### MINHASHING ################################################################
+###############################################################################
 class Minlsh(object):
     """ Operate minhashing + locally-sensitive-hashing to find similar sentences
     """
 
-    def __init__(self, verbose=False):
+    def __init__(self, tokenizer_func=None, verbose=False):
+        """ Initialize a minhashing/lsh object
+
+        Parameters:
+        ==========
+
+           * tokenizer_func is a function that take the sentences
+             as argument and return the rows of the sparse matrix
+             of tokens, and its shape.
+
+           * verbose is a boolean that trigger the display of
+             some informations
+        """
         self._trained = False
         self.sigmatrix = None
+        if tokenizer_func:
+            # Use given tokenizer_func
+            self._buildmatrixdocument = lambda x, y: tokenizer_func(x)
         self._verbose = verbose
 
     def train(self, sentences, k=2, siglen=200):
@@ -58,14 +86,20 @@ class Minlsh(object):
             - `siglen` the length of the sentences signature
 
         """
-
         rows, shape = self._buildmatrixdocument(sentences, k)
-
-        if self._verbose: print "Training is done. Wait while signaturing"
-
+        if self._verbose:
+            print "Training is done. Wait while signaturing"
         self._computesignaturematrix(rows, shape, siglen)
         self._trained = True
 
+    def _iter_wordgrams(self, sentence, k):
+        """ Generator of k-wordgrams on the given sentence
+        """
+        words = sentence.split(' ')
+        for r in xrange(len(words)):
+            for width in range(1, k+1):
+                if r+width<=len(words):
+                    yield ' '.join(words[r:r + width])
 
     def _buildmatrixdocument(self, sentences, k):
         """ Return a sparse matrix where :
@@ -77,11 +111,11 @@ class Minlsh(object):
             sentence c, 0 otherwise
 
         """
-
+        # Use default mode
         rows, universe, sizeofuniverse = [], {}, 0
         for nb, sent in enumerate(sentences):
             row = []
-            for w in iter_wordgrams(sent, k):
+            for w in self._iter_wordgrams(sent, k):
                 row.append(universe.setdefault(w, sizeofuniverse))
                 if row[-1] == sizeofuniverse:
                     sizeofuniverse += 1
