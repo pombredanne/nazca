@@ -16,7 +16,11 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import unittest2
+import sys
+if sys.version_info >= (2, 7):
+    import unittest
+else:
+    import unittest2 as unittest
 import random
 random.seed(6) ### Make sure tests are repeatable
 from os import path
@@ -30,7 +34,7 @@ from nazca.utils.distances import LevenshteinProcessing, GeographicalProcessing
 TESTDIR = path.dirname(__file__)
 
 
-class AlignerTestCase(unittest2.TestCase):
+class AlignerTestCase(unittest.TestCase):
 
     def test_align(self):
         refset = [['V1', 'label1', (6.14194444444, 48.67)],
@@ -149,7 +153,7 @@ class AlignerTestCase(unittest2.TestCase):
             self.assertIn(m, matched_wo_distance)
 
 
-class PipelineAlignerTestCase(unittest2.TestCase):
+class PipelineAlignerTestCase(unittest.TestCase):
 
     def test_pipeline_align_pairs(self):
         refset = [['V1', 'aaa', (6.14194444444, 48.67)],
@@ -180,5 +184,5 @@ class PipelineAlignerTestCase(unittest2.TestCase):
 
 
 if __name__ == '__main__':
-    unittest2.main()
+    unittest.main()
 

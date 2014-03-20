@@ -15,7 +15,12 @@
 #
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-import unittest2
+
+import sys
+if sys.version_info >= (2, 7):
+    import unittest
+else:
+    import unittest2 as unittest
 
 from nazca.ner import NerProcess
 from nazca.ner.filters import (NerOccurenceFilter,
@@ -25,7 +30,7 @@ from nazca.ner.sources import NerSourceLexicon
 from nazca.utils.tokenizer import Token, Sentence
 
 
-class FilterTest(unittest2.TestCase):
+class FilterTest(unittest.TestCase):
     """ Test of filters """
 
     def test_occurence_filter_min_occ(self):
@@ -115,5 +120,5 @@ class FilterTest(unittest2.TestCase):
                                  sentence=Sentence(indice=1, start=16, end=26)))])
 
 if __name__ == '__main__':
-    unittest2.main()
+    unittest.main()
 

@@ -15,8 +15,12 @@
 #
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
+import sys
+if sys.version_info >= (2, 7):
+    import unittest
+else:
+    import unittest2 as unittest
 from functools import partial
-import unittest2
 from os import path
 import random
 random.seed(6) ### Make sure tests are repeatable
@@ -29,7 +33,7 @@ TESTDIR = path.dirname(__file__)
 
 
 
-class MinLSHTest(unittest2.TestCase):
+class MinLSHTest(unittest.TestCase):
 
     def test_iter_wordgrams(self):
         sentence = 'nom de la rose'
@@ -64,5 +68,5 @@ class MinLSHTest(unittest2.TestCase):
 
 
 if __name__ == '__main__':
-    unittest2.main()
+    unittest.main()
 

@@ -15,7 +15,12 @@
 #
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-import unittest2
+
+import sys
+if sys.version_info >= (2, 7):
+    import unittest
+else:
+    import unittest2 as unittest
 
 from nazca.ner.sources import (NerSourceLexicon,
                                           NerSourceSparql,
@@ -25,7 +30,7 @@ from nazca.utils.tokenizer import Token, Sentence
 from nazca.ner.preprocessors import NerStopwordsFilterPreprocessor
 
 
-class NerTest(unittest2.TestCase):
+class NerTest(unittest.TestCase):
     """ Test of Ner """
 
     def test_lexicon_source(self):
@@ -226,5 +231,5 @@ class NerTest(unittest2.TestCase):
 
 
 if __name__ == '__main__':
-    unittest2.main()
+    unittest.main()
 

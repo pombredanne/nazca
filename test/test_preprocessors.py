@@ -15,13 +15,18 @@
 #
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-import unittest2
+
+import sys
+if sys.version_info >= (2, 7):
+    import unittest
+else:
+    import unittest2 as unittest
 
 from nazca.utils import tokenizer
 from nazca.ner import preprocessors
 
 
-class PreprocessorTest(unittest2.TestCase):
+class PreprocessorTest(unittest.TestCase):
     """ Test of preprocessors """
 
     def test_lowercasefilter(self):
@@ -94,5 +99,5 @@ class PreprocessorTest(unittest2.TestCase):
 
 
 if __name__ == '__main__':
-    unittest2.main()
+    unittest.main()
 

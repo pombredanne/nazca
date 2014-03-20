@@ -16,7 +16,11 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import unittest2
+import sys
+if sys.version_info >= (2, 7):
+    import unittest
+else:
+    import unittest2 as unittest
 import random
 random.seed(6) ### Make sure tests are repeatable
 from dateutil import parser as dateparser
@@ -26,7 +30,7 @@ from nazca.utils.distances import (levenshtein, soundex, soundexcode,
                                    LevenshteinProcessing)
 
 
-class DistancesTest(unittest2.TestCase):
+class DistancesTest(unittest.TestCase):
     def test_levenshtein(self):
         self.assertEqual(levenshtein('niche', 'chiens'), 5)
         self.assertEqual(levenshtein('bonjour', 'bonjour !'), 1)
@@ -123,7 +127,7 @@ class DistancesTest(unittest2.TestCase):
         self.assertAlmostEqual(dist_parislondon, 341564, 0)
 
 
-class MatrixTestCase(unittest2.TestCase):
+class MatrixTestCase(unittest.TestCase):
 
     def setUp(self):
         self.input1 = [u'Victor Hugo', u'Albert Camus', 'Jean Valjean']
@@ -156,5 +160,5 @@ class MatrixTestCase(unittest2.TestCase):
 
 
 if __name__ == '__main__':
-    unittest2.main()
+    unittest.main()
 
