@@ -15,7 +15,12 @@
 #
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
-import unittest2
+
+import sys
+if sys.version_info >= (2, 7):
+    import unittest
+else:
+    import unittest2 as unittest
 from os import path
 from functools import partial
 import random
@@ -58,7 +63,7 @@ SOUNDEX_PAIRS = (('a3', 'b1'),
                  ('a7', 'b6'),)
 
 
-class BaseBlockingTest(unittest2.TestCase):
+class BaseBlockingTest(unittest.TestCase):
 
     def test_baseblocking_blocks(self):
         blocking = KeyBlocking(ref_attr_index=1, target_attr_index=1,
@@ -125,7 +130,7 @@ class BaseBlockingTest(unittest2.TestCase):
             self.assertIn(pair, pairs)
 
 
-class KeyBlockingTest(unittest2.TestCase):
+class KeyBlockingTest(unittest.TestCase):
 
     def test_keyblocking_blocks(self):
         blocking = KeyBlocking(ref_attr_index=1, target_attr_index=1,
@@ -166,7 +171,7 @@ class KeyBlockingTest(unittest2.TestCase):
             self.assertIn(pair, pairs)
 
 
-class NGramBlockingTest(unittest2.TestCase):
+class NGramBlockingTest(unittest.TestCase):
 
     def test_ngram_blocks(self):
         blocking = NGramBlocking(ref_attr_index=1, target_attr_index=1)
@@ -201,7 +206,7 @@ class NGramBlockingTest(unittest2.TestCase):
         self.assertEqual(len(pairs), len(true_pairs))
 
 
-class SortedNeighborhoodBlockingTest(unittest2.TestCase):
+class SortedNeighborhoodBlockingTest(unittest.TestCase):
 
     def test_sorted_neighborhood_blocks(self):
         blocking = SortedNeighborhoodBlocking(ref_attr_index=1, target_attr_index=1,
@@ -229,7 +234,7 @@ class SortedNeighborhoodBlockingTest(unittest2.TestCase):
             self.assertIn(block, blocks)
 
 
-class MergeBlockingTest(unittest2.TestCase):
+class MergeBlockingTest(unittest.TestCase):
 
 
     def test_merge_blocks(self):
@@ -269,7 +274,7 @@ class MergeBlockingTest(unittest2.TestCase):
             self.assertIn(block, blocks)
 
 
-class KmeansBlockingTest(unittest2.TestCase):
+class KmeansBlockingTest(unittest.TestCase):
 
     def test_clustering_blocking_kmeans(self):
         refset = [['V1', 'label1', (6.14194444444, 48.67)],
@@ -301,7 +306,7 @@ class KmeansBlockingTest(unittest2.TestCase):
             self.assertIn(pair, pairs)
 
 
-class MinHashingBlockingTest(unittest2.TestCase):
+class MinHashingBlockingTest(unittest.TestCase):
 
     def test_minhashing(self):
         refset = [['V1', 'label1', u"Un nuage flotta dans le grand ciel bleu."],
@@ -324,7 +329,7 @@ class MinHashingBlockingTest(unittest2.TestCase):
             self.assertIn(align, blocks)
 
 
-class KdTreeBlockingTest(unittest2.TestCase):
+class KdTreeBlockingTest(unittest.TestCase):
 
     def test_kdtree(self):
         refset = [['V1', 'label1', (6.14194444444, 48.67)],
@@ -345,7 +350,7 @@ class KdTreeBlockingTest(unittest2.TestCase):
                           (['V4'], ['T2'])], blocks)
 
 
-class PipelineBlockingTest(unittest2.TestCase):
+class PipelineBlockingTest(unittest.TestCase):
 
     def test_pipeline_blocking(self):
         refset = [['1', 'aabb', 'ccdd'],
@@ -394,5 +399,5 @@ class PipelineBlockingTest(unittest2.TestCase):
 
 
 if __name__ == '__main__':
-    unittest2.main()
+    unittest.main()
 

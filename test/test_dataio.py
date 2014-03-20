@@ -16,7 +16,11 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import unittest2
+import sys
+if sys.version_info >= (2, 7):
+    import unittest
+else:
+    import unittest2 as unittest
 import shutil
 from contextlib import contextmanager
 from os import path
@@ -43,7 +47,7 @@ def tempdir():
             pass
 
 
-class ValidXHTMLPrettyPrintTest(unittest2.TestCase):
+class ValidXHTMLPrettyPrintTest(unittest.TestCase):
 
     def test_valid(self):
         from lxml import etree
@@ -89,7 +93,7 @@ class ValidXHTMLPrettyPrintTest(unittest2.TestCase):
                                 u'And <a href="http://example.com/me" class="ner">me</a>.'))
 
 
-class DataIOTestCase(unittest2.TestCase):
+class DataIOTestCase(unittest.TestCase):
 
     def test_parser(self):
         data = parsefile(path.join(TESTDIR, 'data', 'file2parse'),
@@ -226,5 +230,5 @@ class DataIOTestCase(unittest2.TestCase):
 
 
 if __name__ == '__main__':
-    unittest2.main()
+    unittest.main()
 

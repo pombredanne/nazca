@@ -16,7 +16,11 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import unittest2
+import sys
+if sys.version_info >= (2, 7):
+    import unittest
+else:
+    import unittest2 as unittest
 from os import path
 
 from nazca.utils.normalize import (BaseNormalizer, UnicodeNormalizer, JoinNormalizer,
@@ -31,7 +35,7 @@ from nazca.data import FRENCH_LEMMAS
 TESTDIR = path.dirname(__file__)
 
 
-class NormalizerFunctionTestCase(unittest2.TestCase):
+class NormalizerFunctionTestCase(unittest.TestCase):
 
     def test_unormalize(self):
         self.assertEqual(lunormalize(u'bépoèàÀêùï'),
@@ -73,7 +77,7 @@ class NormalizerFunctionTestCase(unittest2.TestCase):
                          u'42')
 
 
-class NormalizerObjectTestCase(unittest2.TestCase):
+class NormalizerObjectTestCase(unittest.TestCase):
 
     def test_normalizer(self):
         normalizer = BaseNormalizer(lunormalize)
@@ -173,7 +177,7 @@ class NormalizerObjectTestCase(unittest2.TestCase):
 
 
 
-class NormalizerPipelineTestCase(unittest2.TestCase):
+class NormalizerPipelineTestCase(unittest.TestCase):
 
     def test_normalizer(self):
         regexp = r'(?P<id>\d+);{["]?(?P<firstname>.+[^"])["]?};{(?P<surname>.*)};{};{};(?P<date>.*)'
@@ -187,5 +191,5 @@ class NormalizerPipelineTestCase(unittest2.TestCase):
 
 
 if __name__ == '__main__':
-    unittest2.main()
+    unittest.main()
 
