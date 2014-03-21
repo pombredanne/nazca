@@ -10,7 +10,7 @@
 
 Name:           %{python}-nazca
 Version:        0.4.2
-Release:        logilab.1%{?dist}
+Release:        logilab.2%{?dist}
 Summary:        Python library for data alignment
 
 Group:          Development/Libraries
@@ -21,6 +21,8 @@ BuildRoot:      %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 BuildRequires:  %{python}
 Requires:       %{python}
+Requires:       scipy
+Requires:       %{python}-sklearn
 
 
 %description
