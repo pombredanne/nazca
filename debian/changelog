@@ -1,3 +1,9 @@
+nazca (0.4.3-1) unstable; urgency=low
+
+  * Fix MANIFEST
+
+ -- Vincent michel <Vincent.Michel@logilab.fr>  Tue, 25 Mar 2014 14:54:18 +0100
+
 nazca (0.4.2-1) unstable; urgency=low
 
   * Fix setup.py and allow unittest/unittest2

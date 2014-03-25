@@ -9,8 +9,8 @@
 %{!?_python_sitelib: %define _python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Name:           %{python}-nazca
-Version:        0.4.2
-Release:        logilab.2%{?dist}
+Version:        0.4.3
+Release:        logilab.1%{?dist}
 Summary:        Python library for data alignment
 
 Group:          Development/Libraries
