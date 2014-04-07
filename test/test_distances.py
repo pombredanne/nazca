@@ -26,11 +26,19 @@ random.seed(6) ### Make sure tests are repeatable
 from dateutil import parser as dateparser
 
 from nazca.utils.distances import (levenshtein, soundex, soundexcode,
+                                   difflib_match,
                                    jaccard, euclidean, geographical,
                                    LevenshteinProcessing)
 
 
 class DistancesTest(unittest.TestCase):
+
+    def test_difflib_match(self):
+        self.assertEqual(round(difflib_match('Victor Hugo', 'Victor Hugo'), 2), 0.)
+        self.assertEqual(round(difflib_match('Victor Hugo', 'Victor Wugo'), 2), 0.09)
+        self.assertEqual(round(difflib_match('niche', 'chiens'), 2), 0.45)
+        self.assertEqual(round(difflib_match('bonjour', 'bonjour !'), 2), 0.13)
+
     def test_levenshtein(self):
         self.assertEqual(levenshtein('niche', 'chiens'), 5)
         self.assertEqual(levenshtein('bonjour', 'bonjour !'), 1)
