@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import difflib
 from functools import partial
 from math import cos, sqrt, pi #Needed for geographical distance
 try:
@@ -234,6 +235,18 @@ def generic_jaccard(seta, setb):
         d(A, B) = 1 - J(A, B)
     """
     return 1.0 - 1.0*len(seta.intersection(setb))/len(seta.union(setb))
+
+def difflib_match(stra, strb):
+    """ Approximate matching.
+    Extract of SequenceMatched documentation
+    '[...] The basic algorithm predates, and is a little fancier than, an algorithm
+    published in the late 1980's by Ratcliff and Obershelp under the
+    hyperbolic name "gestalt pattern matching"[...]'
+
+    A value smaller than 0.4 means that sequences are close matches (we take
+    1 - difflib.SequenceMatched)
+    """
+    return 1.0 - difflib.SequenceMatcher(None, stra, strb).ratio()
 
 
 ###############################################################################
