@@ -114,9 +114,9 @@ def _sparqlexecute(endpoint, query, raise_on_error=False):
             # Bad json
             rawresults = sparql.query()
             return json.loads(codecs.escape_decode(rawresults.response.read())[0])
-    except:
+    except Exception, err:
         if raise_on_error:
-            raise RuntimeError('Error in sparql query')
+            raise RuntimeError('Error in sparql query', err)
         else:
             return []
 
