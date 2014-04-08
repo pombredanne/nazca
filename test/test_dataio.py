@@ -108,6 +108,13 @@ class DataIOTestCase(unittest.TestCase):
                           [2, ('21.9', 19), u'stramberry', u'horse'],
                           [3, ('23', 2.17), u'cherry', u'flower']], data)
 
+        data = parsefile(path.join(TESTDIR, 'data', 'file2parse'),
+                         [0, (2, 3), 4, 1], delimiter=',', use_autocast=False)
+        self.assertEqual([['1', ('12', '19'), 'apple', 'house'],
+                          ['2', ('21.9', '19'), 'stramberry', 'horse'],
+                          ['3', ('23', '2.17'), 'cherry', 'flower']], data)
+
+
     def test_autocast(self):
         self.assertEqual(autocast('1'), 1)
         self.assertEqual(autocast('1.'), 1.)
