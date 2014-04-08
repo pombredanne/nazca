@@ -172,7 +172,8 @@ def sparqljson(endpoint, query, lang_order=('fr', 'en'), raise_on_error=False):
 ### FILE FUNCTIONS ############################################################
 ###############################################################################
 def parsefile(filename, indexes=None, nbmax=None, delimiter='\t',
-              encoding='utf-8', field_size_limit=None, formatopt=None):
+              encoding='utf-8', field_size_limit=None,
+              use_autocast=True, formatopt=None):
     """ Parse the file (read ``nbmax`` line at maximum if given). Each
         line is splitted according ``delimiter`` and only ``indexes`` are kept
 
@@ -212,12 +213,16 @@ def parsefile(filename, indexes=None, nbmax=None, delimiter='\t',
         csvfile.close()
 
 
-
+    # Autocast if asked
+    if use_autocast:
+        deffunc = lambda x: autocast(x, encoding)
+    else:
+        deffunc = lambda x: x
     result = []
     indexes = indexes or []
     formatopt = formatopt or {}
     for ind, row in enumerate(formatedoutput(filename)):
-        row = [formatopt.get(i, lambda x: autocast(x, encoding))(cell)
+        row = [formatopt.get(i, deffunc)(cell)
                for i, cell in enumerate(row)]
         data = []
         if nbmax and ind > nbmax:
