@@ -28,7 +28,7 @@ from dateutil import parser as dateparser
 from nazca.utils.distances import (levenshtein, soundex, soundexcode,
                                    difflib_match,
                                    jaccard, euclidean, geographical,
-                                   LevenshteinProcessing)
+                                   LevenshteinProcessing, SoundexProcessing)
 
 
 class DistancesTest(unittest.TestCase):
@@ -135,7 +135,7 @@ class DistancesTest(unittest.TestCase):
         self.assertAlmostEqual(dist_parislondon, 341564, 0)
 
 
-class MatrixTestCase(unittest.TestCase):
+class LevenshteinTestCase(unittest.TestCase):
 
     def setUp(self):
         self.input1 = [u'Victor Hugo', u'Albert Camus', 'Jean Valjean']
@@ -165,6 +165,15 @@ class MatrixTestCase(unittest.TestCase):
         processing = LevenshteinProcessing()
         pdist = processing.pdist(_input)
         self.assertEqual([6, 6, 1], pdist)
+
+
+class SoundexTestCase(unittest.TestCase):
+
+    def test_pdist(self):
+        processing = SoundexProcessing()
+        _input = [u'Robert Ugo', u'Rubert Ugo', 'Rubert Pugo']
+        pdist = processing.pdist(_input)
+        self.assertEqual([0, 1, 1], pdist)
 
 
 if __name__ == '__main__':

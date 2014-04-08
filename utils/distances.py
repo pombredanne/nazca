@@ -212,9 +212,7 @@ def soundex(stra, strb, language='french', tokenizer=None):
     """
     if ' ' in stra or ' ' in strb:
         return _handlespaces(stra, strb, soundex, tokenizer=tokenizer, language=language)
-
-    return 0 if (soundexcode(stra, language) == soundexcode(strb, language)) \
-             else 1
+    return 0 if (soundexcode(stra, language) == soundexcode(strb, language)) else 1
 
 def jaccard(stra, strb, tokenizer=None):
     """ Return the jaccard distance between stra and strb, condering the tokens
@@ -466,4 +464,16 @@ class GeographicalProcessing(BaseProcessing):
         super(GeographicalProcessing, self).__init__(ref_attr_index,
                                                     target_attr_index,
                                                     distance_callback,
-                                                    weight,matrix_normalized)
+                                                    weight, matrix_normalized)
+
+class SoundexProcessing(BaseProcessing):
+    """ A processing based on the soundex distance.
+    """
+
+    def __init__(self, ref_attr_index=None, target_attr_index=None,
+                 tokenizer=None, weight=1, language='french', matrix_normalized=False):
+        distance_callback = partial(soundex, language=language, tokenizer=tokenizer)
+        super(SoundexProcessing, self).__init__(ref_attr_index,
+                                                target_attr_index,
+                                                distance_callback,
+                                                weight, matrix_normalized)
