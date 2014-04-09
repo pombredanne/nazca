@@ -1,3 +1,9 @@
+nazca (0.5.0-2) unstable; urgency=low
+
+  * fix description field
+
+ -- Adrien Di Mascio <Adrien.DiMascio@logilab.fr>  Wed, 09 Apr 2014 10:06:45 +0200
+
 nazca (0.5.0-1) unstable; urgency=low
 
   * add SoundexProcessing
