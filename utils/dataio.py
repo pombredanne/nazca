@@ -123,9 +123,11 @@ def _sparqlexecute(endpoint, query, raise_on_error=False):
 def sparqlquery(endpoint, query, indexes=None, autocaste_data=True, raise_on_error=False):
     """ Run the sparql query on the given endpoint, and wrap the items in the
     indexes form. If indexes is empty, keep raw output"""
-    rawresults = _sparqlexecute(endpoint, query, raise_on_error)
-    labels = rawresults['head']['vars']
     results = []
+    rawresults = _sparqlexecute(endpoint, query, raise_on_error)
+    if not rawresults:
+        return results
+    labels = rawresults['head']['vars']
     indexes = indexes or []
     if autocaste_data:
         transform = autocast
@@ -148,10 +150,12 @@ def sparqljson(endpoint, query, lang_order=('fr', 'en'), raise_on_error=False):
     """ Execute and format the results of a sparql query.
     Sort the litterals using lang_order.
     """
+    data = {}
     rawresults = _sparqlexecute(endpoint, query, raise_on_error)
+    if not rawresults:
+        return data
     results = rawresults["results"]["bindings"]
     data_lang = {}
-    data = {}
     for row in results:
         for k, v in row.iteritems():
             if v['type'] == 'uri':
