@@ -186,7 +186,6 @@ def rgxformat(string, regexp, output):
 
      would return u'Hugo, Victor (26 fev 1802 - 22 mai 1885)'
      """
-
     match = re.match(regexp, string)
     return output % match.groupdict()
 
@@ -214,7 +213,7 @@ class BaseNormalizer(object):
                     Could be a list or an int
         """
         self.callback = callback
-        if attr_index:
+        if attr_index is not None:
             self.attr_index = attr_index if isinstance(attr_index, (tuple, list)) else (attr_index,)
         else:
             self.attr_index = attr_index
