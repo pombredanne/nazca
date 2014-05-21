@@ -68,7 +68,7 @@ def get_cw_cnx(endpoint):
     req = cnx.request()
     return req
 
-def rqlquery(host, rql, indexes=None, formatopt=None, _cache_cnx={}, **kwargs):
+def rqlquery(host, rql, indexes=None, formatopt=None, autocast_data=True, _cache_cnx={}, **kwargs):
     """ Run the rql query on the given cubicweb host
     Additional arguments can be passed to be properly substitued
     in the execute() function for appid accces.
@@ -83,7 +83,7 @@ def rqlquery(host, rql, indexes=None, formatopt=None, _cache_cnx={}, **kwargs):
                                     % {'rql': rql, 'host': host})
         filehandle.readline()#Skip the first line
         return parsefile(filehandle, delimiter=';', indexes=indexes,
-                         formatopt=formatopt);
+                         formatopt=formatopt, autocast_data=autocast_data);
     else:
         # By appid
         if host in _cache_cnx:
@@ -120,7 +120,7 @@ def _sparqlexecute(endpoint, query, raise_on_error=False):
         else:
             return []
 
-def sparqlquery(endpoint, query, indexes=None, autocaste_data=True, raise_on_error=False):
+def sparqlquery(endpoint, query, indexes=None, autocast_data=True, raise_on_error=False):
     """ Run the sparql query on the given endpoint, and wrap the items in the
     indexes form. If indexes is empty, keep raw output"""
     results = []
@@ -129,10 +129,10 @@ def sparqlquery(endpoint, query, indexes=None, autocaste_data=True, raise_on_err
         return results
     labels = rawresults['head']['vars']
     indexes = indexes or []
-    if autocaste_data:
+    if autocast_data:
         transform = autocast
     else:
-        def transform(*args): return args
+        def transform(x): return x
     for raw in rawresults["results"]["bindings"]:
         data = []
         if not indexes:
@@ -177,7 +177,7 @@ def sparqljson(endpoint, query, lang_order=('fr', 'en'), raise_on_error=False):
 ###############################################################################
 def parsefile(filename, indexes=None, nbmax=None, delimiter='\t',
               encoding='utf-8', field_size_limit=None,
-              use_autocast=True, formatopt=None):
+              autocast_data=True, formatopt=None):
     """ Parse the file (read ``nbmax`` line at maximum if given). Each
         line is splitted according ``delimiter`` and only ``indexes`` are kept
 
@@ -218,7 +218,7 @@ def parsefile(filename, indexes=None, nbmax=None, delimiter='\t',
 
 
     # Autocast if asked
-    if use_autocast:
+    if autocast_data:
         deffunc = lambda x: autocast(x, encoding)
     else:
         deffunc = lambda x: x

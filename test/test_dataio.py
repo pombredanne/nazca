@@ -109,7 +109,7 @@ class DataIOTestCase(unittest.TestCase):
                           [3, ('23', 2.17), u'cherry', u'flower']], data)
 
         data = parsefile(path.join(TESTDIR, 'data', 'file2parse'),
-                         [0, (2, 3), 4, 1], delimiter=',', use_autocast=False)
+                         [0, (2, 3), 4, 1], delimiter=',', autocast_data=False)
         self.assertEqual([['1', ('12', '19'), 'apple', 'house'],
                           ['2', ('21.9', '19'), 'stramberry', 'horse'],
                           ['3', ('23', '2.17'), 'cherry', 'flower']], data)
@@ -226,7 +226,7 @@ class DataIOTestCase(unittest.TestCase):
                                  ' ?ville db-prop:longitude ?long .'
                                  ' ?ville db-prop:latitude ?lat .'
                                  ' FILTER (?population > 1000)'
-                                 '} LIMIT 100', indexes=[0, 1, (2, 3)], autocaste_data=False)
+                                 '} LIMIT 100', indexes=[0, 1, (2, 3)], autocast_data=False)
         self.assertEqual(len(alignset), 100)
         self.assertFalse(isinstance(alignset[0][2][0], float))
 
