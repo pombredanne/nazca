@@ -478,3 +478,45 @@ class SoundexProcessing(BaseProcessing):
                                                 target_attr_index,
                                                 distance_callback,
                                                 weight, matrix_normalized)
+
+
+class JaccardProcessing(BaseProcessing):
+    """ A processing based on the jaccard distance.
+    """
+
+    def __init__(self, ref_attr_index=None, target_attr_index=None,
+                 tokenizer=None, weight=1, matrix_normalized=False):
+        distance_callback = partial(jaccard, tokenizer=tokenizer)
+        super(JaccardProcessing, self).__init__(ref_attr_index,
+                                                target_attr_index,
+                                                distance_callback,
+                                                weight, matrix_normalized)
+
+
+class DifflibProcessing(BaseProcessing):
+    """ A processing based on the difflib distance.
+    """
+
+    def __init__(self, ref_attr_index=None, target_attr_index=None,
+                 weight=1, matrix_normalized=False):
+        super(DifflibProcessing, self).__init__(ref_attr_index,
+                                                target_attr_index,
+                                                difflib_match,
+                                                weight, matrix_normalized)
+
+
+class TemporalProcessing(BaseProcessing):
+    """ A processing based on the temporal distance.
+    """
+
+    def __init__(self, ref_attr_index=None, target_attr_index=None,
+                 granularity=u'days', parserinfo=FrenchParserInfo,
+                 dayfirst=True, yearfirst=False,
+                 weight=1, matrix_normalized=False):
+        distance_callback = partial(temporal, granularity=granularity,
+                                    parserinfo=parserinfo,
+                                    dayfirst=dayfirst, yearfirst=yearfirst)
+        super(TemporalProcessing, self).__init__(ref_attr_index,
+                                                target_attr_index,
+                                                distance_callback,
+                                                weight, matrix_normalized)

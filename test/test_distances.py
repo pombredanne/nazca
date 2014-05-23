@@ -28,7 +28,8 @@ from dateutil import parser as dateparser
 from nazca.utils.distances import (levenshtein, soundex, soundexcode,
                                    difflib_match,
                                    jaccard, euclidean, geographical,
-                                   LevenshteinProcessing, SoundexProcessing)
+                                   LevenshteinProcessing, SoundexProcessing,
+                                   JaccardProcessing, DifflibProcessing, TemporalProcessing)
 
 
 class DistancesTest(unittest.TestCase):
@@ -174,6 +175,37 @@ class SoundexTestCase(unittest.TestCase):
         _input = [u'Robert Ugo', u'Rubert Ugo', 'Rubert Pugo']
         pdist = processing.pdist(_input)
         self.assertEqual([0, 1, 1], pdist)
+
+
+class JaccardTestCase(unittest.TestCase):
+
+    def test_pdist(self):
+        processing = JaccardProcessing()
+        _input = [u'Robert Ugo', u'Rubert Ugo', 'Rubert Pugo']
+        pdist = processing.pdist(_input)
+        results = [0.666, 1, 0.666]
+        for ind, value in enumerate(pdist):
+            self.assertAlmostEqual(results[ind], value, 2)
+
+
+class DifflibTestCase(unittest.TestCase):
+
+    def test_pdist(self):
+        processing = DifflibProcessing()
+        _input = [u'Robert Ugo', u'Rubert Ugo', 'Rubert Pugo']
+        pdist = processing.pdist(_input)
+        results = [0.099, 0.238, 0.14]
+        for ind, value in enumerate(pdist):
+            self.assertAlmostEqual(results[ind], value, 2)
+
+
+class TemporalTestCase(unittest.TestCase):
+
+    def test_pdist(self):
+        processing = TemporalProcessing()
+        _input = ['14 aout 1991', '08/14/1991', '08/15/1992']
+        pdist = processing.pdist(_input)
+        self.assertEqual([0., 367, 367], pdist)
 
 
 if __name__ == '__main__':
