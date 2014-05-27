@@ -117,6 +117,11 @@ def euclidean(a, b):
 ###############################################################################
 ### STRING DISTANCES ##########################################################
 ###############################################################################
+def exact_match(a, b):
+    """ The simplest distance, defined as 0 if both values are equal, 1 elsewise.
+    """
+    return 0 if a==b else 1
+
 def levenshtein(stra, strb, tokenizer=None):
     """ Compute the Levenshtein distance between stra and strb.
 
@@ -440,6 +445,17 @@ class BaseProcessing(object):
 ###############################################################################
 ### CONCRETE PROCESSINGS #######################################################
 ###############################################################################
+class ExactMatchProcessing(BaseProcessing):
+    """ A processing based on the exact match (1 if a==b, 0 elsewise)
+    """
+
+    def __init__(self, ref_attr_index=None, target_attr_index=None,
+                 tokenizer=None, weight=1, matrix_normalized=False):
+        super(ExactMatchProcessing, self).__init__(ref_attr_index,
+                                                   target_attr_index,
+                                                   exact_match,
+                                                   weight, matrix_normalized)
+
 class LevenshteinProcessing(BaseProcessing):
     """ A processing based on the levenshtein distance.
     """
