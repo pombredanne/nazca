@@ -163,10 +163,10 @@ class BaseAligner(object):
         self.time = time.time() - start_time
         return global_mat, global_matched
 
-    def get_aligned_pairs(self, refset, targetset, unique=True):
+    def get_aligned_pairs(self, refset, targetset, unique=True, use_distance=True):
         """ Get the pairs of aligned elements
         """
-        global_mat, global_matched = self.align(refset, targetset, get_matrix=False)
+        global_mat, global_matched = self.align(refset, targetset, get_matrix=use_distance)
         for pair in iter_aligned_pairs(refset, targetset, global_mat, global_matched, unique):
             self.pairs_found += 1
             yield pair
