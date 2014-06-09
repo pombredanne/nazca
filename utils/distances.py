@@ -323,7 +323,8 @@ def geographical(pointa, pointb, in_radians=False, planet_radius=6371009,
 
         - `units` can be 'm' (meters) or 'km' (kilometers)
     """
-    assert units in ('m', 'km')
+    if units not in ('m', 'km'):
+        raise ValueError("unsupported units, should be in m or km")
     pointa = (float(pointa[0]), float(pointa[1]))
     pointb = (float(pointb[0]), float(pointb[1]))
 
