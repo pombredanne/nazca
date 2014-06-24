@@ -139,8 +139,29 @@ class DistancesTest(unittest.TestCase):
 class GeographicalTestCase(unittest.TestCase):
 
     def test_geographical(self):
+        # Use the whole record
         processing = GeographicalProcessing(units='km')
         _input = ((48.856578, 2.351828), (51.504872, -0.07857))
+        pdist = processing.pdist(_input)
+        self.assertEqual([341.56415945105], pdist)
+
+    def test_geographical_2(self):
+        # Use a single column of the record (tuple version)
+        processing = GeographicalProcessing(ref_attr_index=1,
+                                            target_attr_index=1,
+                                            units='km')
+        _input = (('paris', (48.856578, 2.351828)),
+                  ('london', (51.504872, -0.07857)))
+        pdist = processing.pdist(_input)
+        self.assertEqual([341.56415945105], pdist)
+
+    def test_geographical_3(self):
+        # Use two columns of the record
+        processing = GeographicalProcessing(ref_attr_index=(1,2),
+                                            target_attr_index=(1,2),
+                                            units='km')
+        _input = (('paris', 48.856578, 2.351828),
+                  ('london', 51.504872, -0.07857))
         pdist = processing.pdist(_input)
         self.assertEqual([341.56415945105], pdist)
 
