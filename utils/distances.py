@@ -381,6 +381,14 @@ class BaseProcessing(object):
         self.weight = weight
         self.matrix_normalized = matrix_normalized
 
+    def build_record(self, record, index):
+        """ Allow to have ref_attr_index and target_attr_index to be couple
+        of index for (latitude, longitude) """
+        if isinstance(index, tuple) and len(index) == 2:
+            return (record[index[0]], record[index[1]])
+        else:
+            return (record[index] if index else record)
+
     def distance(self, reference_record, target_record):
         """ Compute the distance between two records
 
@@ -391,11 +399,8 @@ class BaseProcessing(object):
         target_record: a record (tuple/list of values) of the target dataset.
 
         """
-        refrecord = (reference_record[self.ref_attr_index] if self.ref_attr_index
-                     else reference_record)
-        targetrecord = (target_record[self.target_attr_index] if self.target_attr_index
-                        else target_record)
-        return self.distance_callback(refrecord, targetrecord)
+        return self.distance_callback(self.build_record(reference_record, self.ref_attr_index),
+                                      self.build_record(target_record, self.target_attr_index))
 
     def cdist(self, refset, targetset, ref_indexes=None, target_indexes=None):
         """ Compute the metric matrix, given two datasets and a metric
@@ -483,6 +488,7 @@ class GeographicalProcessing(BaseProcessing):
                                                     target_attr_index,
                                                     distance_callback,
                                                     weight, matrix_normalized)
+
 
 class SoundexProcessing(BaseProcessing):
     """ A processing based on the soundex distance.
