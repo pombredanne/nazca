@@ -1,3 +1,9 @@
+nazca (0.6.0-1) unstable; urgency=low
+
+  * Add notebooks
+
+ -- Vincent michel <Vincent.Michel@logilab.fr>  Tue, 01 Jul 2014 10:03:10 +0200
+
 nazca (0.5.1-1) unstable; urgency=low
 
   * Fix sparql queries and normalization index
