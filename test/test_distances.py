@@ -174,6 +174,20 @@ class ExactMatchTestCase(unittest.TestCase):
         pdist = processing.pdist(_input)
         self.assertEqual([1, 0., 1], pdist)
 
+    def test_index(self):
+        processing = ExactMatchProcessing()
+        ref_record = ['Victor Hugo', 0]
+        target_record = ['Victor Hugo', 1]
+        d = processing.distance(ref_record, target_record)
+        self.assertEqual(d, 1)
+
+    def test_index_2(self):
+        processing = ExactMatchProcessing(ref_attr_index=0, target_attr_index=0)
+        ref_record = ['Victor Hugo', 0]
+        target_record = ['Victor Hugo', 1]
+        d = processing.distance(ref_record, target_record)
+        self.assertEqual(d, 0)
+
 
 class LevenshteinTestCase(unittest.TestCase):
 
