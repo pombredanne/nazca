@@ -387,7 +387,7 @@ class BaseProcessing(object):
         if isinstance(index, tuple) and len(index) == 2:
             return (record[index[0]], record[index[1]])
         else:
-            return (record[index] if index else record)
+            return (record[index] if index is not None else record)
 
     def distance(self, reference_record, target_record):
         """ Compute the distance between two records
