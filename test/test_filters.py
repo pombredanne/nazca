@@ -51,10 +51,10 @@ class FilterTest(unittest.TestCase):
                                            sentence=Sentence(indice=0, start=0, end=38))),
                           ('http://example.com/me', None,
                            Token(word='me', start=43, end=45,
-                                           sentence=Sentence(indice=1, start=38, end=46))),
+                                           sentence=Sentence(indice=1, start=39, end=46))),
                           ('http://example2.com/me', None,
                            Token(word='me', start=43, end=45,
-                                           sentence=Sentence(indice=1, start=38, end=46)))])
+                                           sentence=Sentence(indice=1, start=39, end=46)))])
 
     def test_occurence_filter_max_occ(self):
         """ Test occurence filter """
@@ -84,7 +84,7 @@ class FilterTest(unittest.TestCase):
                                  sentence=Sentence(indice=0, start=0, end=16))),
                           ('http://example.com/toto_tutu', None,
                            Token(word='toto', start=21, end=25,
-                                 sentence=Sentence(indice=1, start=16, end=26)))])
+                                 sentence=Sentence(indice=1, start=17, end=26)))])
 
     def test_disambiguation_word_case(self):
         """ Test occurence filter """
@@ -100,7 +100,7 @@ class FilterTest(unittest.TestCase):
                                  sentence=Sentence(indice=0, start=0, end=16))),
                           ('http://example.com/toto_tutu', None,
                            Token(word='Toto', start=21, end=25,
-                                 sentence=Sentence(indice=1, start=16, end=26)))])
+                                 sentence=Sentence(indice=1, start=17, end=26)))])
 
     def test_rules_filter(self):
         """ Test rules filter """
@@ -117,7 +117,7 @@ class FilterTest(unittest.TestCase):
                                  sentence=Sentence(indice=0, start=0, end=16))),
                           ('http://example.com/tata', None,
                            Token(word='toto', start=21, end=25,
-                                 sentence=Sentence(indice=1, start=16, end=26)))])
+                                 sentence=Sentence(indice=1, start=17, end=26)))])
 
 if __name__ == '__main__':
     unittest.main()
