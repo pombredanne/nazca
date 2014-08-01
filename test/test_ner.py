@@ -26,7 +26,7 @@ from nazca.ner.sources import (NerSourceLexicon,
                                           NerSourceSparql,
                                           NerSourceRql)
 from nazca.ner import NerProcess
-from nazca.utils.tokenizer import Token, Sentence
+from nazca.utils.tokenizer import Token, Sentence, NLTK_AVAILABLE
 from nazca.ner.preprocessors import NerStopwordsFilterPreprocessor
 
 
@@ -66,6 +66,7 @@ class NerTest(unittest.TestCase):
                           u'http://sw.opencyc.org/2008/06/10/concept/en/Python_ProgrammingLanguage',
                           u'http://sw.opencyc.org/2008/06/10/concept/Mx4r74UIARqkEdac2QACs0uFOQ'])
 
+    @unittest.skipUnless(NLTK_AVAILABLE, 'nltk is not available')
     def test_ner_process(self):
         """ Test ner process """
         text = 'Hello everyone, this is   me speaking. And me.'
@@ -82,8 +83,9 @@ class NerTest(unittest.TestCase):
                                            sentence=Sentence(indice=0, start=0, end=38))),
                           ('http://example.com/me', None,
                            Token(word='me', start=43, end=45,
-                                           sentence=Sentence(indice=1, start=38, end=46)))])
+                                           sentence=Sentence(indice=1, start=39, end=46)))])
 
+    @unittest.skipUnless(NLTK_AVAILABLE, 'nltk is not available')
     def test_ner_process_multisources(self):
         """ Test ner process """
         text = 'Hello everyone, this is   me speaking. And me.'
@@ -105,10 +107,10 @@ class NerTest(unittest.TestCase):
                                            sentence=Sentence(indice=0, start=0, end=38))),
                           ('http://example.com/me', None,
                            Token(word='me', start=43, end=45,
-                                           sentence=Sentence(indice=1, start=38, end=46))),
+                                           sentence=Sentence(indice=1, start=39, end=46))),
                           ('http://example2.com/me', None,
                            Token(word='me', start=43, end=45,
-                                           sentence=Sentence(indice=1, start=38, end=46)))])
+                                           sentence=Sentence(indice=1, start=39, end=46)))])
         # Two sources, unique
         ner = NerProcess((source1, source2), unique=True)
         named_entities = ner.process_text(text)
@@ -121,7 +123,7 @@ class NerTest(unittest.TestCase):
                                            sentence=Sentence(indice=0, start=0, end=38))),
                           ('http://example.com/me', None,
                            Token(word='me', start=43, end=45,
-                                           sentence=Sentence(indice=1, start=38, end=46)))])
+                                           sentence=Sentence(indice=1, start=39, end=46)))])
         # Two sources inversed, unique
         ner = NerProcess((source2, source1), unique=True)
         named_entities = ner.process_text(text)
@@ -134,8 +136,9 @@ class NerTest(unittest.TestCase):
                                            sentence=Sentence(indice=0, start=0, end=38))),
                           ('http://example2.com/me', None,
                            Token(word='me', start=43, end=45,
-                                           sentence=Sentence(indice=1, start=38, end=46)))])
+                                           sentence=Sentence(indice=1, start=39, end=46)))])
 
+    @unittest.skipUnless(NLTK_AVAILABLE, 'nltk is not available')
     def test_ner_process_add_sources(self):
         """ Test ner process """
         text = 'Hello everyone, this is   me speaking. And me.'
@@ -153,7 +156,7 @@ class NerTest(unittest.TestCase):
                                            sentence=Sentence(indice=0, start=0, end=38))),
                           ('http://example.com/me', None,
                            Token(word='me', start=43, end=45,
-                                           sentence=Sentence(indice=1, start=38, end=46))),])
+                                           sentence=Sentence(indice=1, start=39, end=46))),])
         # Two sources, not unique
         ner.add_ner_source(source2)
         named_entities = ner.process_text(text)
@@ -169,11 +172,12 @@ class NerTest(unittest.TestCase):
                                            sentence=Sentence(indice=0, start=0, end=38))),
                           ('http://example.com/me', None,
                            Token(word='me', start=43, end=45,
-                                           sentence=Sentence(indice=1, start=38, end=46))),
+                                           sentence=Sentence(indice=1, start=39, end=46))),
                           ('http://example2.com/me', None,
                            Token(word='me', start=43, end=45,
-                                           sentence=Sentence(indice=1, start=38, end=46)))])
+                                           sentence=Sentence(indice=1, start=39, end=46)))])
 
+    @unittest.skipUnless(NLTK_AVAILABLE, 'nltk is not available')
     def test_ner_process_preprocess(self):
         """ Test ner process """
         text = 'Hello Toto, this is   me speaking. And me.'
@@ -187,6 +191,7 @@ class NerTest(unittest.TestCase):
                                            Token(word='Toto', start=6, end=10,
                                                  sentence=Sentence(indice=0, start=0, end=34)))])
 
+    @unittest.skipUnless(NLTK_AVAILABLE, 'nltk is not available')
     def test_ner_process_add_preprocess(self):
         """ Test ner process """
         text = 'Hello Toto, this is   me speaking. And me.'
@@ -204,13 +209,14 @@ class NerTest(unittest.TestCase):
                                  sentence=Sentence(indice=0, start=0, end=34))),
                           ('http://example.com/me', None,
                            Token(word='me', start=39, end=41,
-                                 sentence=Sentence(indice=1, start=34, end=42)))])
+                                 sentence=Sentence(indice=1, start=35, end=42)))])
         ner.add_preprocessors(preprocessor)
         named_entities = ner.process_text(text)
         self.assertEqual(named_entities, [('http://example.com/toto', None,
                                            Token(word='Toto', start=6, end=10,
                                                  sentence=Sentence(indice=0, start=0, end=34)))])
 
+    @unittest.skipUnless(NLTK_AVAILABLE, 'nltk is not available')
     def test_ner_process_chained_word(self):
         """ Test ner process """
         text = 'Hello everyone me, this is   me speaking. And me.'
@@ -227,7 +233,8 @@ class NerTest(unittest.TestCase):
                            Token(word='me', start=29, end=31,
                                  sentence=Sentence(indice=0, start=0, end=41))),
                           ('http://example.com/me', None,
-                           Token(word='me', start=46, end=48, sentence=Sentence(indice=1, start=41, end=49)))])
+                           Token(word='me', start=46, end=48,
+                                 sentence=Sentence(indice=1, start=42, end=49)))])
 
 
 if __name__ == '__main__':

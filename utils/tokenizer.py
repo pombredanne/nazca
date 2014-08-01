@@ -5,6 +5,12 @@ import itertools
 import collections
 import re
 
+try:
+    from nltk.tokenize.punkt import PunktSentenceTokenizer
+except ImportError:
+    NLTK_AVAILABLE = False
+else:
+    NLTK_AVAILABLE = True
 
 Token = collections.namedtuple('Token', ['word', 'start', 'end', 'sentence'])
 Sentence = collections.namedtuple('Sentence', ['indice', 'start', 'end'])
@@ -50,11 +56,15 @@ class RichStringTokenizer(object):
                 yield Token(normalized_word, _words[0].start(), _words[-1].end(), current_sentence)
             indice += 1
 
-    def find_sentences(self, text):
+    @staticmethod
+    def find_sentences(text):
         """ Find the sentences
         """
-        return [Sentence(ind, s.start(), s.end()) for ind, s in
-                enumerate(re.finditer(r'[^.!?]+(?:[.!?]|$)', text, re.UNICODE))]
+        if not NLTK_AVAILABLE:
+            raise RuntimeError("find_sentences requires NLTK to be installed")
+        sentences = PunktSentenceTokenizer().span_tokenize(text)
+        return [Sentence(ind, start, end)
+                for ind, (start, end) in enumerate(sentences)]
 
     def load_text(self, text):
         """ Load the text to be tokenized
