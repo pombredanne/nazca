@@ -26,13 +26,15 @@ class RichStringTokenizer(object):
         self.token_min_size = token_min_size
         self.token_max_size = token_max_size
 
+    words_re = r'[\w@-]+'
+
     def iter_tokens(self, text):
         """ Iterate tokens over a text
         """
         # Compute sentences
         sentences = self.find_sentences(text)
         # Compute words
-        words = list([m for m in re.finditer(r'[\w@-]+', text, re.UNICODE)])
+        words = [m for m in re.finditer(self.words_re, text, re.UNICODE)]
         indice = 0
         while indice < len(words):
             # Choose the current sentence of the first word
