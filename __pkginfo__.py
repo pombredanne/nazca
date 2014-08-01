@@ -32,6 +32,10 @@ web = "https://www.logilab.org/project/nazca"
 author = "Logilab"
 author_email = "contact@logilab.fr"
 
+__depends__ = {
+    'scipy': None,
+    'scikit-learn': None,
+}
 
 from os.path import join
 include_dirs = [join('test', 'data'), 'data', 'examples', 'ner', 'rl', 'utils']
