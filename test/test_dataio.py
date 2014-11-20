@@ -30,6 +30,7 @@ from nazca.utils.dataio import (HTMLPrettyPrint, ValidXHTMLPrettyPrint,
                                 sparqlquery, sparqljson, _sparqlexecute,
                                 rqlquery, parsefile,
                                 autocast, split_file)
+from nazca.utils.tokenizer import NLTK_AVAILABLE
 from nazca.ner import NerProcess
 from nazca.ner.sources import NerSourceLexicon
 
@@ -70,6 +71,7 @@ class ValidXHTMLPrettyPrintTest(unittest.TestCase):
             self.skipTest('Lxml version to old for ValidXHTMLPrettyPrint')
         self.assertFalse(ValidXHTMLPrettyPrint().is_valid(u'<p><div>coucou</div></p>'))
 
+    @unittest.skipUnless(NLTK_AVAILABLE, 'nltk is not available')
     def test_prettyprint(self):
         text = 'Hello everyone, this is   me speaking. And me.'
         source = NerSourceLexicon({'everyone': 'http://example.com/everyone',
@@ -81,6 +83,7 @@ class ValidXHTMLPrettyPrintTest(unittest.TestCase):
                                 u'this is   <a href="http://example.com/me">me</a> speaking. '
                                 u'And <a href="http://example.com/me">me</a>.'))
 
+    @unittest.skipUnless(NLTK_AVAILABLE, 'nltk is not available')
     def test_prettyprint_class(self):
         text = 'Hello everyone, this is   me speaking. And me.'
         source = NerSourceLexicon({'everyone': 'http://example.com/everyone',
