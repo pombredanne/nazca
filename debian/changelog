@@ -1,3 +1,9 @@
+nazca (0.7.0-1) unstable; urgency=low
+
+  * new upstream release
+
+ -- Adrien Di Mascio <Adrien.DiMascio@logilab.fr>  Thu, 20 Nov 2014 11:20:43 +0100
+
 nazca (0.6.1-1) unstable; urgency=low
 
   * Update notebooks
