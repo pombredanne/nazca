@@ -44,8 +44,16 @@ def randomhashfunction(zr):
 def count_vectorizer_func(sentences, min_n, max_n):
     """ Perform a tokenization using scikit learn
     """
-    from sklearn.feature_extraction.text import CountVectorizer
-    count_vec = CountVectorizer(min_n=min_n, max_n=max_n)
+    import sklearn
+    import sklearn.feature_extraction.text as sklt
+    skversion = tuple(int(x) for x in sklearn.__version__.split('.')[:2])
+    if skversion < (0, 11):
+        word_ngram = sklt.WordNGramAnalyzer(min_n=min_n, max_n=max)
+        count_vec = sklt.CountVectorizer(analyzer=word_ngram)
+    elif skversion < (0, 14):
+        count_vec = sklt.CountVectorizer(min_n=min_n, max_n=max_n)
+    else:
+        count_vec = sklt.CountVectorizer(ngram_range=(min_n, max_n))
     # Transform and convert to lil to get rows
     data = count_vec.fit_transform(sentences).tolil()
     return [list(l) for l in data.rows], data.shape
