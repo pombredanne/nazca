@@ -27,9 +27,10 @@ from nazca.ner.filters import (NerOccurenceFilter,
                                NerReplacementRulesFilter,
                                NerDisambiguationWordParts)
 from nazca.ner.sources import NerSourceLexicon
-from nazca.utils.tokenizer import Token, Sentence
+from nazca.utils.tokenizer import Token, Sentence, NLTK_AVAILABLE
 
 
+@unittest.skipUnless(NLTK_AVAILABLE, 'nltk is not available')
 class FilterTest(unittest.TestCase):
     """ Test of filters """
 

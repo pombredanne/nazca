@@ -22,9 +22,11 @@ if sys.version_info >= (2, 7):
 else:
     import unittest2 as unittest
 
-from nazca.utils.tokenizer import RichStringTokenizer, Token, Sentence
+from nazca.utils.tokenizer import (RichStringTokenizer, Token,
+                                   Sentence, NLTK_AVAILABLE)
 
 
+@unittest.skipUnless(NLTK_AVAILABLE, 'nltk is not available')
 class TokenizerTest(unittest.TestCase):
     """ Test of tokenizer """
 
