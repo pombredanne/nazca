@@ -149,23 +149,39 @@ class DataIOTestCase(unittest.TestCase):
 
     def test_sparql_query(self):
         results = sparqlquery(u'http://dbpedia.org/sparql',
-                              u'''SELECT DISTINCT ?uri
-                                  WHERE{
-                                  ?uri rdfs:label "Python"@en .
-                                  ?uri rdf:type ?type}''')
-        self.assertEqual(results, [['http://dbpedia.org/resource/Python'],
-                                   ['http://sw.opencyc.org/2008/06/10/concept/en/Python_ProgrammingLanguage'],
-                                   ['http://sw.opencyc.org/2008/06/10/concept/Mx4r74UIARqkEdac2QACs0uFOQ']])
+                              u'''SELECT DISTINCT ?uri ?designer
+                                  WHERE {
+                                  ?uri rdf:type <http://dbpedia.org/ontology/ProgrammingLanguage> ;
+                                       rdfs:label ?label ;
+                                       dbpedia-owl:designer ?designer .
+                                  FILTER(regex(?label, "^Python"))
+                                  }''')
+        self.assertEqual(results, [['http://dbpedia.org/resource/Python_(programming_language)', 'http://dbpedia.org/resource/Guido_van_Rossum'],
+                                   ['http://dbpedia.org/resource/Python_for_S60', 'http://dbpedia.org/resource/Guido_van_Rossum']])
 
     def test_sparql_execute(self):
         rawresults = _sparqlexecute(u'http://dbpedia.org/sparql',
-                                    u'''SELECT DISTINCT ?uri
-                                    WHERE{
-                                    ?uri rdfs:label "Python"@en .
-                                    ?uri rdf:type ?type}''')
-        self.assertEqual(rawresults, {u'head': {u'link': [], u'vars': [u'uri']},
-                                      u'results': {u'distinct': False, u'bindings': [{u'uri': {u'type': u'uri', u'value': u'http://dbpedia.org/resource/Python'}}, {u'uri': {u'type': u'uri', u'value': u'http://sw.opencyc.org/2008/06/10/concept/en/Python_ProgrammingLanguage'}}, {u'uri': {u'type': u'uri', u'value': u'http://sw.opencyc.org/2008/06/10/concept/Mx4r74UIARqkEdac2QACs0uFOQ'}}],
-                                                   u'ordered': True}})
+                                    u'''SELECT DISTINCT ?uri ?designer
+                                        WHERE {
+                                        ?uri rdf:type <http://dbpedia.org/ontology/ProgrammingLanguage> ;
+                                             rdfs:label ?label ;
+                                             dbpedia-owl:designer ?designer .
+                                        FILTER(regex(?label, "^Python"))
+                                        }''')
+        self.assertEqual(rawresults,
+                         {'head': {'link': [], 'vars': ['uri', 'designer']},
+                          'results': {
+                              'bindings': [
+                                  {'designer': {'type': 'uri',
+                                                'value': 'http://dbpedia.org/resource/Guido_van_Rossum'},
+                                   'uri': {'type': 'uri',
+                                           'value': 'http://dbpedia.org/resource/Python_(programming_language)'}},
+                                  {'designer': {'type': 'uri',
+                                                'value': 'http://dbpedia.org/resource/Guido_van_Rossum'},
+                                   'uri': {'type': 'uri',
+                                           'value': 'http://dbpedia.org/resource/Python_for_S60'}}],
+                              'distinct': False,
+                              'ordered': True}})
 
     def test_sparql_execute_no_raise_on_error(self):
         rawresults = _sparqlexecute(u'http://dbpedia.org/sparql',
@@ -186,20 +202,17 @@ class DataIOTestCase(unittest.TestCase):
 
     def test_sparql_json(self):
         results = sparqljson(u'http://dbpedia.org/sparql',
-                             u'''SELECT DISTINCT ?uri
-                             WHERE{
-                             ?uri rdfs:label "Python"@en .
-                             ?uri rdf:type ?type}''')
-        self.assertEqual(results, {u'uri': set([u'http://sw.opencyc.org/2008/06/10/concept/Mx4r74UIARqkEdac2QACs0uFOQ', u'http://sw.opencyc.org/2008/06/10/concept/en/Python_ProgrammingLanguage', u'http://dbpedia.org/resource/Python'])})
-
-    def test_sparql_json2(self):
-        results = sparqljson(u'http://dbpedia.org/sparql',
-                             u'''SELECT DISTINCT ?uri ?label
-                             WHERE{
-                             ?uri rdfs:label "Python"@en .
-                             ?uri rdfs:label ?label .
-                             ?uri rdf:type ?type}''')
-        self.assertEqual(results, {u'uri': set([u'http://sw.opencyc.org/2008/06/10/concept/Mx4r74UIARqkEdac2QACs0uFOQ', u'http://sw.opencyc.org/2008/06/10/concept/en/Python_ProgrammingLanguage', u'http://dbpedia.org/resource/Python']), u'label': u'Python'})
+                             u'''SELECT DISTINCT ?uri ?designer
+                                 WHERE {
+                                 ?uri rdf:type <http://dbpedia.org/ontology/ProgrammingLanguage> ;
+                                      rdfs:label ?label ;
+                                      dbpedia-owl:designer ?designer .
+                                 FILTER(regex(?label, "^Python"))
+                                 }''')
+        self.assertEqual(results,
+                         {'designer': set(['http://dbpedia.org/resource/Guido_van_Rossum']),
+                          'uri': set(['http://dbpedia.org/resource/Python_(programming_language)',
+                                      'http://dbpedia.org/resource/Python_for_S60'])})
 
     def test_sparql_autocast(self):
         alignset = sparqlquery('http://dbpedia.inria.fr/sparql',
