@@ -57,14 +57,16 @@ class NerTest(unittest.TestCase):
     def test_sparql_source(self):
         """ Test sparql source """
         source = NerSourceSparql(u'http://dbpedia.org/sparql',
-                                 u'''SELECT DISTINCT ?uri
-                                     WHERE{
-                                     ?uri rdfs:label "%(word)s"@en .
-                                     ?uri rdf:type ?type}''')
+                             u'''SELECT DISTINCT ?uri
+                                 WHERE {
+                                 ?uri rdf:type <http://dbpedia.org/ontology/ProgrammingLanguage> ;
+                                      dbpedia-owl:designer <http://dbpedia.org/resource/Guido_van_Rossum> ;
+                                      rdfs:label ?label.
+                                 FILTER(regex(?label, "^%(word)s"))
+                                 }''')
         self.assertEqual(source.query_word('Python'),
-                         [u'http://dbpedia.org/resource/Python',
-                          u'http://sw.opencyc.org/2008/06/10/concept/en/Python_ProgrammingLanguage',
-                          u'http://sw.opencyc.org/2008/06/10/concept/Mx4r74UIARqkEdac2QACs0uFOQ'])
+                         ['http://dbpedia.org/resource/Python_(programming_language)',
+                          'http://dbpedia.org/resource/Python_for_S60'])
 
     @unittest.skipUnless(NLTK_AVAILABLE, 'nltk is not available')
     def test_ner_process(self):
