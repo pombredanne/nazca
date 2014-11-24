@@ -30,7 +30,8 @@ from nazca.utils.distances import (levenshtein, soundex, soundexcode,
                                    jaccard, euclidean, geographical,
                                    ExactMatchProcessing, GeographicalProcessing,
                                    LevenshteinProcessing, SoundexProcessing,
-                                   JaccardProcessing, DifflibProcessing, TemporalProcessing)
+                                   JaccardProcessing, DifflibProcessing,
+                                   DATEUTIL_ENABLED)
 
 
 class DistancesTest(unittest.TestCase):
@@ -252,9 +253,11 @@ class DifflibTestCase(unittest.TestCase):
             self.assertAlmostEqual(results[ind], value, 2)
 
 
+@unittest.skipUnless(DATEUTIL_ENABLED, 'python-dateutil is not installed')
 class TemporalTestCase(unittest.TestCase):
 
     def test_pdist(self):
+        from nazca.utils.distances import TemporalProcessing
         processing = TemporalProcessing()
         _input = ['14 aout 1991', '08/14/1991', '08/15/1992']
         pdist = processing.pdist(_input)
