@@ -29,7 +29,7 @@ from tempfile import mkdtemp
 from nazca.utils.dataio import (HTMLPrettyPrint, ValidXHTMLPrettyPrint,
                                 sparqlquery, sparqljson, _sparqlexecute,
                                 rqlquery, parsefile,
-                                autocast, split_file)
+                                autocast, split_file, SPARQL_ENABLED)
 from nazca.utils.tokenizer import NLTK_AVAILABLE
 from nazca.ner import NerProcess
 from nazca.ner.sources import NerSourceLexicon
@@ -147,6 +147,7 @@ class DataIOTestCase(unittest.TestCase):
             with open(file2split) as fobj:
                 self.assertEqual(alllines, fobj.readlines())
 
+    @unittest.skipUnless(SPARQL_ENABLED, 'python-sparqlwrapper is not installed')
     def test_sparql_query(self):
         results = sparqlquery(u'http://dbpedia.org/sparql',
                               u'''SELECT DISTINCT ?uri ?designer
@@ -159,6 +160,7 @@ class DataIOTestCase(unittest.TestCase):
         self.assertEqual(results, [['http://dbpedia.org/resource/Python_(programming_language)', 'http://dbpedia.org/resource/Guido_van_Rossum'],
                                    ['http://dbpedia.org/resource/Python_for_S60', 'http://dbpedia.org/resource/Guido_van_Rossum']])
 
+    @unittest.skipUnless(SPARQL_ENABLED, 'python-sparqlwrapper is not installed')
     def test_sparql_execute(self):
         rawresults = _sparqlexecute(u'http://dbpedia.org/sparql',
                                     u'''SELECT DISTINCT ?uri ?designer
@@ -183,6 +185,7 @@ class DataIOTestCase(unittest.TestCase):
                               'distinct': False,
                               'ordered': True}})
 
+    @unittest.skipUnless(SPARQL_ENABLED, 'python-sparqlwrapper is not installed')
     def test_sparql_execute_no_raise_on_error(self):
         rawresults = _sparqlexecute(u'http://dbpedia.org/sparql',
                                     u'''SELECT DISTINCT ?uri
@@ -191,6 +194,7 @@ class DataIOTestCase(unittest.TestCase):
                                     ?uri rdf:type ?type}''')
         self.assertEqual(rawresults, [])
 
+    @unittest.skipUnless(SPARQL_ENABLED, 'python-sparqlwrapper is not installed')
     def test_sparql_execute_raise_on_error(self):
         with self.assertRaises(RuntimeError):
             rawresults = _sparqlexecute(u'http://dbpedia.org/sparql',
@@ -200,6 +204,7 @@ class DataIOTestCase(unittest.TestCase):
                                         ?uri rdf:type ?type}''',
                                         raise_on_error=True)
 
+    @unittest.skipUnless(SPARQL_ENABLED, 'python-sparqlwrapper is not installed')
     def test_sparql_json(self):
         results = sparqljson(u'http://dbpedia.org/sparql',
                              u'''SELECT DISTINCT ?uri ?designer
@@ -214,6 +219,7 @@ class DataIOTestCase(unittest.TestCase):
                           'uri': set(['http://dbpedia.org/resource/Python_(programming_language)',
                                       'http://dbpedia.org/resource/Python_for_S60'])})
 
+    @unittest.skipUnless(SPARQL_ENABLED, 'python-sparqlwrapper is not installed')
     def test_sparql_autocast(self):
         alignset = sparqlquery('http://dbpedia.inria.fr/sparql',
                                  'prefix db-owl: <http://dbpedia.org/ontology/>'
@@ -230,6 +236,7 @@ class DataIOTestCase(unittest.TestCase):
         self.assertEqual(len(alignset), 100)
         self.assertTrue(isinstance(alignset[0][2][0], float))
 
+    @unittest.skipUnless(SPARQL_ENABLED, 'python-sparqlwrapper is not installed')
     def test_sparql_no_autocast(self):
         alignset = sparqlquery('http://dbpedia.inria.fr/sparql',
                                  'prefix db-owl: <http://dbpedia.org/ontology/>'
