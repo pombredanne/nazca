@@ -528,18 +528,19 @@ class DifflibProcessing(BaseProcessing):
                                                 weight, matrix_normalized)
 
 
-class TemporalProcessing(BaseProcessing):
-    """ A processing based on the temporal distance.
-    """
+if DATEUTIL_ENABLED:
+    class TemporalProcessing(BaseProcessing):
+        """ A processing based on the temporal distance.
+        """
 
-    def __init__(self, ref_attr_index=None, target_attr_index=None,
-                 granularity=u'days', parserinfo=FrenchParserInfo,
-                 dayfirst=True, yearfirst=False,
-                 weight=1, matrix_normalized=False):
-        distance_callback = partial(temporal, granularity=granularity,
-                                    parserinfo=parserinfo,
-                                    dayfirst=dayfirst, yearfirst=yearfirst)
-        super(TemporalProcessing, self).__init__(ref_attr_index,
-                                                target_attr_index,
-                                                distance_callback,
-                                                weight, matrix_normalized)
+        def __init__(self, ref_attr_index=None, target_attr_index=None,
+                     granularity=u'days', parserinfo=FrenchParserInfo,
+                     dayfirst=True, yearfirst=False,
+                     weight=1, matrix_normalized=False):
+            distance_callback = partial(temporal, granularity=granularity,
+                                        parserinfo=parserinfo,
+                                        dayfirst=dayfirst, yearfirst=yearfirst)
+            super(TemporalProcessing, self).__init__(ref_attr_index,
+                                                    target_attr_index,
+                                                    distance_callback,
+                                                    weight, matrix_normalized)
