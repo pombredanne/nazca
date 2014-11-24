@@ -91,7 +91,7 @@ def rqlquery(host, rql, indexes=None, formatopt=None, autocast_data=True, _cache
         else:
             cnx = get_cw_cnx(host)
             _cache_cnx[host] = cnx
-        return cnx.execute(query, kwargs)
+        return cnx.execute(rql, kwargs)
 
 
 ###############################################################################
