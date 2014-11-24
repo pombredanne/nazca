@@ -1,6 +1,6 @@
 nazca (0.7.1-1) unstable; urgency=low
 
-  * recommend python-sparqlwrapper
+  * recommend python-sparqlwrapper and python-dateutil
 
  --
 
