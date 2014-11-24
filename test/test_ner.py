@@ -23,11 +23,12 @@ else:
     import unittest2 as unittest
 
 from nazca.ner.sources import (NerSourceLexicon,
-                                          NerSourceSparql,
-                                          NerSourceRql)
+                               NerSourceSparql,
+                               NerSourceRql)
 from nazca.ner import NerProcess
 from nazca.utils.tokenizer import Token, Sentence, NLTK_AVAILABLE
 from nazca.ner.preprocessors import NerStopwordsFilterPreprocessor
+from nazca.utils.dataio import SPARQL_ENABLED
 
 
 class NerTest(unittest.TestCase):
@@ -54,6 +55,7 @@ class NerTest(unittest.TestCase):
                               'Any U LIMIT 1 WHERE X cwuri U, X name "%(word)s"')
         self.assertEqual(source.query_word('apycot'), [u'http://www.cubicweb.org/1310453',])
 
+    @unittest.skipUnless(SPARQL_ENABLED, 'python-sparqlwrapper is not installed')
     def test_sparql_source(self):
         """ Test sparql source """
         source = NerSourceSparql(u'http://dbpedia.org/sparql',
