@@ -57,11 +57,15 @@ def get_cw_cnx(endpoint):
     """ Get a cnx on a CubicWeb database
     """
     from cubicweb import dbapi
+    from cubicweb.__pkginfo__ import numversion
     from cubicweb.cwconfig import CubicWebConfiguration
     from cubicweb.entities import AnyEntity
     CubicWebConfiguration.load_cwctl_plugins()
     config = CubicWebConfiguration.config_for(endpoint)
-    sourceinfo = config.sources()['admin']
+    if numversion < (3, 19):
+        sourceinfo = config.sources()['admin']
+    else:
+        sourceinfo = config.default_admin_config
     login = sourceinfo['login']
     password = sourceinfo['password']
     _, cnx = dbapi.in_memory_repo_cnx(config, login, password=password)
