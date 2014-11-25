@@ -2,7 +2,7 @@ nazca (0.7.1-1) unstable; urgency=low
 
   * recommend python-sparqlwrapper and python-dateutil
 
- --
+ -- Adrien Di Mascio <Adrien.DiMascio@logilab.fr>  Tue, 25 Nov 2014 18:28:00 +0100
 
 nazca (0.7.0-1) unstable; urgency=low
 
