@@ -45,6 +45,7 @@ __depends__ = {
     'numpy': None,
     'scipy': None,
     'scikit-learn': None,
+    'lxml': None,
 }
 
 __recommends__ = {

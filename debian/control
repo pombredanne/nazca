@@ -10,7 +10,8 @@ Package: python-nazca
 Architecture: all
 Depends: ${python:Depends},
   python-scipy,
-  python-sklearn
+  python-sklearn,
+  python-lxml
 Recommends:
   python-nltk (>= 3.0),
   python-sparqlwrapper,

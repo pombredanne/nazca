@@ -24,7 +24,7 @@ Requires:       %{python}
 Requires:       scipy
 Requires:       %{python}-sklearn
 Requires:       %{python}-dateutil
-
+Requires:       %{python}-lxml
 
 %description
 Python library for data alignment
