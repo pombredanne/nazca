@@ -24,7 +24,7 @@ __docformat__ = "restructuredtext en"
 import os
 import sys
 import shutil
-from os.path import isdir, exists, join
+from os.path import isdir, exists, join, dirname
 
 try:
     if os.environ.get('NO_SETUPTOOLS'):
@@ -44,30 +44,47 @@ except ImportError:
     # python2.x
     from distutils.command.build_py import build_py
 
-sys.modules.pop('__pkginfo__', None)
-# import optional features
-__pkginfo__ = __import__("__pkginfo__")
-# import required features
-from __pkginfo__ import modname, version, license, description, \
-     web, author, author_email
 
-distname = getattr(__pkginfo__, 'distname', modname)
-scripts = getattr(__pkginfo__, 'scripts', [])
-data_files = getattr(__pkginfo__, 'data_files', None)
-subpackage_of = getattr(__pkginfo__, 'subpackage_of', None)
-include_dirs = getattr(__pkginfo__, 'include_dirs', [])
-ext_modules = getattr(__pkginfo__, 'ext_modules', None)
-install_requires = getattr(__pkginfo__, 'install_requires', None)
-dependency_links = getattr(__pkginfo__, 'dependency_links', [])
+# load metadata from the __pkginfo__.py file so there is no risk of conflict
+# see https://packaging.python.org/en/latest/single_source_version.html
+base_dir = dirname(__file__)
+
+pkginfo = {}
+with open(join(base_dir, "__pkginfo__.py")) as f:
+    exec(f.read(), pkginfo)
+
+# get required metadatas
+modname = pkginfo['modname']
+version = pkginfo['version']
+license = pkginfo['license']
+description = pkginfo['description']
+web = pkginfo['web']
+author = pkginfo['author']
+author_email = pkginfo['author_email']
+classifiers = pkginfo['classifiers']
+
+with open(join(base_dir, 'README')) as f:
+    long_description = f.read()
+
+# get optional metadatas
+distname = pkginfo.get('distname', modname)
+scripts = pkginfo.get('scripts', ())
+include_dirs = pkginfo.get('include_dirs', ())
+data_files = pkginfo.get('data_files', None)
+ext_modules = pkginfo.get('ext_modules', None)
+dependency_links = pkginfo.get('dependency_links', ())
+
+if USE_SETUPTOOLS:
+    requires = {}
+    for entry in ("__depends__", "__recommends__"):
+        requires.update(pkginfo.get(entry, {}))
+    install_requires = [("%s %s" % (d, v and v or "")).strip()
+                       for d, v in requires.iteritems()]
+else:
+    install_requires = []
 
 STD_BLACKLIST = ('CVS', '.svn', '.hg', 'debian', 'dist', 'build')
-
 IGNORED_EXTENSIONS = ('.pyc', '.pyo', '.elc', '~')
-
-if exists('README'):
-    long_description = open('README').read()
-else:
-    long_description = ''
 
 def ensure_scripts(linux_scripts):
     """Creates the proper script names required for each platform
@@ -109,20 +126,9 @@ class MyInstallLib(install_lib.install_lib):
     def run(self):
         """overridden from install_lib class"""
         install_lib.install_lib.run(self)
-        # create Products.__init__.py if needed
-        if subpackage_of:
-            product_init = join(self.install_dir, subpackage_of, '__init__.py')
-            if not exists(product_init):
-                self.announce('creating %s' % product_init)
-                stream = open(product_init, 'w')
-                stream.write(EMPTY_FILE)
-                stream.close()
         # manually install included directories if any
         if include_dirs:
-            if subpackage_of:
-                base = join(subpackage_of, modname)
-            else:
-                base = modname
+            base = modname
             for directory in include_dirs:
                 dest = join(self.install_dir, base, directory)
                 shutil.rmtree(dest, ignore_errors=True)
@@ -136,15 +142,8 @@ def install(**kwargs):
     # install-layout option was introduced in 2.5.3-1~exp1
     elif sys.version_info < (2, 5, 4) and '--install-layout=deb' in sys.argv:
         sys.argv.remove('--install-layout=deb')
-    if subpackage_of:
-        package = subpackage_of + '.' + modname
-        kwargs['package_dir'] = {package : '.'}
-        packages = [package] + get_packages(os.getcwd(), package)
-        if USE_SETUPTOOLS:
-            kwargs['namespace_packages'] = [subpackage_of]
-    else:
-        kwargs['package_dir'] = {modname : '.'}
-        packages = [modname] + get_packages(os.getcwd(), modname)
+    kwargs['package_dir'] = {modname : '.'}
+    packages = [modname] + get_packages(os.getcwd(), modname)
     if USE_SETUPTOOLS and install_requires:
         kwargs['install_requires'] = install_requires
         kwargs['dependency_links'] = dependency_links
