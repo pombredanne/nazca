@@ -23,6 +23,7 @@ BuildRequires:  %{python}
 Requires:       %{python}
 Requires:       scipy
 Requires:       %{python}-sklearn
+Requires:       %{python}-dateutil
 
 
 %description

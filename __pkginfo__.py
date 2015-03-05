@@ -32,13 +32,28 @@ web = "https://www.logilab.org/project/nazca"
 author = "Logilab"
 author_email = "contact@logilab.fr"
 
+classifiers = [
+    'Programming Language :: Python',
+    'Topic :: Scientific/Engineering :: Information Analysis',
+    'Topic :: Software Development :: Libraries :: Python Modules',
+    'Topic :: Text Processing',
+]
+
 __depends__ = {
+    'python-dateutil': None,
+    'lxml': None,
+    'numpy': None,
     'scipy': None,
     'scikit-learn': None,
+}
+
+__recommends__ = {
+    'sparqlwrapper': None,
+    'nltk': None,
 }
 
 from os.path import join
 include_dirs = [join('test', 'data'), 'data', 'examples', 'ner', 'rl', 'utils']
 
 if sys.version_info < (2, 7):
-    install_requires = ['unittest2 >= 0.5.1']
+    __depends__['unittest2'] = '>= 0.5.1'
