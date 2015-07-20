@@ -1,3 +1,11 @@
+nazca (0.7.2-1) unstable; urgency=medium
+
+  * new upstream release
+  * upgrade to dh_python2
+  * update to 3.9.6
+
+ -- David Douard <david.douard@logilab.fr>  Mon, 20 Jul 2015 17:36:13 +0200
+
 nazca (0.7.1-1) unstable; urgency=low
 
   * recommend python-sparqlwrapper and python-dateutil
